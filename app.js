@@ -12,6 +12,7 @@ import { CyberAudioEngine } from "./sound-effects.js";
 import { DataExporter } from "./data-exporter.js";
 import { AutonomousAiOptimizer } from "./autonomous-ai-optimizer.js";
 import { DiurnalScheduler } from "./diurnal-scheduler.js";
+import { I18nManager } from "./i18n.js";
 
 // Core Engines
 const bioEngine = new BioPhysicalEngine();
@@ -20,6 +21,7 @@ const envEngine = new EnvironmentalEngine();
 const audio = new CyberAudioEngine();
 const aiOptimizer = new AutonomousAiOptimizer();
 const diurnalScheduler = new DiurnalScheduler();
+const i18n = new I18nManager();
 
 let plantChamber3d = null;
 let telemetryCharts = null;
@@ -46,6 +48,7 @@ let lastTimestamp = performance.now();
 const DOM = {
   // Navigation & Header
   navTabs: document.querySelectorAll(".nav-tab-btn"),
+  btnLangToggle: document.getElementById("btnLangToggle"),
   btnAudioMute: document.getElementById("btnAudioMute"),
   btnOpenParamEditor: document.getElementById("btnOpenParamEditor"),
   btnExportMenu: document.getElementById("btnExportMenu"),
@@ -202,6 +205,7 @@ function populateCropDropdown(selectedId = null) {
 }
 
 function initApp() {
+  i18n.updateDOM();
   populateCropDropdown();
 
   plantChamber3d = new ThreePlantChamber(DOM.plant3dContainer);
@@ -225,10 +229,10 @@ function initApp() {
     }, crop);
 
     DOM.hudNodeTitle.textContent = data.nodeType;
-    if (data.nodeType.includes("근권") || data.nodeType.includes("흡수근")) {
-      DOM.hudLeafTemp.textContent = `${(instantPhoto.stomata.leafTemp - 2.6).toFixed(1)} °C (근권수온)`;
-      DOM.hudNetAn.textContent = `${(instantPhoto.netAn * 0.45).toFixed(2)} (삼투흡수)`;
-      DOM.hudMoleculeConc.textContent = `${(plantState.luteinConcentration * 0.62).toFixed(2)} mg/g (근계)`;
+    if (data.nodeType.includes("근권") || data.nodeType.includes("흡수근") || data.nodeType.includes("Root")) {
+      DOM.hudLeafTemp.textContent = `${(instantPhoto.stomata.leafTemp - 2.6).toFixed(1)} °C`;
+      DOM.hudNetAn.textContent = `${(instantPhoto.netAn * 0.45).toFixed(2)}`;
+      DOM.hudMoleculeConc.textContent = `${(plantState.luteinConcentration * 0.62).toFixed(2)} mg/g`;
     } else {
       DOM.hudLeafTemp.textContent = `${instantPhoto.stomata.leafTemp} °C`;
       DOM.hudNetAn.textContent = `${instantPhoto.netAn.toFixed(2)} μmol`;
@@ -255,6 +259,17 @@ function initApp() {
 }
 
 function bindEventListeners() {
+  // Language Switcher Toggle
+  if (DOM.btnLangToggle) {
+    DOM.btnLangToggle.addEventListener("click", () => {
+      audio.playClick();
+      const current = i18n.getLanguage();
+      const nextLang = current === "ko" ? "en" : "ko";
+      i18n.setLanguage(nextLang);
+      populateCropDropdown(profileManager.getActiveProfile().id);
+    });
+  }
+
   // Navigation Tabs
   DOM.navTabs.forEach(tab => {
     tab.addEventListener("click", () => {
@@ -565,7 +580,10 @@ function simulationLoop(now) {
     DOM.metaDli.textContent = dli.toFixed(1);
     DOM.metaPpfd.textContent = Math.round(envTele.sensors.ppfd);
     DOM.metaAn.textContent = instantPhoto.netAn.toFixed(1);
-    DOM.diurnalStatusLabel.textContent = `주간 광합성 사이클 ${envTele.timeFormatted}`;
+    
+    const isDay = envTele.simulatedHour >= 6.0 && envTele.simulatedHour < 22.0;
+    const diurnalKey = isDay ? "diurnalDay" : "diurnalNight";
+    DOM.diurnalStatusLabel.textContent = `${i18n.t(diurnalKey)} ${envTele.timeFormatted}`;
 
     // 6. Update 8 Telemetry Tiles
     DOM.teleSensPpfd.textContent = Math.round(envTele.sensors.ppfd);
@@ -596,7 +614,10 @@ function simulationLoop(now) {
 
     // 9. Update Timeline Scrubber Text
     DOM.teleDay.textContent = envTele.simulatedDay;
-    DOM.teleStage.textContent = envTele.simulatedDay < 12 ? "Seedling Stage" : (envTele.simulatedDay < 28 ? "Vegetative Stage" : "Flowering & Harvest Stage");
+    const stageKey = envTele.simulatedDay < 12 
+      ? "stageSeedling" 
+      : (envTele.simulatedDay < 28 ? "stageVegetative" : "stageFlowering");
+    DOM.teleStage.textContent = i18n.t(stageKey);
     DOM.timelineSlider.value = envTele.simulatedDay;
 
     // 10. Push Telemetry Point to Oscilloscopes & Sparklines
@@ -685,7 +706,7 @@ function runOptimizationAndDisplay() {
   const crop = profileManager.getActiveProfile();
   const res = aiOptimizer.searchOptimalEnvironment(crop, currentOptimizationObjective);
 
-  DOM.modalRecipeTitle.textContent = `AI 역추적 최적화: ${crop.name} (${crop.targetMolecule})`;
+  DOM.modalRecipeTitle.textContent = `${i18n.t("optModalTitle")}: ${crop.name} (${crop.targetMolecule})`;
   DOM.optYieldGain.textContent = `+${res.improvements.yieldGainPercent}%`;
   DOM.optDaysSaved.textContent = `-${res.improvements.daysSaved}일 (${res.improvements.acceleratedDays}일차)`;
   DOM.optNetAn.textContent = `${res.improvements.netPhotosynthesis} μmol`;
@@ -720,14 +741,14 @@ function buildParamEditor() {
   DOM.paramGrid.innerHTML = "";
 
   const fields = [
-    { key: "name", label: "식물명", val: crop.name },
-    { key: "targetMolecule", label: "타깃 약리 성분", val: crop.targetMolecule },
-    { key: "chemicalFormula", label: "화학식", val: crop.chemicalFormula },
-    { key: "harvestDays", label: "수확 주기(일)", val: crop.harvestDays },
-    { key: "tempOpt", label: "최적 생육온도(°C)", val: crop.tempOpt },
+    { key: "name", label: i18n.getLanguage() === "ko" ? "식물명" : "Plant Name", val: crop.name },
+    { key: "targetMolecule", label: i18n.getLanguage() === "ko" ? "타깃 약리 성분" : "Target Molecule", val: crop.targetMolecule },
+    { key: "chemicalFormula", label: i18n.getLanguage() === "ko" ? "화학식" : "Chemical Formula", val: crop.chemicalFormula },
+    { key: "harvestDays", label: i18n.getLanguage() === "ko" ? "수확 주기(일)" : "Harvest Days", val: crop.harvestDays },
+    { key: "tempOpt", label: i18n.getLanguage() === "ko" ? "최적 생육온도(°C)" : "Optimal Temp (°C)", val: crop.tempOpt },
     { key: "vcmax25", label: "Rubisco Vcmax(μmol/m²s)", val: crop.vcmax25 },
     { key: "jmax25", label: "전자전달 Jmax(μmol/m²s)", val: crop.jmax25 },
-    { key: "baseLuteinConcentration", label: "기저 농도(mg/g DW)", val: crop.baseLuteinConcentration }
+    { key: "baseLuteinConcentration", label: i18n.getLanguage() === "ko" ? "기저 농도(mg/g DW)" : "Base Conc (mg/g DW)", val: crop.baseLuteinConcentration }
   ];
 
   fields.forEach(f => {

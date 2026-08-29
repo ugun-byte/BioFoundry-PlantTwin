@@ -238,6 +238,44 @@ body {
   background: var(--emerald-dim);
 }
 
+/* Language Toggle Pill */
+.lang-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.lang-toggle-pill:hover {
+  border-color: var(--cyan-accent);
+  color: #fff;
+}
+
+.lang-code {
+  color: var(--text-muted);
+  transition: color 0.15s;
+}
+
+.lang-code.active {
+  color: var(--cyan-accent);
+  font-weight: 800;
+  text-shadow: 0 0 6px rgba(0, 242, 254, 0.4);
+}
+
+.lang-divider {
+  color: rgba(255, 255, 255, 0.2);
+  font-weight: 400;
+}
+
 .switch-badge {
   background: #334155;
   color: #94a3b8;

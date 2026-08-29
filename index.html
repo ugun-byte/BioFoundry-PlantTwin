@@ -19,44 +19,51 @@
             <path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path>
             <path d="M11 20v-9"></path>
           </svg>
-          <span>BioFoundry PlantTwin</span>
+          <span data-i18n="brandName">BioFoundry PlantTwin</span>
         </div>
         <nav class="nav-tabs">
-          <button type="button" class="nav-tab-btn active" data-tab="overview">Overview</button>
-          <button type="button" class="nav-tab-btn" data-tab="telemetry">Telemetry</button>
-          <button type="button" class="nav-tab-btn" data-tab="optimization">Optimization</button>
-          <button type="button" class="nav-tab-btn" data-tab="experiments">Experiments</button>
-          <button type="button" class="nav-tab-btn" data-tab="reports">Reports</button>
+          <button type="button" class="nav-tab-btn active" data-tab="overview" data-i18n="tabOverview">Overview (콕핏)</button>
+          <button type="button" class="nav-tab-btn" data-tab="telemetry" data-i18n="tabTelemetry">Telemetry (원격계측)</button>
+          <button type="button" class="nav-tab-btn" data-tab="optimization" data-i18n="tabOptimization">Optimization (AI 최적화)</button>
+          <button type="button" class="nav-tab-btn" data-tab="experiments" data-i18n="tabExperiments">Experiments (가상 실험)</button>
+          <button type="button" class="nav-tab-btn" data-tab="reports" data-i18n="tabReports">Reports (규격서 리포트)</button>
         </nav>
       </div>
 
       <div class="header-right">
+        <!-- Language Switcher Toggle Pill -->
+        <button id="btnLangToggle" class="lang-toggle-pill" title="언어 전환 (Language Switcher)">
+          <span class="lang-code active" data-lang="ko">KR</span>
+          <span class="lang-divider">/</span>
+          <span class="lang-code" data-lang="en">EN</span>
+        </button>
+
         <button id="btnAudioMute" class="btn-header btn-icon-only" title="사운드 온/오프">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
         </button>
         <button id="btnOpenParamEditor" class="btn-header">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-          <span>Parameter Editor</span>
+          <span data-i18n="btnParamEditor">파라미터 에디터</span>
         </button>
         <button id="btnExportMenu" class="btn-header">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          <span>Export</span>
+          <span data-i18n="btnExport">내보내기</span>
         </button>
         <button id="btnAutoTune" class="btn-header" style="color: var(--gold-accent);">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-          <span>AI Auto-Tune</span>
+          <span data-i18n="btnAutoTune">AI 최적 레시피</span>
         </button>
         <div id="btnAiAutoPilot" class="ai-toggle-pill" title="AI 자율 최적화 운전 스위치">
-          <span id="aiAutoPilotLabel">AI Auto-Tune</span>
+          <span id="aiAutoPilotLabel" data-i18n="btnAiAutoPilot">AI 자율 운전</span>
           <span class="switch-badge">OFF</span>
         </div>
         <button id="btnOpenNewCropModal" class="btn-header">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          <span>New Crop</span>
+          <span data-i18n="btnNewCrop">신규 작물 등록</span>
         </button>
         <button id="btnOpenScheduler" class="btn-header">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          <span>Scheduler</span>
+          <span data-i18n="btnScheduler">24H 스케줄러</span>
         </button>
       </div>
     </header>
@@ -71,30 +78,30 @@
           <span class="crop-dropdown-arrow">▾</span>
         </div>
         <div class="meta-pill">
-          <span>Target Molecule:</span>
+          <span data-i18n="targetMoleculeLabel">타깃 유효 분자:</span>
           <b id="metaTargetMolecule">Lutein (C40H56O2)</b>
         </div>
         <div class="meta-pill">
           <span>DLI:</span>
           <b id="metaDli">27.4</b>
-          <span>mol/m²d</span>
+          <span data-i18n="dliUnit">mol/m²d</span>
         </div>
         <div class="meta-pill">
           <span>PPFD:</span>
           <b id="metaPpfd">487</b>
-          <span>μmol</span>
+          <span data-i18n="ppfdUnit">μmol</span>
         </div>
         <div class="meta-pill">
           <span>An:</span>
           <b id="metaAn">12.4</b>
-          <span>μmol/m²s</span>
+          <span data-i18n="anUnit">μmol/m²s</span>
         </div>
       </div>
 
       <div class="context-right">
         <div class="diurnal-cycle-badge">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-          <span id="diurnalStatusLabel">주간 광합성 사이클 12:45</span>
+          <span id="diurnalStatusLabel" data-i18n="diurnalDay">주간 광합성 사이클 12:45</span>
           <span class="pulse-green-dot"></span>
         </div>
       </div>
@@ -109,7 +116,7 @@
       <aside class="panel-card controls-column">
         <div class="panel-title-bar">
           <div class="panel-heading">
-            <span>Environment Controls</span>
+            <span data-i18n="envControlsHeading">환경 제어 시스템 (13채널)</span>
           </div>
           <div class="panel-actions">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
@@ -123,7 +130,7 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line></svg>
             </div>
             <div class="slider-label-group">
-              <span class="slider-label">PPFD</span>
+              <span class="slider-label" data-i18n="sliderPpfd">광량 (PPFD)</span>
               <span class="slider-unit">μmol/m²/s</span>
             </div>
             <input type="range" id="sliderPpfd" min="0" max="1000" step="10" value="487" class="slider-input-track">
@@ -136,7 +143,7 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             </div>
             <div class="slider-label-group">
-              <span class="slider-label">Photoperiod</span>
+              <span class="slider-label" data-i18n="sliderPhotoperiod">일장 (광주기)</span>
               <span class="slider-unit">h</span>
             </div>
             <input type="range" id="sliderPhotoperiod" min="0" max="24" step="1" value="16" class="slider-input-track">
@@ -147,7 +154,7 @@
           <div class="slider-row">
             <div class="slider-icon"><span class="color-dot red"></span></div>
             <div class="slider-label-group">
-              <span class="slider-label">Spectrum Red</span>
+              <span class="slider-label" data-i18n="sliderRed">Red 분광</span>
               <span class="slider-unit">%</span>
             </div>
             <input type="range" id="sliderRed" min="0" max="100" step="1" value="62" class="slider-input-track">
@@ -158,7 +165,7 @@
           <div class="slider-row">
             <div class="slider-icon"><span class="color-dot blue"></span></div>
             <div class="slider-label-group">
-              <span class="slider-label">Spectrum Blue</span>
+              <span class="slider-label" data-i18n="sliderBlue">Blue 분광</span>
               <span class="slider-unit">%</span>
             </div>
             <input type="range" id="sliderBlue" min="0" max="100" step="1" value="18" class="slider-input-track">
@@ -169,7 +176,7 @@
           <div class="slider-row">
             <div class="slider-icon"><span class="color-dot green"></span></div>
             <div class="slider-label-group">
-              <span class="slider-label">Spectrum Green</span>
+              <span class="slider-label" data-i18n="sliderGreen">Green 분광</span>
               <span class="slider-unit">%</span>
             </div>
             <input type="range" id="sliderGreen" min="0" max="100" step="1" value="10" class="slider-input-track">
@@ -180,7 +187,7 @@
           <div class="slider-row">
             <div class="slider-icon"><span class="color-dot far-red"></span></div>
             <div class="slider-label-group">
-              <span class="slider-label">Spectrum Far-Red</span>
+              <span class="slider-label" data-i18n="sliderFarRed">Far-Red 분광</span>
               <span class="slider-unit">%</span>
             </div>
             <input type="range" id="sliderFarRed" min="0" max="100" step="1" value="10" class="slider-input-track">
@@ -193,7 +200,7 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
             </div>
             <div class="slider-label-group">
-              <span class="slider-label">Day Temp</span>
+              <span class="slider-label" data-i18n="sliderDayTemp">주간 온도</span>
               <span class="slider-unit">°C</span>
             </div>
             <input type="range" id="sliderDayTemp" min="15" max="35" step="0.5" value="24.6" class="slider-input-track">
@@ -206,7 +213,7 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             </div>
             <div class="slider-label-group">
-              <span class="slider-label">Night Temp</span>
+              <span class="slider-label" data-i18n="sliderNightTemp">야간 온도</span>
               <span class="slider-unit">°C</span>
             </div>
             <input type="range" id="sliderNightTemp" min="10" max="25" step="0.5" value="20.1" class="slider-input-track">
@@ -219,7 +226,7 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
             </div>
             <div class="slider-label-group">
-              <span class="slider-label">Humidity</span>
+              <span class="slider-label" data-i18n="sliderHumidity">상대습도</span>
               <span class="slider-unit">%</span>
             </div>
             <input type="range" id="sliderHumidity" min="20" max="100" step="1" value="69.2" class="slider-input-track">
@@ -232,7 +239,7 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
             </div>
             <div class="slider-label-group">
-              <span class="slider-label">CO₂</span>
+              <span class="slider-label" data-i18n="sliderCo2">CO₂ 농도</span>
               <span class="slider-unit">ppm</span>
             </div>
             <input type="range" id="sliderCo2" min="200" max="2000" step="25" value="825" class="slider-input-track">
@@ -245,7 +252,7 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
             </div>
             <div class="slider-label-group">
-              <span class="slider-label">EC</span>
+              <span class="slider-label" data-i18n="sliderEc">양액 전기전도도</span>
               <span class="slider-unit">mS/cm</span>
             </div>
             <input type="range" id="sliderEc" min="0.5" max="4.0" step="0.1" value="2.31" class="slider-input-track">
@@ -257,7 +264,7 @@
             <div class="toggle-left">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
               <div class="slider-label-group">
-                <span class="slider-label">UV-B</span>
+                <span class="slider-label" data-i18n="sliderUvb">UV-B 유전자 펄스</span>
                 <span class="slider-unit">μmol/m²/s</span>
               </div>
             </div>
@@ -275,7 +282,7 @@
             <div class="toggle-left">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
               <div class="slider-label-group">
-                <span class="slider-label">Cold Shift</span>
+                <span class="slider-label" data-i18n="sliderColdShift">야간 변온 (DIF)</span>
                 <span class="slider-unit">°C below day</span>
               </div>
             </div>
@@ -296,7 +303,7 @@
         <div class="viewport-card">
           <!-- Viewport Floating Header -->
           <div class="viewport-floating-header">
-            <div class="viewport-title">Simulation Chamber</div>
+            <div class="viewport-title" data-i18n="chamberHeading">3D 시뮬레이션 바이오리액터</div>
             <div class="viewport-tools">
               <button id="btnCapture4K" class="btn-tool-icon" title="4K 스냅샷 캡처">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
@@ -317,14 +324,14 @@
           <div class="chamber-hud-card leaf-pos">
             <div class="hud-card-header">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path></svg>
-              <span>LEAF ANALYSIS</span>
+              <span data-i18n="hudLeafHeader">엽면 생체 분석 (LEAF)</span>
             </div>
             <div class="hud-stat-grid">
-              <span>Chl a/b</span>
+              <span data-i18n="hudChl">엽록소 a/b</span>
               <b id="hudChlAb">3.21</b>
-              <span>Stomatal Cond.</span>
+              <span data-i18n="hudGs">기공전도도</span>
               <b id="hudStomatalGs">0.36 mol m⁻² s⁻¹</b>
-              <span>NPQ</span>
+              <span data-i18n="hudNpq">비광화학 소광</span>
               <b id="hudNpq">1.28</b>
             </div>
           </div>
@@ -333,14 +340,14 @@
           <div class="chamber-hud-card root-pos">
             <div class="hud-card-header emerald">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-              <span>ROOT ZONE</span>
+              <span data-i18n="hudRootHeader">근권 환경 분석 (ROOT)</span>
             </div>
             <div class="hud-stat-grid">
-              <span>RH</span>
+              <span data-i18n="hudRootRh">근권 습도</span>
               <b id="hudRootRh">98.7 %</b>
-              <span>Temp</span>
+              <span data-i18n="hudRootTemp">근권 수온</span>
               <b id="hudRootTemp">22.1 °C</b>
-              <span>O₂</span>
+              <span data-i18n="hudRootO2">용존 산소(O₂)</span>
               <b id="hudRootO2">21.3 %</b>
             </div>
           </div>
@@ -362,14 +369,14 @@
           </div>
 
           <!-- Bottom Viewport Tip -->
-          <div class="viewport-bottom-tip">
-            👆 Click + drag to rotate • Scroll to zoom • R to reset
+          <div class="viewport-bottom-tip" data-i18n="viewportTip">
+            👆 마우스 드래그: 회전 • 휠: 줌 • R: 리셋 • 잎/뿌리 클릭: 생체 HUD
           </div>
 
           <!-- Reset Camera Button -->
           <button id="btnResetCamera" class="viewport-reset-btn">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
-            <span>Reset Camera</span>
+            <span data-i18n="btnResetCamera">카메라 리셋</span>
           </button>
         </div>
 
@@ -387,7 +394,7 @@
           <div class="timeline-track-wrap">
             <div class="timeline-info-row">
               <span class="timeline-day-tag">Day <span id="teleDay">18</span> / <span id="teleHarvestDay">42</span></span>
-              <span id="teleStage" class="timeline-stage-tag">Vegetative Stage</span>
+              <span id="teleStage" class="timeline-stage-tag">영양 생장기 (Vegetative)</span>
             </div>
             <input type="range" id="timelineSlider" min="1" max="42" value="18" class="timeline-slider-bar">
             <div class="timeline-ticks">
@@ -402,7 +409,7 @@
           </div>
 
           <div class="timewarp-group">
-            <span class="timewarp-label">Time Warp</span>
+            <span class="timewarp-label" data-i18n="timeWarpLabel">시간 가속</span>
             <button type="button" class="warp-btn active" data-speed="1">1x</button>
             <button type="button" class="warp-btn" data-speed="60">60x</button>
             <button type="button" class="warp-btn" data-speed="600">600x</button>
@@ -418,10 +425,10 @@
         <div class="panel-card">
           <div class="panel-title-bar">
             <div class="panel-heading">
-              <span>Telemetry</span>
+              <span data-i18n="telemetryHeading">실시간 센서 텔레메트리</span>
             </div>
             <div class="panel-actions" style="color: var(--emerald-glow); font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-              <span>Live</span>
+              <span data-i18n="teleLive">라이브 ●</span>
               <span class="pulse-green-dot"></span>
             </div>
           </div>
@@ -432,7 +439,7 @@
               <div class="tele-top-row">
                 <div class="tele-label-group">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-primary)" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
-                  <span class="tele-name">PPFD</span>
+                  <span class="tele-name" data-i18n="telePpfd">광량 PPFD</span>
                 </div>
                 <span id="teleSensPpfd" class="tele-val">487</span>
               </div>
@@ -447,7 +454,7 @@
               <div class="tele-top-row">
                 <div class="tele-label-group">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--blue-accent)" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
-                  <span class="tele-name">RH</span>
+                  <span class="tele-name" data-i18n="teleRh">상대습도 RH</span>
                 </div>
                 <span id="teleSensRh" class="tele-val">69.2</span>
               </div>
@@ -462,7 +469,7 @@
               <div class="tele-top-row">
                 <div class="tele-label-group">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--red-accent)" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
-                  <span class="tele-name">Air Temp</span>
+                  <span class="tele-name" data-i18n="teleAirTemp">대기온도 Temp</span>
                 </div>
                 <span id="teleSensAirTemp" class="tele-val">23.7</span>
               </div>
@@ -477,7 +484,7 @@
               <div class="tele-top-row">
                 <div class="tele-label-group">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-primary)" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
-                  <span class="tele-name">CO₂</span>
+                  <span class="tele-name" data-i18n="teleCo2">탄산가스 CO₂</span>
                 </div>
                 <span id="teleSensCo2" class="tele-val">825</span>
               </div>
@@ -492,7 +499,7 @@
               <div class="tele-top-row">
                 <div class="tele-label-group">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-accent)" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path></svg>
-                  <span class="tele-name">Leaf Temp</span>
+                  <span class="tele-name" data-i18n="teleLeafTemp">엽온 Leaf Temp</span>
                 </div>
                 <span id="teleSensLeafTemp" class="tele-val">24.6</span>
               </div>
@@ -507,7 +514,7 @@
               <div class="tele-top-row">
                 <div class="tele-label-group">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--gold-accent)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                  <span class="tele-name">EC</span>
+                  <span class="tele-name" data-i18n="teleEc">양액 EC</span>
                 </div>
                 <span id="teleSensEc" class="tele-val">2.31</span>
               </div>
@@ -522,7 +529,7 @@
               <div class="tele-top-row">
                 <div class="tele-label-group">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-primary)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                  <span class="tele-name">VPD</span>
+                  <span class="tele-name" data-i18n="teleVpd">포화수차 VPD</span>
                 </div>
                 <span id="teleSensVpd" class="tele-val">1.12</span>
               </div>
@@ -537,7 +544,7 @@
               <div class="tele-top-row">
                 <div class="tele-label-group">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--purple-accent)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
-                  <span class="tele-name">Fv/Fm</span>
+                  <span class="tele-name" data-i18n="teleFvFm">광계 효율 Fv/Fm</span>
                 </div>
                 <span id="teleSensFvFm" class="tele-val">0.812</span>
               </div>
@@ -553,7 +560,7 @@
         <div class="panel-card">
           <div class="panel-title-bar">
             <div class="panel-heading">
-              <span>KPI</span>
+              <span data-i18n="kpiHeading">핵심 바이오 생산 지표 (KPI)</span>
             </div>
           </div>
 
@@ -562,7 +569,7 @@
             <div class="kpi-tile">
               <div class="kpi-top">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-accent)" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
-                <span>Total Lutein Accumulated</span>
+                <span data-i18n="kpiTotalTitle">누적 유효분자 총생산량</span>
               </div>
               <div class="kpi-mid">
                 <span id="kpiTotalLutein" class="kpi-big-val cyan">132.4 mg</span>
@@ -574,7 +581,7 @@
             <div class="kpi-tile featured">
               <div class="kpi-top">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-primary)" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                <span>Increase vs Standard</span>
+                <span data-i18n="kpiGainTitle">표준 대비 수율 증가율</span>
               </div>
               <div class="kpi-mid">
                 <span id="kpiYieldGain" class="kpi-big-val emerald">+154%</span>
@@ -586,7 +593,7 @@
             <div class="kpi-tile">
               <div class="kpi-top">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--purple-accent)" stroke-width="2"><path d="M10 2v7.31L4.69 19.5a1 1 0 0 0 .88 1.5h12.86a1 1 0 0 0 .88-1.5L14 9.31V2"></path></svg>
-                <span>Lutein Concentration</span>
+                <span data-i18n="kpiConcTitle">건중량당 유효분자 농도</span>
               </div>
               <div class="kpi-mid">
                 <span id="kpiLuteinConc" class="kpi-big-val purple">18.7 mg/g DW</span>
@@ -598,7 +605,7 @@
             <div class="kpi-tile">
               <div class="kpi-top">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-primary)" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path></svg>
-                <span>Fresh Weight</span>
+                <span data-i18n="kpiFreshTitle">총 생체중 (Fresh Weight)</span>
               </div>
               <div class="kpi-mid">
                 <span id="kpiFreshWeight" class="kpi-big-val emerald">128.6 g</span>
@@ -610,7 +617,7 @@
             <div class="kpi-tile">
               <div class="kpi-top">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
-                <span>Dry Weight</span>
+                <span data-i18n="kpiDryTitle">총 건중량 (Dry Weight)</span>
               </div>
               <div class="kpi-mid">
                 <span id="kpiDryWeight" class="kpi-big-val">12.8 g</span>
@@ -622,7 +629,7 @@
             <div class="kpi-tile">
               <div class="kpi-top">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--gold-accent)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                <span>Energy Efficiency</span>
+                <span data-i18n="kpiEnergyTitle">전력당 생산 효율</span>
               </div>
               <div class="kpi-mid">
                 <span id="kpiEnergyEff" class="kpi-big-val gold">41.3 mg/kWh</span>
@@ -643,9 +650,9 @@
       <div class="scope-card">
         <div class="scope-header">
           <div class="scope-title-area">
-            <span class="scope-heading">Photosynthesis Scope</span>
+            <span class="scope-heading" data-i18n="photoScopeHeading">광합성 속도 오실로스코프</span>
             <div class="scope-legends">
-              <span class="legend-item"><span class="legend-line emerald"></span> <b>A</b> (μmol CO₂/m²/s)</span>
+              <span class="legend-item"><span class="legend-line emerald"></span> <b>A</b> (<span data-i18n="anUnit">μmol CO₂/m²/s</span>)</span>
               <span class="legend-item"><span class="legend-line cyan"></span> <b>gs</b> (mol/m²/s)</span>
               <span class="legend-item"><span class="legend-line purple"></span> <b>Ci</b> (ppm)</span>
             </div>
@@ -653,9 +660,9 @@
 
           <div class="scope-controls">
             <div class="scope-range-pills" id="scopeScalePills1">
-              <button type="button" class="range-btn active" data-scale="1m">1 min</button>
-              <button type="button" class="range-btn" data-scale="24h">24 h</button>
-              <button type="button" class="range-btn" data-scale="42d">42 d</button>
+              <button type="button" class="range-btn active" data-scale="1m" data-i18n="scale1m">1분</button>
+              <button type="button" class="range-btn" data-scale="24h" data-i18n="scale24h">24시간</button>
+              <button type="button" class="range-btn" data-scale="42d" data-i18n="scale42d">42일</button>
             </div>
             <button class="btn-card-action" title="확대">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
@@ -671,7 +678,7 @@
       <div class="scope-card">
         <div class="scope-header">
           <div class="scope-title-area">
-            <span class="scope-heading">Lutein Flux Scope</span>
+            <span class="scope-heading" data-i18n="luteinScopeHeading">대사 플럭스 & 축적 스코프</span>
             <div class="scope-legends">
               <span class="legend-item"><span class="legend-line emerald"></span> <b>Lutein Flux</b> (mg/m²/h)</span>
               <span class="legend-item"><span class="legend-line purple"></span> <b>Lutein Conc.</b> (mg/g DW)</span>
@@ -680,9 +687,9 @@
 
           <div class="scope-controls">
             <div class="scope-range-pills" id="scopeScalePills2">
-              <button type="button" class="range-btn active" data-scale="1m">1 min</button>
-              <button type="button" class="range-btn" data-scale="24h">24 h</button>
-              <button type="button" class="range-btn" data-scale="42d">42 d</button>
+              <button type="button" class="range-btn active" data-scale="1m" data-i18n="scale1m">1분</button>
+              <button type="button" class="range-btn" data-scale="24h" data-i18n="scale24h">24시간</button>
+              <button type="button" class="range-btn" data-scale="42d" data-i18n="scale42d">42일</button>
             </div>
             <button class="btn-card-action" title="확대">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
@@ -705,13 +712,13 @@
   <div id="paramModal" class="modal-backdrop">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 style="color: var(--emerald-glow); font-size: 15px;">식물 생물리학 & 유전체 파라미터 에디터</h3>
+        <h3 style="color: var(--emerald-glow); font-size: 15px;" data-i18n="paramModalTitle">식물 생물리학 & 유전체 파라미터 에디터</h3>
         <button id="paramClose" class="modal-close">✕</button>
       </div>
       <div id="paramGrid" class="param-grid"></div>
       <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
-        <button id="btnExportProfile" class="btn btn-outline">JSON 내보내기</button>
-        <button id="btnSaveParams" class="btn btn-primary">변경사항 저장</button>
+        <button id="btnExportProfile" class="btn btn-outline" data-i18n="btnExportJson">JSON 내보내기</button>
+        <button id="btnSaveParams" class="btn btn-primary" data-i18n="btnSaveParams">변경사항 저장</button>
       </div>
     </div>
   </div>
@@ -720,13 +727,13 @@
   <div id="exportModal" class="modal-backdrop">
     <div class="modal-content" style="width: 500px;">
       <div class="modal-header">
-        <h3 style="color: #fff; font-size: 15px;">바이오파운드리 데이터 추출 & 배포</h3>
+        <h3 style="color: #fff; font-size: 15px;" data-i18n="exportModalTitle">바이오파운드리 데이터 추출 & 연동</h3>
         <button id="exportClose" class="modal-close">✕</button>
       </div>
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <button id="btnExportCSV" class="btn btn-outline" style="justify-content: flex-start; padding: 12px;">📊 생육 시계열 텔레메트리 CSV 내보내기</button>
-        <button id="btnExportPlc" class="btn btn-outline" style="justify-content: flex-start; padding: 12px;">📜 스마트팜 BACnet / MQTT PLC 제어 스크립트</button>
-        <button id="btnExportP2HModal" class="btn btn-outline" style="justify-content: flex-start; padding: 12px;">🔗 Plant2Human AI 원료 규격 연동 페이로드</button>
+        <button id="btnExportCSV" class="btn btn-outline" style="justify-content: flex-start; padding: 12px;" data-i18n="btnExportCsv">📊 생육 시계열 텔레메트리 CSV 내보내기</button>
+        <button id="btnExportPlc" class="btn btn-outline" style="justify-content: flex-start; padding: 12px;" data-i18n="btnExportPlc">📜 스마트팜 BACnet / MQTT PLC 제어 스크립트</button>
+        <button id="btnExportP2HModal" class="btn btn-outline" style="justify-content: flex-start; padding: 12px;" data-i18n="btnExportP2h">🔗 Plant2Human AI (원료 규격서) 연동 페이로드</button>
       </div>
     </div>
   </div>
@@ -735,19 +742,19 @@
   <div id="recipeModal" class="modal-backdrop">
     <div class="modal-content" style="width: 860px;">
       <div class="modal-header">
-        <h3 id="modalRecipeTitle" style="color: var(--gold-accent); font-size: 15px;">AI 자율 최적 환경 역추적 솔버</h3>
+        <h3 id="modalRecipeTitle" style="color: var(--gold-accent); font-size: 15px;" data-i18n="optModalTitle">AI 자율 최적 환경 역추적 솔버</h3>
         <button id="modalClose" class="modal-close">✕</button>
       </div>
       <div style="display: flex; gap: 6px; margin-bottom: 12px;">
-        <button type="button" class="opt-tab active" data-obj="yield_max">분자 수확량 극대화</button>
-        <button type="button" class="opt-tab" data-obj="speed_breeding">초고속 생육 가속</button>
-        <button type="button" class="opt-tab" data-obj="energy_eff">전력당 경제성 극대화</button>
+        <button type="button" class="opt-tab active" data-obj="yield_max" data-i18n="optTabYield">분자 수확량 극대화</button>
+        <button type="button" class="opt-tab" data-obj="speed_breeding" data-i18n="optTabSpeed">초고속 생육 가속</button>
+        <button type="button" class="opt-tab" data-obj="energy_eff" data-i18n="optTabEnergy">전력당 경제성 극대화</button>
       </div>
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px;">
-        <div class="kpi-tile"><span style="font-size:9px; color:var(--text-muted);">수율 증가</span><b id="optYieldGain" class="kpi-big-val gold">+43.8%</b></div>
-        <div class="kpi-tile"><span style="font-size:9px; color:var(--text-muted);">수확일 단축</span><b id="optDaysSaved" class="kpi-big-val cyan">-9일</b></div>
-        <div class="kpi-tile"><span style="font-size:9px; color:var(--text-muted);">순광합성(An)</span><b id="optNetAn" class="kpi-big-val emerald">24.8 μmol</b></div>
-        <div class="kpi-tile"><span style="font-size:9px; color:var(--text-muted);">시뮬레이션</span><b id="optTotalRuns" class="kpi-big-val">560회</b></div>
+        <div class="kpi-tile"><span style="font-size:9px; color:var(--text-muted);" data-i18n="optKpiGain">수율 증가</span><b id="optYieldGain" class="kpi-big-val gold">+43.8%</b></div>
+        <div class="kpi-tile"><span style="font-size:9px; color:var(--text-muted);" data-i18n="optKpiDays">수확일 단축</span><b id="optDaysSaved" class="kpi-big-val cyan">-9일</b></div>
+        <div class="kpi-tile"><span style="font-size:9px; color:var(--text-muted);" data-i18n="optKpiNetAn">순광합성(An)</span><b id="optNetAn" class="kpi-big-val emerald">24.8 μmol</b></div>
+        <div class="kpi-tile"><span style="font-size:9px; color:var(--text-muted);" data-i18n="optKpiRuns">가상 시뮬레이션</span><b id="optTotalRuns" class="kpi-big-val">560회</b></div>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
         <div style="background: var(--bg-input); border: 1px solid var(--border-card); border-radius: var(--radius-sm); padding: 8px;">
@@ -756,7 +763,7 @@
         <div id="modalRecipeCode" class="code-block" style="height: 180px; max-height: 180px;"></div>
       </div>
       <div style="display: flex; justify-content: flex-end;">
-        <button id="btnApplyRecipe" class="btn btn-accent">최적 환경 적용 & AI 자율 주행 가동</button>
+        <button id="btnApplyRecipe" class="btn btn-accent" data-i18n="btnApplyRecipe">최적 환경 적용 & AI 자율 운전 가동</button>
       </div>
     </div>
   </div>
@@ -779,7 +786,7 @@
   <div id="newCropModal" class="modal-backdrop">
     <div class="modal-content" style="width: 720px;">
       <div class="modal-header">
-        <h3 style="color: var(--emerald-glow); font-size: 15px;">신규 작물 & 약리 분자 등록</h3>
+        <h3 style="color: var(--emerald-glow); font-size: 15px;" data-i18n="newCropTitle">신규 작물 & 약리 분자 등록</h3>
         <button id="newCropClose" class="modal-close">✕</button>
       </div>
       <div style="display: flex; gap: 6px; margin-bottom: 12px;">
@@ -806,7 +813,7 @@
   <div id="schedulerModal" class="modal-backdrop">
     <div class="modal-content" style="width: 700px;">
       <div class="modal-header">
-        <h3 style="color: var(--cyan-accent); font-size: 15px;">24시간 스마트팜 환경 자동 제어 타임테이블</h3>
+        <h3 style="color: var(--cyan-accent); font-size: 15px;" data-i18n="schedulerTitle">24시간 스마트팜 환경 자동 제어 타임테이블</h3>
         <button id="schedulerClose" class="modal-close">✕</button>
       </div>
       <div class="param-grid" style="margin-bottom: 12px;">
@@ -817,7 +824,7 @@
       </div>
       <div style="display: flex; justify-content: space-between;">
         <button id="btnExportDiurnalPlc" class="btn btn-outline">24시간 PLC JSON 추출</button>
-        <button id="btnApplyDiurnalSchedule" class="btn btn-primary">스마트팜 24H 자동 운전 적용</button>
+        <button id="btnApplyDiurnalSchedule" class="btn btn-primary" data-i18n="btnApplySchedule">스마트팜 24H 자동 운전 적용</button>
       </div>
     </div>
   </div>
