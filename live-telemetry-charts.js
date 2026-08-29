@@ -20,6 +20,8 @@ export class LiveTelemetryCharts {
 
     // Ring buffers for live streaming telemetry (90 data ticks)
     this.bufferSize = 80;
+    this.timeScale = '1m'; // '1m' | '24h' | '42d'
+
     this.history = {
       an: [],
       transpiration: [],
@@ -38,6 +40,13 @@ export class LiveTelemetryCharts {
         }
       });
     });
+  }
+
+  setTimeScale(scale) {
+    if (['1m', '24h', '42d'].includes(scale)) {
+      this.timeScale = scale;
+      this.renderAll();
+    }
   }
 
   initCanvas(canvas, ctx) {
@@ -78,7 +87,7 @@ export class LiveTelemetryCharts {
   }
 
   /**
-   * Scope 1: Live Photosynthetic Rate (An)
+   * Scope 1: Live Photosynthetic Rate (An) with TimeScale Zoom
    */
   renderPhotosynthesisScope() {
     const canvas = this.canvases.photoScope;
@@ -89,20 +98,46 @@ export class LiveTelemetryCharts {
     const h = canvas.dispH || canvas.clientHeight || 125;
     ctx.clearRect(0, 0, w, h);
 
-    const padL = 34, padR = 16, padT = 18, padB = 20;
+    const padL = 34, padR = 16, padT = 18, padB = 22;
     const plotW = Math.max(10, w - padL - padR);
     const plotH = Math.max(10, h - padT - padB);
 
     // Dark high-tech oscilloscope grid
     this.drawOscilloscopeGrid(ctx, padL, padT, plotW, plotH, "rgba(0, 242, 254, 0.07)");
 
-    const dataAn = this.history.an;
-    if (dataAn.length < 2) return;
+    let dataSeries = [];
+    let maxY = 30.0;
+    let unitLabel = "μmol/m²s";
+    let timeLabel = "60초 스트림";
 
-    // Y Axis Range: 0 ~ 30 umol/m2s
-    const maxY = 30.0;
+    if (this.timeScale === '1m') {
+      dataSeries = this.history.an;
+      timeLabel = "실시간 (60s)";
+      maxY = 30.0;
+    } else if (this.timeScale === '24h') {
+      timeLabel = "24H 일주기 (00~24시)";
+      maxY = 30.0;
+      // Synthesize 24h diurnal curve based on current peak An
+      const peakAn = this.history.an.length > 0 ? Math.max(5, this.history.an[this.history.an.length - 1]) : 20.0;
+      dataSeries = Array.from({ length: 48 }, (_, i) => {
+        const hour = (i / 47) * 24;
+        if (hour < 6.0 || hour >= 22.0) return -1.2; // Night respiration
+        const sun = Math.sin(((hour - 6.0) / 16.0) * Math.PI);
+        return Math.max(0, peakAn * Math.pow(sun, 0.75));
+      });
+    } else if (this.timeScale === '42d') {
+      timeLabel = "42일 전주기 LAI/광합성";
+      maxY = 30.0;
+      // 42-day lifecycle canopy photosynthetic capacity
+      dataSeries = Array.from({ length: 42 }, (_, d) => {
+        const logistic = 1 / (1 + Math.exp(-0.25 * (d - 18)));
+        return 2.5 + 24.5 * logistic;
+      });
+    }
 
-    // Y Labels
+    if (dataSeries.length < 2) return;
+
+    // Y Axis Labels
     ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
     ctx.font = "9px Inter, monospace";
     for (let yVal = 0; yVal <= 30; yVal += 15) {
@@ -110,13 +145,18 @@ export class LiveTelemetryCharts {
       ctx.fillText(`${yVal}`, 6, yPos + 3);
     }
 
-    const lastIdx = dataAn.length - 1;
-    const latestVal = Math.max(0, dataAn[lastIdx]);
+    // Time Axis Tag Bottom Center
+    ctx.fillStyle = "rgba(0, 242, 254, 0.6)";
+    ctx.font = "9px Inter, sans-serif";
+    ctx.fillText(`◷ ${timeLabel}`, padL + plotW / 2 - 25, padT + plotH + 16);
+
+    const lastIdx = dataSeries.length - 1;
+    const latestVal = Math.max(0, dataSeries[lastIdx]);
 
     // Live Value Tag Top Right
     ctx.fillStyle = "#00f2fe";
     ctx.font = "bold 11px Inter, sans-serif";
-    ctx.fillText(`${latestVal.toFixed(2)} μmol/m²s`, w - 110, 14);
+    ctx.fillText(`${latestVal.toFixed(2)} ${unitLabel}`, w - 110, 14);
 
     // Clip rendering inside chart plot box (Prevents any line overflow)
     ctx.save();
@@ -130,15 +170,16 @@ export class LiveTelemetryCharts {
     grad.addColorStop(1, "rgba(0, 242, 254, 0.0)");
 
     ctx.beginPath();
-    dataAn.forEach((val, i) => {
-      const x = padL + (i / (this.bufferSize - 1)) * plotW;
+    const len = dataSeries.length;
+    dataSeries.forEach((val, i) => {
+      const x = padL + (i / (len - 1)) * plotW;
       const clamped = Math.min(maxY, Math.max(0, val));
       const y = padT + plotH - (clamped / maxY) * plotH;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
 
-    const lastX = padL + (lastIdx / (this.bufferSize - 1)) * plotW;
+    const lastX = padL + (lastIdx / (len - 1)) * plotW;
     ctx.lineTo(lastX, padT + plotH);
     ctx.lineTo(padL, padT + plotH);
     ctx.closePath();
@@ -152,8 +193,8 @@ export class LiveTelemetryCharts {
     ctx.shadowBlur = 6;
 
     ctx.beginPath();
-    dataAn.forEach((val, i) => {
-      const x = padL + (i / (this.bufferSize - 1)) * plotW;
+    dataSeries.forEach((val, i) => {
+      const x = padL + (i / (len - 1)) * plotW;
       const clamped = Math.min(maxY, Math.max(0, val));
       const y = padT + plotH - (clamped / maxY) * plotH;
       if (i === 0) ctx.moveTo(x, y);
@@ -182,30 +223,72 @@ export class LiveTelemetryCharts {
     const h = canvas.dispH || canvas.clientHeight || 125;
     ctx.clearRect(0, 0, w, h);
 
-    const padL = 34, padR = 16, padT = 18, padB = 20;
+    const padL = 34, padR = 16, padT = 18, padB = 22;
     const plotW = Math.max(10, w - padL - padR);
     const plotH = Math.max(10, h - padT - padB);
 
     this.drawOscilloscopeGrid(ctx, padL, padT, plotW, plotH, "rgba(241, 196, 15, 0.07)");
 
-    const dataFlux = this.history.luteinFlux;
-    if (dataFlux.length < 2) return;
+    let dataSeries = [];
+    let maxY = 0.6; // mg / hr
+    let unitLabel = "μg/hr";
+    let timeLabel = "60초 스트림";
+    let isYieldMode = false;
 
-    const maxFlux = 0.6; // mg / plant / hour
-    const lastIdx = dataFlux.length - 1;
-    const latestFluxUg = Math.max(0, dataFlux[lastIdx] * 1000);
+    if (this.timeScale === '1m') {
+      dataSeries = this.history.luteinFlux;
+      timeLabel = "실시간 (60s)";
+      maxY = 0.6;
+    } else if (this.timeScale === '24h') {
+      timeLabel = "24H 대사 플럭스";
+      maxY = 0.6;
+      const peakFlux = this.history.luteinFlux.length > 0 ? Math.max(0.1, this.history.luteinFlux[this.history.luteinFlux.length - 1]) : 0.35;
+      dataSeries = Array.from({ length: 48 }, (_, i) => {
+        const hour = (i / 47) * 24;
+        if (hour < 6.0 || hour >= 22.0) return 0.04; // Baseline dark synthesis
+        const sun = Math.sin(((hour - 6.0) / 16.0) * Math.PI);
+        return Math.max(0.04, peakFlux * (0.3 + 0.7 * sun));
+      });
+    } else if (this.timeScale === '42d') {
+      timeLabel = "42일 누적 수확량 (mg)";
+      isYieldMode = true;
+      maxY = 25.0; // 0 ~ 25mg
+      unitLabel = "mg 누적";
+      const totalYield = this.history.luteinTotal.length > 0 ? Math.max(1.0, this.history.luteinTotal[this.history.luteinTotal.length - 1]) : 17.5;
+      dataSeries = Array.from({ length: 42 }, (_, d) => {
+        const logistic = 1 / (1 + Math.exp(-0.20 * (d - 22)));
+        return totalYield * logistic;
+      });
+    }
+
+    if (dataSeries.length < 2) return;
+
+    const lastIdx = dataSeries.length - 1;
+    const latestRaw = dataSeries[lastIdx];
+    const latestDisplay = isYieldMode ? `${latestRaw.toFixed(1)} mg` : `${(latestRaw * 1000).toFixed(1)} μg/hr`;
 
     // Y Labels
     ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
     ctx.font = "9px Inter, monospace";
-    ctx.fillText("600", 6, padT + 4);
-    ctx.fillText("300", 6, padT + plotH / 2 + 3);
-    ctx.fillText("0", 12, padT + plotH);
+    if (isYieldMode) {
+      ctx.fillText("25", 8, padT + 4);
+      ctx.fillText("12", 8, padT + plotH / 2 + 3);
+      ctx.fillText("0", 12, padT + plotH);
+    } else {
+      ctx.fillText("600", 6, padT + 4);
+      ctx.fillText("300", 6, padT + plotH / 2 + 3);
+      ctx.fillText("0", 12, padT + plotH);
+    }
+
+    // Time Axis Tag Bottom Center
+    ctx.fillStyle = "rgba(241, 196, 15, 0.6)";
+    ctx.font = "9px Inter, sans-serif";
+    ctx.fillText(`◷ ${timeLabel}`, padL + plotW / 2 - 35, padT + plotH + 16);
 
     // Live Value Tag Top Right
     ctx.fillStyle = "#f1c40f";
     ctx.font = "bold 11px Inter, sans-serif";
-    ctx.fillText(`플럭스: ${latestFluxUg.toFixed(1)} μg/hr`, w - 125, 14);
+    ctx.fillText(latestDisplay, w - 125, 14);
 
     // Clip rendering inside chart plot box (Prevents yellow line from overflowing outside box)
     ctx.save();
@@ -218,16 +301,17 @@ export class LiveTelemetryCharts {
     grad.addColorStop(0, "rgba(241, 196, 15, 0.25)");
     grad.addColorStop(1, "rgba(241, 196, 15, 0.0)");
 
+    const len = dataSeries.length;
     ctx.beginPath();
-    dataFlux.forEach((val, i) => {
-      const x = padL + (i / (this.bufferSize - 1)) * plotW;
-      const clamped = Math.min(maxFlux, Math.max(0, val));
-      const y = padT + plotH - (clamped / maxFlux) * plotH;
+    dataSeries.forEach((val, i) => {
+      const x = padL + (i / (len - 1)) * plotW;
+      const clamped = Math.min(maxY, Math.max(0, val));
+      const y = padT + plotH - (clamped / maxY) * plotH;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
 
-    const lastX = padL + (lastIdx / (this.bufferSize - 1)) * plotW;
+    const lastX = padL + (lastIdx / (len - 1)) * plotW;
     ctx.lineTo(lastX, padT + plotH);
     ctx.lineTo(padL, padT + plotH);
     ctx.closePath();
@@ -241,18 +325,18 @@ export class LiveTelemetryCharts {
     ctx.shadowBlur = 8;
 
     ctx.beginPath();
-    dataFlux.forEach((val, i) => {
-      const x = padL + (i / (this.bufferSize - 1)) * plotW;
-      const clamped = Math.min(maxFlux, Math.max(0, val));
-      const y = padT + plotH - (clamped / maxFlux) * plotH;
+    dataSeries.forEach((val, i) => {
+      const x = padL + (i / (len - 1)) * plotW;
+      const clamped = Math.min(maxY, Math.max(0, val));
+      const y = padT + plotH - (clamped / maxY) * plotH;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
     ctx.stroke();
     ctx.restore();
 
-    // Pulse dot at current stream end
-    const lastY = padT + plotH - (Math.min(maxFlux, Math.max(0, dataFlux[lastIdx])) / maxFlux) * plotH;
+    // Pulse dot
+    const lastY = padT + plotH - (Math.min(maxY, latestRaw) / maxY) * plotH;
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     ctx.arc(lastX, lastY, 3.5, 0, Math.PI * 2);

@@ -288,10 +288,11 @@
             <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></svg>
             <span id="aiAutoPilotLabel">AI 자율 최적화: OFF</span>
           </button>
-          <div class="diurnal-status-tag">
+          <button id="btnOpenScheduler" class="diurnal-status-tag" style="cursor: pointer;" title="24시간 스마트팜 환경 자동 제어 타임테이블 스케줄러">
             <span class="pulse-emerald"></span>
             <span id="diurnalStatusLabel">24H 자동 일주기</span>
-          </div>
+            <svg class="hud-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
           <button id="btnResetCamera" class="view-tab-icon" title="3D 카메라 뷰 리셋">
             <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
             <span>시점 리셋</span>
@@ -402,9 +403,14 @@
         <div class="panel-header">
           <div class="panel-title">
             <svg class="hud-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-            <span>실시간 광합성 속도 스트림 (Net An)</span>
+            <span>광합성 속도 스트림 (Net An)</span>
           </div>
-          <span class="panel-badge">μmol CO₂/m²s</span>
+          <!-- Time Scale Zoom Controller -->
+          <div class="scale-pills" id="scopeScalePills1">
+            <button class="scale-btn active" data-scale="1m">1분</button>
+            <button class="scale-btn" data-scale="24h">24H</button>
+            <button class="scale-btn" data-scale="42d">42일</button>
+          </div>
         </div>
         <canvas id="photoScopeChart" class="chart-canvas"></canvas>
       </div>
@@ -414,9 +420,14 @@
         <div class="panel-header">
           <div class="panel-title">
             <svg class="hud-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31L4.69 19.5a1 1 0 0 0 .88 1.5h12.86a1 1 0 0 0 .88-1.5L14 9.31V2"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line></svg>
-            <span>실시간 2차 대사물질 플럭스 (dM/dt)</span>
+            <span>2차 대사물질 플럭스 & 수율</span>
           </div>
-          <span class="panel-badge" style="background: rgba(241, 196, 15, 0.15); color: var(--accent-gold);">Flux (μg/hr)</span>
+          <!-- Time Scale Zoom Controller -->
+          <div class="scale-pills" id="scopeScalePills2">
+            <button class="scale-btn active" data-scale="1m">1분</button>
+            <button class="scale-btn" data-scale="24h">24H</button>
+            <button class="scale-btn" data-scale="42d">42일</button>
+          </div>
         </div>
         <canvas id="luteinScopeChart" class="chart-canvas"></canvas>
       </div>
@@ -642,6 +653,88 @@
       <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;">
         <button type="button" id="btnCancelNewCrop" class="btn btn-outline">취소</button>
         <button type="button" id="btnSubmitNewCrop" class="btn btn-accent">✨ 즉시 등록 및 바이오파운드리 가동</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: 24-Hour Diurnal Timetable Scheduler -->
+  <div id="schedulerModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 760px;">
+      <div class="modal-header">
+        <h3 style="color: var(--accent-cyan); font-size: 16px; display: flex; align-items: center; gap: 8px;">
+          <svg class="hud-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          24시간 스마트팜 환경 자동 제어 타임테이블 스케줄러
+        </h3>
+        <button id="schedulerClose" class="modal-close">✕</button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+        식물의 24시간 생체 시계(Circadian Clock)에 맞춰 일출 디밍, 피크 광합성, 일몰 원적색광(Far-Red), 야간 변온(DIF)을 자동으로 제어합니다.
+      </p>
+
+      <!-- 4-Phase Diurnal Visual Segments Bar -->
+      <div class="diurnal-bar-wrap">
+        <div class="diurnal-phase-segment phase-sunrise" style="width: 8.33%;" title="06:00~08:00 일출 램프업">일출 램프</div>
+        <div class="diurnal-phase-segment phase-peak" style="width: 33.33%;" title="08:00~16:00 피크 광합성 (UV-B)">피크 광합성 (UV-B 펄스)</div>
+        <div class="diurnal-phase-segment phase-sunset" style="width: 25.0%;" title="16:00~22:00 일몰 & Far-Red 점등">일몰 & Far-Red 유도</div>
+        <div class="diurnal-phase-segment phase-night" style="width: 33.33%;" title="22:00~06:00 야간 변온 DIF">야간 암호흡 & 변온 DIF (16.5°C)</div>
+      </div>
+
+      <div class="param-grid" style="margin-top: 14px;">
+        <div class="param-card">
+          <h4 style="color: #ffd32a; font-size: 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffd32a" stroke-width="2.2"><circle cx="12" cy="12" r="5"></circle></svg>
+            1. 일출 램프업 (06:00 ~ 08:00)
+          </h4>
+          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6;">
+            광량: 100 → 420 μmol 서서히 증가<br>
+            온도: 18.0°C → 24.0°C 승온<br>
+            미스팅: 기공 개방 유도 분무 On
+          </div>
+        </div>
+        <div class="param-card">
+          <h4 style="color: #00f2fe; font-size: 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2.2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line></svg>
+            2. 피크 광합성 (08:00 ~ 16:00)
+          </h4>
+          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6;">
+            광량: 480 μmol (R55:B30:G10:FR5)<br>
+            CO₂: 950 ppm 초고농도 주입<br>
+            UV-B: PSY 유전자 발현 펄스 활성화
+          </div>
+        </div>
+        <div class="param-card">
+          <h4 style="color: #c56cf0; font-size: 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c56cf0" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            3. 일몰 & Far-Red (16:00 ~ 22:00)
+          </h4>
+          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6;">
+            광량: 420 → 120 μmol 감광<br>
+            Far-Red: 20% EOD-FR 분기 유도<br>
+            온도: 24.0°C → 19.0°C 하강
+          </div>
+        </div>
+        <div class="param-card">
+          <h4 style="color: #38ef7d; font-size: 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38ef7d" stroke-width="2.2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            4. 야간 변온 DIF (22:00 ~ 06:00)
+          </h4>
+          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6;">
+            광량: 완전 소등 (0 μmol)<br>
+            온도: 16.5°C (DIF -8°C 저온 시프트)<br>
+            습도: 75% 팽압 회복
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+        <button id="btnExportDiurnalPlc" class="btn btn-outline">
+          <svg class="hud-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+          24시간 PLC 스케줄 JSON 추출
+        </button>
+        <button id="btnApplyDiurnalSchedule" class="btn btn-primary">
+          <svg class="hud-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          스마트팜 24H 자동 운전 적용
+        </button>
       </div>
     </div>
   </div>

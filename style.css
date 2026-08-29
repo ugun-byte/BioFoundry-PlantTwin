@@ -1010,6 +1010,87 @@ input:checked + .toggle-slider:before {
   display: block;
 }
 
+/* Time-Scale Zoom Pills */
+.scale-pills {
+  display: flex;
+  gap: 3px;
+  background: rgba(4, 10, 16, 0.85);
+  padding: 2px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.scale-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-mono);
+}
+
+.scale-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.scale-btn.active {
+  background: var(--accent-cyan);
+  color: #03080e;
+  font-weight: 800;
+  box-shadow: 0 0 8px rgba(0, 242, 254, 0.4);
+}
+
+/* 24-Hour Diurnal Schedule Bar */
+.diurnal-bar-wrap {
+  display: flex;
+  width: 100%;
+  height: 32px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.5);
+  margin-top: 8px;
+}
+
+.diurnal-phase-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+.diurnal-phase-segment:hover {
+  filter: brightness(1.2);
+}
+
+.phase-sunrise {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.phase-peak {
+  background: linear-gradient(135deg, #00b4db, #0083b0);
+}
+
+.phase-sunset {
+  background: linear-gradient(135deg, #8e44ad, #c56cf0);
+}
+
+.phase-night {
+  background: linear-gradient(135deg, #192a56, #0c1829);
+}
+
 /* Modals */
 .modal-backdrop {
   position: fixed;

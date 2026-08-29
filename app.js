@@ -6,6 +6,7 @@ import { LiveTelemetryCharts } from "./live-telemetry-charts.js";
 import { CyberAudioEngine } from "./sound-effects.js";
 import { DataExporter } from "./data-exporter.js";
 import { AutonomousAiOptimizer } from "./autonomous-ai-optimizer.js";
+import { DiurnalScheduler } from "./diurnal-scheduler.js";
 
 // Core Engines
 const bioEngine = new BioPhysicalEngine();
@@ -13,6 +14,7 @@ const profileManager = new PlantProfileManager();
 const envEngine = new EnvironmentalEngine();
 const audio = new CyberAudioEngine();
 const aiOptimizer = new AutonomousAiOptimizer();
+const diurnalScheduler = new DiurnalScheduler();
 
 let plantChamber3d = null;
 let telemetryCharts = null;
@@ -174,6 +176,16 @@ const DOM = {
   genericModalCode: document.getElementById("genericModalCode"),
   genericModalClose: document.getElementById("genericModalClose"),
   btnGenericCopy: document.getElementById("btnGenericCopy"),
+
+  // Time Scale Zoom Buttons
+  scaleButtons: document.querySelectorAll(".scale-btn"),
+
+  // Diurnal Scheduler Modal DOM
+  btnOpenScheduler: document.getElementById("btnOpenScheduler"),
+  schedulerModal: document.getElementById("schedulerModal"),
+  schedulerClose: document.getElementById("schedulerClose"),
+  btnExportDiurnalPlc: document.getElementById("btnExportDiurnalPlc"),
+  btnApplyDiurnalSchedule: document.getElementById("btnApplyDiurnalSchedule"),
 
   warpButtons: document.querySelectorAll(".warp-btn")
 };
@@ -379,6 +391,50 @@ function bindEventListeners() {
     resetPlantState();
   });
 
+  // Time Scale Zoom Pills Handlers
+  DOM.scaleButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      audio.playClick();
+      const scale = btn.getAttribute("data-scale");
+      DOM.scaleButtons.forEach(b => {
+        if (b.getAttribute("data-scale") === scale) b.classList.add("active");
+        else b.classList.remove("active");
+      });
+      if (telemetryCharts) telemetryCharts.setTimeScale(scale);
+    });
+  });
+
+  // Diurnal Scheduler Modal
+  if (DOM.btnOpenScheduler) {
+    DOM.btnOpenScheduler.addEventListener("click", () => {
+      audio.playPulse();
+      DOM.schedulerModal.classList.add("active");
+    });
+  }
+  if (DOM.schedulerClose) {
+    DOM.schedulerClose.addEventListener("click", () => DOM.schedulerModal.classList.remove("active"));
+  }
+
+  if (DOM.btnExportDiurnalPlc) {
+    DOM.btnExportDiurnalPlc.addEventListener("click", () => {
+      audio.playPulse();
+      const crop = profileManager.getActiveProfile();
+      const timetable = diurnalScheduler.generate24HourPlcTimetable(crop);
+      DOM.genericModalTitle.textContent = `24시간 스마트팜 PLC 스케줄: ${crop.name}`;
+      DOM.genericModalCode.textContent = JSON.stringify(timetable, null, 2);
+      DOM.genericCodeModal.classList.add("active");
+    });
+  }
+
+  if (DOM.btnApplyDiurnalSchedule) {
+    DOM.btnApplyDiurnalSchedule.addEventListener("click", () => {
+      audio.playPulse();
+      diurnalScheduler.enabled = true;
+      DOM.schedulerModal.classList.remove("active");
+      alert("🌿 스마트팜 24시간 자동 일주기 스케줄러가 활성화되었습니다!\n(일출 디밍 -> 피크 광합성 -> 일몰 Far-Red -> 야간 변온 DIF가 실시간 자동 제어됩니다)");
+    });
+  }
+
   DOM.timelineSlider.addEventListener("input", (e) => {
     const targetDay = parseInt(e.target.value, 10);
     seekToDay(targetDay);
@@ -494,6 +550,21 @@ function simulationLoop(now) {
 
     const crop = profileManager.getActiveProfile();
     const envTele = envEngine.getLiveSensorTelemetry();
+
+    // 1-1. Apply Diurnal Timetable Schedule if enabled (and not overridden by AI Auto-Pilot)
+    if (diurnalScheduler.enabled && !isAiAutoPilotActive) {
+      const scheduled = diurnalScheduler.getScheduledSetpoints(envTele.simulatedHour);
+      if (scheduled) {
+        envEngine.updateSetpoints({
+          ppfdTarget: scheduled.ppfd,
+          dayTempTarget: scheduled.temp,
+          humidityTarget: scheduled.humidity,
+          co2Target: scheduled.co2,
+          spectrum: scheduled.spectrum,
+          uvbActive: scheduled.uvb
+        });
+      }
+    }
 
     // 2. Compute Farquhar-von Caemmerer-Berry Photosynthesis
     const instantPhoto = bioEngine.calculateInstantaneousPhotosynthesis({
