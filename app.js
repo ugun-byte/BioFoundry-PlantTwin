@@ -77,9 +77,11 @@ const DOM = {
   checkUvb: document.getElementById("checkUvb"),
   checkColdShift: document.getElementById("checkColdShift"),
 
-  // 3D View Modes
-  btnViewMacro: document.getElementById("btnViewMacro"),
-  btnViewMicro: document.getElementById("btnViewMicro"),
+  // Natural Weather & View Modes
+  btnWeatherSun: document.getElementById("btnWeatherSun"),
+  btnWeatherRain: document.getElementById("btnWeatherRain"),
+  btnWeatherWind: document.getElementById("btnWeatherWind"),
+  btnWeatherNight: document.getElementById("btnWeatherNight"),
   btnResetCamera: document.getElementById("btnResetCamera"),
 
   // Timeline
@@ -168,17 +170,39 @@ function bindEventListeners() {
     resetPlantState();
   });
 
-  // View Modes (Macro vs Micro Cellular)
-  DOM.btnViewMacro.addEventListener("click", () => {
-    audio.playClick();
-    DOM.btnViewMacro.classList.add("active");
-    DOM.btnViewMicro.classList.remove("active");
-  });
+  // Natural Weather & Environment Modes
+  const weatherBtns = [
+    { btn: DOM.btnWeatherSun, mode: "sun" },
+    { btn: DOM.btnWeatherRain, mode: "rain" },
+    { btn: DOM.btnWeatherWind, mode: "wind" },
+    { btn: DOM.btnWeatherNight, mode: "night" }
+  ];
 
-  DOM.btnViewMicro.addEventListener("click", () => {
-    audio.playPulse();
-    DOM.btnViewMicro.classList.add("active");
-    DOM.btnViewMacro.classList.remove("active");
+  weatherBtns.forEach(({ btn, mode }) => {
+    btn.addEventListener("click", () => {
+      audio.playClick();
+      weatherBtns.forEach(w => w.btn.classList.remove("active"));
+      btn.classList.add("active");
+
+      if (plantChamber3d) {
+        plantChamber3d.weatherMode = mode;
+        if (mode === "sun") {
+          envEngine.simulatedHour = 12.0;
+          plantChamber3d.windStrength = 1.0;
+          plantChamber3d.rainSystem.material.opacity = 0.0;
+        } else if (mode === "rain") {
+          plantChamber3d.rainSystem.material.opacity = 0.75;
+          envEngine.updateSetpoints({ humidityTarget: 85 });
+          DOM.sliderHumidity.value = 85;
+          DOM.humidityVal.textContent = "85 %";
+        } else if (mode === "wind") {
+          plantChamber3d.windStrength = 3.5;
+        } else if (mode === "night") {
+          envEngine.simulatedHour = 23.0;
+          plantChamber3d.rainSystem.material.opacity = 0.0;
+        }
+      }
+    });
   });
 
   DOM.btnResetCamera.addEventListener("click", () => {

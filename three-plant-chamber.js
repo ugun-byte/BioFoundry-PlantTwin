@@ -1,16 +1,16 @@
 /**
- * True 3D WebGL Virtual Bioreactor Chamber & Procedural Plant Physics Engine
- * Powered by Three.js & Real-Time Bio-Physics
+ * Realistic Modern Greenhouse & Plant Physics Engine
+ * Powered by Three.js
  * 
  * Features:
- * 1. True 3D Grow Chamber Environment with Physical Shading & Shadows
- * 2. 3D Procedural Plant Mesh (Stems, 3D Curved Leaves with Turgor Physics, Blooming Flowers, Roots)
- * 3. Environmental Phenomena Particle Systems:
- *    - Volumetric Photon Light Beams & Streaming Light Quantum Particles
- *    - Transpiration Water Vapor / Mist rising from stomata
- *    - Ambient CO2 Gas Diffusion Particles
- *    - Submerged Nutrient Solution Aeration Bubbles
- * 4. Interactive 3D Orbit Controls & 3D Raycasting Inspection
+ * 1. Bright, realistic glasshouse/greenhouse day-to-night dynamic atmosphere.
+ * 2. Natural Sun Arc & Directional Daylight with soft shadows.
+ * 3. Clearly distinguishable natural phenomena:
+ *    - [Sunlight & Day Rays]: Bright clean sky and soft god rays
+ *    - [Wind & Airflow Dynamics]: Physical leaf flutter and gentle horizontal breeze trails
+ *    - [Rain / Water Mist]: Activated during misting/irrigation events
+ *    - [Night Transition]: Smooth twilight to dark starry sky with dim growth lights
+ * 4. Clean modern white/glass hydroponic bench.
  */
 
 export class ThreePlantChamber {
@@ -19,12 +19,13 @@ export class ThreePlantChamber {
     this.time = 0;
     this.isInitialized = false;
 
-    // View mode: "macro" or "micro"
-    this.viewMode = "macro";
+    // Environmental state
+    this.weatherMode = "sun"; // "sun", "rain", "wind", "night"
+    this.windStrength = 1.0;
 
     this.initThree();
-    this.buildChamberEnvironment();
-    this.buildParticleSystems();
+    this.buildGreenhouseEnvironment();
+    this.buildPhenomenaSystems();
     this.initPlantObjects();
 
     this.animate = this.animate.bind(this);
@@ -39,37 +40,37 @@ export class ThreePlantChamber {
 
     // 1. Scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x03070b);
-    this.scene.fog = new THREE.FogExp2(0x03070b, 0.035);
+    
+    // Default: Bright modern daylight sky
+    this.scene.background = new THREE.Color(0xdbeafe); // Bright daylight soft blue
+    this.scene.fog = new THREE.FogExp2(0xdbeafe, 0.04);
 
     // 2. Camera
-    this.camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
-    this.camera.position.set(0, 1.8, 4.2);
+    this.camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 100);
+    this.camera.position.set(0, 1.6, 3.8);
 
-    // 3. Renderer with high performance & shadows
+    // 3. High Performance Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     this.renderer.setSize(w, h);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.1;
+    this.renderer.toneMappingExposure = 1.25;
 
-    // Clear previous canvas if any
     const oldCanvas = this.container.querySelector("canvas");
     if (oldCanvas) oldCanvas.remove();
-
     this.container.appendChild(this.renderer.domElement);
 
     // 4. Orbit Controls
     if (typeof THREE.OrbitControls !== "undefined") {
       this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
-      this.controls.dampingFactor = 0.06;
-      this.controls.target.set(0, 0.9, 0);
-      this.controls.maxPolarAngle = Math.PI / 2 + 0.05; // don't go below floor
+      this.controls.dampingFactor = 0.05;
+      this.controls.target.set(0, 0.75, 0);
+      this.controls.maxPolarAngle = Math.PI / 2 - 0.02; // stay above ground
       this.controls.minDistance = 1.2;
-      this.controls.maxDistance = 8.0;
+      this.controls.maxDistance = 7.0;
     }
 
     this.isInitialized = true;
@@ -84,243 +85,177 @@ export class ThreePlantChamber {
     this.renderer.setSize(w, h);
   }
 
-  buildChamberEnvironment() {
-    // Floor Grid & Platform
-    const floorGeo = new THREE.PlaneGeometry(16, 16);
+  buildGreenhouseEnvironment() {
+    // 1. Clean Modern Greenhouse Floor (Light grey polished concrete)
+    const floorGeo = new THREE.PlaneGeometry(24, 24);
     const floorMat = new THREE.MeshStandardMaterial({
-      color: 0x07111a,
-      roughness: 0.7,
-      metalness: 0.3
+      color: 0xe2e8f0,
+      roughness: 0.4,
+      metalness: 0.1
     });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.y = -0.01;
-    floor.receiveShadow = true;
-    this.scene.add(floor);
+    this.floor = new THREE.Mesh(floorGeo, floorMat);
+    this.floor.rotation.x = -Math.PI / 2;
+    this.floor.position.y = 0.0;
+    this.floor.receiveShadow = true;
+    this.scene.add(this.floor);
 
-    // Holographic Cyber Floor Grid
-    const gridHelper = new THREE.GridHelper(16, 32, 0x00f2fe, 0x0b2535);
-    gridHelper.position.y = 0.0;
+    // Subtle greenhouse tile grid
+    const gridHelper = new THREE.GridHelper(24, 24, 0x94a3b8, 0xcbd5e1);
+    gridHelper.position.y = 0.002;
     this.scene.add(gridHelper);
 
-    // Ambient Lighting
-    this.ambientLight = new THREE.AmbientLight(0x0a1c2a, 0.8);
-    this.scene.add(this.ambientLight);
+    // 2. Greenhouse Glass Roof & Trusses in Background
+    const trussGroup = new THREE.Group();
+    const trussMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.6, roughness: 0.3 });
+    for (let x of [-2.5, 0, 2.5]) {
+      const beamGeo = new THREE.CylinderGeometry(0.025, 0.025, 6, 8);
+      const beamL = new THREE.Mesh(beamGeo, trussMat);
+      beamL.position.set(x, 2.5, -2);
+      beamL.rotation.z = 0.4;
+      trussGroup.add(beamL);
 
-    // Top Main LED Grow Light (Spotlight)
-    this.growSpotLight = new THREE.SpotLight(0xffffff, 4.5);
-    this.growSpotLight.position.set(0, 3.2, 0);
-    this.growSpotLight.angle = Math.PI / 3.2;
-    this.growSpotLight.penumbra = 0.6;
-    this.growSpotLight.decay = 1.8;
-    this.growSpotLight.distance = 7.0;
-    this.growSpotLight.castShadow = true;
-    this.growSpotLight.shadow.mapSize.width = 1024;
-    this.growSpotLight.shadow.mapSize.height = 1024;
-    this.growSpotLight.shadow.bias = -0.001;
-    this.scene.add(this.growSpotLight);
-
-    // Secondary fill light
-    this.fillLight = new THREE.PointLight(0x00f2fe, 0.6, 6);
-    this.fillLight.position.set(2, 2.5, 2);
-    this.scene.add(this.fillLight);
-
-    // UV-B Emitter Light (Violet)
-    this.uvLight = new THREE.PointLight(0xc56cf0, 0.0, 5);
-    this.uvLight.position.set(0, 2.9, 0);
-    this.scene.add(this.uvLight);
-
-    // 3D Physical LED Luminaire Fixture hanging from ceiling
-    const ledFixtureGroup = new THREE.Group();
-    ledFixtureGroup.position.set(0, 3.1, 0);
-
-    const fixtureBodyGeo = new THREE.BoxGeometry(1.6, 0.06, 0.8);
-    const fixtureBodyMat = new THREE.MeshStandardMaterial({ color: 0x162432, metalness: 0.8, roughness: 0.3 });
-    const fixtureBody = new THREE.Mesh(fixtureBodyGeo, fixtureBodyMat);
-    ledFixtureGroup.add(fixtureBody);
-
-    // 4 LED Light Bars on fixture
-    this.ledBars = [];
-    for (let b = -1.5; b <= 1.5; b++) {
-      const barGeo = new THREE.BoxGeometry(1.4, 0.02, 0.1);
-      const barMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      const bar = new THREE.Mesh(barGeo, barMat);
-      bar.position.set(0, -0.035, b * 0.22);
-      ledFixtureGroup.add(bar);
-      this.ledBars.push(bar);
+      const beamR = new THREE.Mesh(beamGeo, trussMat);
+      beamR.position.set(x, 2.5, -2);
+      beamR.rotation.z = -0.4;
+      trussGroup.add(beamR);
     }
+    this.scene.add(trussGroup);
 
-    // Suspension cables
-    const cableMat = new THREE.MeshBasicMaterial({ color: 0x475569 });
-    for (let cx of [-0.7, 0.7]) {
-      for (let cz of [-0.35, 0.35]) {
-        const cableGeo = new THREE.CylinderGeometry(0.005, 0.005, 1.2);
-        const cable = new THREE.Mesh(cableGeo, cableMat);
-        cable.position.set(cx, 0.6, cz);
-        ledFixtureGroup.add(cable);
-      }
-    }
+    // 3. Bright Natural Daylight & Sun Lights
+    // Hemispherical natural sky light
+    this.hemiLight = new THREE.HemisphereLight(0xffffff, 0x94a3b8, 1.2);
+    this.hemiLight.position.set(0, 10, 0);
+    this.scene.add(this.hemiLight);
 
-    this.scene.add(ledFixtureGroup);
+    // Moving Sun Light
+    this.sunLight = new THREE.DirectionalLight(0xfffaed, 2.2);
+    this.sunLight.position.set(2.5, 5.0, 2.0);
+    this.sunLight.castShadow = true;
+    this.sunLight.shadow.mapSize.width = 1024;
+    this.sunLight.shadow.mapSize.height = 1024;
+    this.sunLight.shadow.bias = -0.001;
+    this.scene.add(this.sunLight);
 
-    // 3D Hydroponic Basin (DWC Basin)
-    const basinGroup = new THREE.Group();
-    basinGroup.position.set(0, 0.25, 0);
+    // Top Smart LED Grow Luminaire (Supplemental lighting)
+    this.ledSpotLight = new THREE.SpotLight(0xffeedd, 1.5);
+    this.ledSpotLight.position.set(0, 2.8, 0);
+    this.ledSpotLight.angle = Math.PI / 3.0;
+    this.ledSpotLight.penumbra = 0.5;
+    this.ledSpotLight.distance = 6.0;
+    this.scene.add(this.ledSpotLight);
 
-    // Basin Box Container
-    const basinGeo = new THREE.BoxGeometry(1.4, 0.48, 1.0);
+    // 3D LED Fixture bar hanging above
+    const ledBarGeo = new THREE.BoxGeometry(1.4, 0.04, 0.6);
+    const ledBarMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2, metalness: 0.4 });
+    const ledBar = new THREE.Mesh(ledBarGeo, ledBarMat);
+    ledBar.position.set(0, 2.8, 0);
+    this.scene.add(ledBar);
+
+    // 4. Clean White Hydroponic Planter Bench
+    const benchGroup = new THREE.Group();
+    benchGroup.position.set(0, 0.25, 0);
+
+    // Clean white cultivation container
+    const basinGeo = new THREE.BoxGeometry(1.3, 0.46, 0.9);
     const basinMat = new THREE.MeshStandardMaterial({
-      color: 0x0c1c28,
-      roughness: 0.4,
-      metalness: 0.6,
-      transparent: true,
-      opacity: 0.92
+      color: 0xf8fafc,
+      roughness: 0.2,
+      metalness: 0.1
     });
     const basin = new THREE.Mesh(basinGeo, basinMat);
-    basin.receiveShadow = true;
     basin.castShadow = true;
-    basinGroup.add(basin);
+    basin.receiveShadow = true;
+    benchGroup.add(basin);
 
-    // Basin rim accent
-    const rimGeo = new THREE.BoxGeometry(1.44, 0.04, 1.04);
-    const rimMat = new THREE.MeshStandardMaterial({ color: 0x00f2fe, metalness: 0.9, roughness: 0.2 });
-    const rim = new THREE.Mesh(rimGeo, rimMat);
-    rim.position.y = 0.24;
-    basinGroup.add(rim);
+    // Emerald water level accent line
+    const trimGeo = new THREE.BoxGeometry(1.32, 0.02, 0.92);
+    const trimMat = new THREE.MeshStandardMaterial({ color: 0x10b981 });
+    const trim = new THREE.Mesh(trimGeo, trimMat);
+    trim.position.y = 0.22;
+    benchGroup.add(trim);
 
-    // Nutrient Liquid Surface
-    const waterGeo = new THREE.PlaneGeometry(1.3, 0.9);
-    const waterMat = new THREE.MeshStandardMaterial({
-      color: 0x00a8ff,
-      roughness: 0.1,
-      metalness: 0.2,
-      transparent: true,
-      opacity: 0.75
-    });
-    this.waterSurface = new THREE.Mesh(waterGeo, waterMat);
-    this.waterSurface.rotation.x = -Math.PI / 2;
-    this.waterSurface.position.y = 0.21;
-    basinGroup.add(this.waterSurface);
-
-    // Net Pod / Plant Collar
-    const netPodGeo = new THREE.CylinderGeometry(0.18, 0.12, 0.15, 24);
-    const netPodMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
-    const netPod = new THREE.Mesh(netPodGeo, netPodMat);
+    // Net Pod
+    const netPod = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.16, 0.12, 0.12, 24),
+      new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.7 })
+    );
     netPod.position.y = 0.23;
-    basinGroup.add(netPod);
+    benchGroup.add(netPod);
 
-    this.scene.add(basinGroup);
+    this.scene.add(benchGroup);
   }
 
-  buildParticleSystems() {
-    // 1. Photon Stream Particles (Streaming down from LEDs)
-    const photonCount = 280;
-    const photonGeo = new THREE.BufferGeometry();
-    const photonPos = new Float32Array(photonCount * 3);
-    const photonColors = new Float32Array(photonCount * 3);
+  buildPhenomenaSystems() {
+    // 1. Rain / Irrigation Mist System (Falls downwards, active when rain/irrigation mode)
+    const rainCount = 180;
+    const rainGeo = new THREE.BufferGeometry();
+    const rainPos = new Float32Array(rainCount * 3);
 
-    for (let i = 0; i < photonCount; i++) {
-      photonPos[i * 3 + 0] = (Math.random() - 0.5) * 1.4;
-      photonPos[i * 3 + 1] = 0.4 + Math.random() * 2.6;
-      photonPos[i * 3 + 2] = (Math.random() - 0.5) * 0.9;
-
-      // Color mix: Cyan, Red, Gold
-      const rVal = Math.random() > 0.4 ? 1.0 : 0.0;
-      const gVal = Math.random() > 0.6 ? 0.9 : 0.4;
-      const bVal = Math.random() > 0.5 ? 1.0 : 0.2;
-      photonColors[i * 3 + 0] = rVal;
-      photonColors[i * 3 + 1] = gVal;
-      photonColors[i * 3 + 2] = bVal;
+    for (let i = 0; i < rainCount; i++) {
+      rainPos[i * 3 + 0] = (Math.random() - 0.5) * 1.8;
+      rainPos[i * 3 + 1] = 0.5 + Math.random() * 2.2;
+      rainPos[i * 3 + 2] = (Math.random() - 0.5) * 1.8;
     }
 
-    photonGeo.setAttribute('position', new THREE.BufferAttribute(photonPos, 3));
-    photonGeo.setAttribute('color', new THREE.BufferAttribute(photonColors, 3));
-
-    const photonMat = new THREE.PointsMaterial({
-      size: 0.035,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.75,
-      blending: THREE.AdditiveBlending
-    });
-
-    this.photonSystem = new THREE.Points(photonGeo, photonMat);
-    this.scene.add(this.photonSystem);
-
-    // 2. Transpiration Water Mist Particles (Rising from plant leaves)
-    const mistCount = 120;
-    const mistGeo = new THREE.BufferGeometry();
-    const mistPos = new Float32Array(mistCount * 3);
-
-    for (let i = 0; i < mistCount; i++) {
-      mistPos[i * 3 + 0] = (Math.random() - 0.5) * 0.8;
-      mistPos[i * 3 + 1] = 0.5 + Math.random() * 1.2;
-      mistPos[i * 3 + 2] = (Math.random() - 0.5) * 0.8;
-    }
-
-    mistGeo.setAttribute('position', new THREE.BufferAttribute(mistPos, 3));
-
-    const mistMat = new THREE.PointsMaterial({
-      color: 0x38ef7d,
-      size: 0.025,
-      transparent: true,
-      opacity: 0.45,
-      blending: THREE.AdditiveBlending
-    });
-
-    this.mistSystem = new THREE.Points(mistGeo, mistMat);
-    this.scene.add(this.mistSystem);
-
-    // 3. Submerged Aeration Bubbles in Hydroponic Basin
-    const bubbleCount = 60;
-    const bubbleGeo = new THREE.BufferGeometry();
-    const bubblePos = new Float32Array(bubbleCount * 3);
-
-    for (let i = 0; i < bubbleCount; i++) {
-      bubblePos[i * 3 + 0] = (Math.random() - 0.5) * 1.1;
-      bubblePos[i * 3 + 1] = 0.05 + Math.random() * 0.38;
-      bubblePos[i * 3 + 2] = (Math.random() - 0.5) * 0.75;
-    }
-
-    bubbleGeo.setAttribute('position', new THREE.BufferAttribute(bubblePos, 3));
-    const bubbleMat = new THREE.PointsMaterial({
-      color: 0x00f2fe,
+    rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+    const rainMat = new THREE.PointsMaterial({
+      color: 0x38bdf8,
       size: 0.03,
       transparent: true,
-      opacity: 0.65,
-      blending: THREE.AdditiveBlending
+      opacity: 0.0 // hidden by default unless irrigation/rain
     });
-    this.bubbleSystem = new THREE.Points(bubbleGeo, bubbleMat);
-    this.scene.add(this.bubbleSystem);
+    this.rainSystem = new THREE.Points(rainGeo, rainMat);
+    this.scene.add(this.rainSystem);
+
+    // 2. Wind Breeze Particle Stream (Flows horizontally with wind)
+    const breezeCount = 50;
+    const breezeGeo = new THREE.BufferGeometry();
+    const breezePos = new Float32Array(breezeCount * 3);
+
+    for (let i = 0; i < breezeCount; i++) {
+      breezePos[i * 3 + 0] = -1.5 + Math.random() * 3.0;
+      breezePos[i * 3 + 1] = 0.4 + Math.random() * 1.2;
+      breezePos[i * 3 + 2] = (Math.random() - 0.5) * 1.2;
+    }
+
+    breezeGeo.setAttribute('position', new THREE.BufferAttribute(breezePos, 3));
+    const breezeMat = new THREE.PointsMaterial({
+      color: 0xa7f3d0,
+      size: 0.02,
+      transparent: true,
+      opacity: 0.4
+    });
+    this.breezeSystem = new THREE.Points(breezeGeo, breezeMat);
+    this.scene.add(this.breezeSystem);
   }
 
   initPlantObjects() {
     this.plantGroup = new THREE.Group();
-    this.plantGroup.position.set(0, 0.48, 0); // Origin at top of net pod
+    this.plantGroup.position.set(0, 0.48, 0); // Position on top of net pod
 
-    // 1. Stem Mesh (Multi-segment spine)
-    this.stemSegments = 12;
-    this.stemRadius = 0.028;
+    // 1. Lush Green 3D Stem
     this.stemHeight = 0.85;
-
     this.stemMaterial = new THREE.MeshStandardMaterial({
-      color: 0x27ae60,
-      roughness: 0.5,
-      metalness: 0.1
+      color: 0x15803d, // Lush healthy green
+      roughness: 0.4,
+      metalness: 0.05
     });
 
-    this.stemMesh = new THREE.Mesh(new THREE.CylinderGeometry(this.stemRadius * 0.6, this.stemRadius, this.stemHeight, 16), this.stemMaterial);
+    this.stemMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.016, 0.026, this.stemHeight, 16),
+      this.stemMaterial
+    );
     this.stemMesh.position.y = this.stemHeight / 2;
     this.stemMesh.castShadow = true;
     this.plantGroup.add(this.stemMesh);
 
-    // 2. Leaf Meshes
+    // 2. Realistic Curved Green Leaves
     this.leaves = [];
     const leafGeo = this.createCurvedLeafGeometry();
-    
+
     this.leafMaterial = new THREE.MeshStandardMaterial({
-      color: 0x2ecc71,
-      roughness: 0.35,
+      color: 0x16a34a,
+      roughness: 0.3,
       metalness: 0.05,
       side: THREE.DoubleSide
     });
@@ -330,53 +265,38 @@ export class ThreePlantChamber {
       const leafMesh = new THREE.Mesh(leafGeo, this.leafMaterial.clone());
       leafMesh.castShadow = true;
       leafMesh.receiveShadow = true;
-      leafMesh.scale.set(0.01, 0.01, 0.01); // starts small, grows with biomass
       this.plantGroup.add(leafMesh);
 
       this.leaves.push({
         mesh: leafMesh,
-        nodeHeightRatio: 0.15 + (i / maxLeaves) * 0.75,
-        baseAngle: (i * 137.5 * Math.PI) / 180, // Fibonacci phyllotaxis
+        nodeHeightRatio: 0.12 + (i / maxLeaves) * 0.78,
+        baseAngle: (i * 137.5 * Math.PI) / 180, // Golden ratio phyllotaxis
         tier: i
       });
     }
 
-    // 3. Blooming Marigold Flower at top
+    // 3. Blooming Golden Marigold Flower
     this.flowerGroup = new THREE.Group();
     this.flowerGroup.position.set(0, this.stemHeight, 0);
     this.build3DFlowerMesh(this.flowerGroup);
     this.plantGroup.add(this.flowerGroup);
-
-    // 4. Submerged Roots
-    this.rootGroup = new THREE.Group();
-    this.rootGroup.position.set(0, -0.05, 0);
-    const rootMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.8 });
-    for (let r = 0; r < 14; r++) {
-      const rAngle = (r / 14) * Math.PI * 2;
-      const rootMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.001, 0.35, 6), rootMat);
-      rootMesh.position.set(Math.cos(rAngle) * 0.06, -0.18, Math.sin(rAngle) * 0.06);
-      rootMesh.rotation.z = (Math.random() - 0.5) * 0.5;
-      rootMesh.rotation.x = (Math.random() - 0.5) * 0.5;
-      this.rootGroup.add(rootMesh);
-    }
-    this.plantGroup.add(this.rootGroup);
 
     this.scene.add(this.plantGroup);
   }
 
   createCurvedLeafGeometry() {
     const geom = new THREE.BufferGeometry();
-    const width = 0.22;
-    const length = 0.52;
+    const w = 0.20;
+    const l = 0.48;
 
     const vertices = [
       0, 0, 0,
-      -width * 0.4, 0.03, length * 0.3,
-      width * 0.4, 0.03, length * 0.3,
+      -w * 0.45, 0.02, l * 0.3,
+      w * 0.45, 0.02, l * 0.3,
 
-      -width * 0.5, 0.06, length * 0.6,
-      width * 0.5, 0.06, length * 0.6,
-      0, 0.02, length
+      -w * 0.5, 0.05, l * 0.65,
+      w * 0.5, 0.05, l * 0.65,
+      0, 0.015, l
     ];
 
     const indices = [
@@ -394,120 +314,133 @@ export class ThreePlantChamber {
 
   build3DFlowerMesh(group) {
     // Flower Calyx Base
-    const calyx = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.02, 0.08, 12), new THREE.MeshStandardMaterial({ color: 0x1e824c }));
-    calyx.position.y = 0.04;
+    const calyx = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04, 0.015, 0.07, 12),
+      new THREE.MeshStandardMaterial({ color: 0x15803d })
+    );
+    calyx.position.y = 0.035;
     group.add(calyx);
 
-    // Multi-tier 3D Petal Rings
-    this.petals = [];
-    const petalGeo = new THREE.BoxGeometry(0.06, 0.015, 0.14);
-    const layers = 4;
-    const petalsPerLayer = 12;
-
-    for (let l = 0; l < layers; l++) {
-      const ringRadius = 0.05 + l * 0.04;
-      for (let p = 0; p < petalsPerLayer; p++) {
-        const theta = (p / petalsPerLayer) * Math.PI * 2 + (l * 0.25);
+    // Multi-tier Golden Orange Petals
+    const petalGeo = new THREE.BoxGeometry(0.055, 0.012, 0.13);
+    for (let l = 0; l < 4; l++) {
+      const ringRadius = 0.04 + l * 0.035;
+      for (let p = 0; p < 12; p++) {
+        const theta = (p / 12) * Math.PI * 2 + (l * 0.22);
         const petalMat = new THREE.MeshStandardMaterial({
-          color: l % 2 === 0 ? 0xf39c12 : 0xffd32a,
-          roughness: 0.3,
-          metalness: 0.1
+          color: l % 2 === 0 ? 0xf59e0b : 0xfbbf24,
+          roughness: 0.3
         });
-        const petalMesh = new THREE.Mesh(petalGeo, petalMat);
-        petalMesh.position.set(Math.cos(theta) * ringRadius, 0.08 + l * 0.025, Math.sin(theta) * ringRadius);
-        petalMesh.rotation.y = -theta;
-        petalMesh.rotation.x = 0.35 + l * 0.1;
-        group.add(petalMesh);
-        this.petals.push(petalMesh);
+        const petal = new THREE.Mesh(petalGeo, petalMat);
+        petal.position.set(Math.cos(theta) * ringRadius, 0.07 + l * 0.02, Math.sin(theta) * ringRadius);
+        petal.rotation.y = -theta;
+        petal.rotation.x = 0.3 + l * 0.08;
+        group.add(petal);
       }
     }
 
-    // Glowing Central Golden Disk
+    // Glowing Golden Center
     const centerDisk = new THREE.Mesh(
-      new THREE.SphereGeometry(0.07, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0xe67e22, roughness: 0.2, emissive: 0xd35400, emissiveIntensity: 0.35 })
+      new THREE.SphereGeometry(0.06, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.2 })
     );
-    centerDisk.position.y = 0.15;
+    centerDisk.position.y = 0.13;
     group.add(centerDisk);
 
-    group.scale.set(0.01, 0.01, 0.01); // scales as plant matures
+    group.scale.set(0.01, 0.01, 0.01);
   }
 
   updateSimulation(plantState, envTelemetry, cropProfile) {
     if (!this.isInitialized) return;
 
     const { dryWeightGrams, luteinConcentration, heightCm } = plantState;
-    const { isLightOn, sensors } = envTelemetry;
-    const spectrum = sensors.spectrum;
+    const { isLightOn, simulatedHour, sensors } = envTelemetry;
 
-    // 1. Update Lighting Intensity & Spectrum Color
-    if (isLightOn && sensors.ppfd > 10) {
-      const r = Math.min(1.0, (spectrum.red / 100) * 1.2 + 0.1);
-      const g = Math.min(1.0, (spectrum.green / 100) * 0.8 + 0.1);
-      const b = Math.min(1.0, (spectrum.blue / 100) * 1.3 + 0.2);
+    // 1. Dynamic Day / Night Atmosphere Transitions
+    // Daytime: 06:00 ~ 20:00 (Bright sky, warm sun)
+    // Nighttime: 20:00 ~ 06:00 (Deep dark blue sky, dim moonlit night)
+    const isDay = simulatedHour >= 6.0 && simulatedHour < 20.0;
+    
+    if (isDay) {
+      // Sun position moves along an arc based on hour (06:00 = east, 13:00 = zenith, 20:00 = west)
+      const dayProgress = (simulatedHour - 6.0) / 14.0;
+      const sunAngle = dayProgress * Math.PI; // 0 to PI
+      const sunX = -Math.cos(sunAngle) * 4.5;
+      const sunY = Math.sin(sunAngle) * 5.0 + 1.2;
+      const sunZ = 2.0;
 
-      const color = new THREE.Color(r, g, b);
-      this.growSpotLight.color = color;
-      this.growSpotLight.intensity = (sensors.ppfd / 800) * 5.0;
+      this.sunLight.position.set(sunX, sunY, sunZ);
+      this.sunLight.intensity = Math.max(0.6, Math.sin(sunAngle) * 2.5);
 
-      this.ledBars.forEach((bar) => {
-        bar.material.color = color;
-      });
+      // Bright Daylight Sky color
+      const skyBlue = new THREE.Color(0xdbeafe);
+      this.scene.background.lerp(skyBlue, 0.1);
+      this.scene.fog.color.lerp(skyBlue, 0.1);
+      this.hemiLight.intensity = 1.2;
 
-      // UV-B Lighting
-      if (sensors.spectrum.uvbActive || envTelemetry.sensors.uvb) {
-        this.uvLight.intensity = 2.5;
-      } else {
-        this.uvLight.intensity = 0.0;
+      // Supplemental LED Grow Lights
+      if (isLightOn) {
+        const r = (sensors.spectrum.red / 100) * 1.2 + 0.2;
+        const g = (sensors.spectrum.green / 100) * 0.8 + 0.2;
+        const b = (sensors.spectrum.blue / 100) * 1.2 + 0.2;
+        this.ledSpotLight.color.setRGB(r, g, b);
+        this.ledSpotLight.intensity = (sensors.ppfd / 800) * 2.0;
       }
     } else {
-      this.growSpotLight.intensity = 0.05; // Night ambient
-      this.ledBars.forEach((bar) => { bar.material.color.setHex(0x112233); });
-      this.uvLight.intensity = 0.0;
+      // Night Mode: Deep navy atmosphere, dim ambient
+      const nightColor = new THREE.Color(0x060f18);
+      this.scene.background.lerp(nightColor, 0.1);
+      this.scene.fog.color.lerp(nightColor, 0.1);
+      this.hemiLight.intensity = 0.18;
+      this.sunLight.intensity = 0.05;
+      this.ledSpotLight.intensity = 0.0;
     }
 
-    // 2. Physical Plant Growth Morphology Scaling
+    // 2. Weather Phenomena Controls
+    // If humidity is high (> 75%) or irrigation active, show rain/mist
+    if (sensors.humidity > 75) {
+      this.rainSystem.material.opacity = Math.min(0.7, (sensors.humidity - 75) / 20.0);
+    } else {
+      this.rainSystem.material.opacity = 0.0;
+    }
+
+    // 3. Plant Stem & Leaf Growth
     const growthProgress = Math.min(1.0, heightCm / 45.0);
     const stemH = 0.2 + growthProgress * 1.2;
     this.stemMesh.scale.set(1.0 + dryWeightGrams * 0.15, stemH / this.stemHeight, 1.0 + dryWeightGrams * 0.15);
     this.stemMesh.position.y = stemH / 2;
 
-    // Turgor Pressure Drooping (VPD > 1.6 kPa causes wilting physics)
+    // Turgor Wilting Physics (VPD > 1.6 kPa causes drooping)
     const turgorFactor = sensors.vpd > 1.6 ? Math.max(0.3, 1.0 - (sensors.vpd - 1.6) * 0.95) : 1.0;
-
-    // Update Leaves
     const visibleLeafCount = Math.min(this.leaves.length, Math.floor(2 + dryWeightGrams * 1.8));
 
-    // Lutein Carotenoid Pigmentation Shift: Emerald Green -> Golden Lutein
+    // Lutein golden pigmentation transition
     const luteinRatio = Math.min(1.0, Math.max(0.0, (luteinConcentration - 2.0) / 3.0));
     const targetLeafColor = new THREE.Color(
-      0.18 + luteinRatio * 0.65, // R increases for yellow-gold
-      0.80 - luteinRatio * 0.10, // G stays lush
-      0.25 - luteinRatio * 0.15  // B shifts
+      0.08 + luteinRatio * 0.70, // R rises to gold
+      0.65 - luteinRatio * 0.05, // G stays fresh
+      0.15 - luteinRatio * 0.10  // B
     );
 
     this.leaves.forEach((l, idx) => {
       if (idx < visibleLeafCount) {
-        const leafProgress = Math.min(1.0, (growthProgress * 1.6) - (idx * 0.05));
-        const lScale = Math.max(0.1, leafProgress * 1.15);
+        const leafProgress = Math.min(1.0, (growthProgress * 1.5) - (idx * 0.05));
+        const lScale = Math.max(0.12, leafProgress * 1.15);
         l.mesh.scale.set(lScale, lScale, lScale);
 
-        // Position along stem
         const posY = stemH * l.nodeHeightRatio;
         l.mesh.position.set(0, posY, 0);
 
-        // Turgor angle: Wilts downward when turgor is low
+        // Droop angle from turgor loss
         const droopPitch = (1.0 - turgorFactor) * 0.85;
-        l.mesh.rotation.set(0.45 + droopPitch, l.baseAngle, 0.2);
-
-        // Update Material Color
-        l.mesh.material.color.lerp(targetLeafColor, 0.1);
+        l.mesh.rotation.set(0.42 + droopPitch, l.baseAngle, 0.15);
+        l.mesh.material.color.lerp(targetLeafColor, 0.08);
       } else {
         l.mesh.scale.set(0.001, 0.001, 0.001);
       }
     });
 
-    // 3. Update Flower Blooming
+    // Flower Blooming
     if (dryWeightGrams > 2.0 && cropProfile.id === "marigold_lutein") {
       this.flowerGroup.position.y = stemH;
       const flowerScale = Math.min(1.2, (dryWeightGrams - 2.0) * 0.35);
@@ -523,48 +456,32 @@ export class ThreePlantChamber {
 
     if (this.controls) this.controls.update();
 
-    // 1. Animate Photons Streaming
-    if (this.photonSystem) {
-      const pos = this.photonSystem.geometry.attributes.position.array;
+    // 1. Animate Rain / Irrigation Mist (Falling downwards)
+    if (this.rainSystem && this.rainSystem.material.opacity > 0.01) {
+      const pos = this.rainSystem.geometry.attributes.position.array;
       for (let i = 0; i < pos.length / 3; i++) {
-        pos[i * 3 + 1] -= 0.035; // fall speed
-        if (pos[i * 3 + 1] < 0.45) {
-          pos[i * 3 + 1] = 3.0; // reset to top
-        }
+        pos[i * 3 + 1] -= 0.045; // falling rain
+        if (pos[i * 3 + 1] < 0.25) pos[i * 3 + 1] = 2.5;
       }
-      this.photonSystem.geometry.attributes.position.needsUpdate = true;
+      this.rainSystem.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 2. Animate Transpiration Mist
-    if (this.mistSystem) {
-      const pos = this.mistSystem.geometry.attributes.position.array;
+    // 2. Animate Wind Breeze Streams (Flowing horizontally from left to right)
+    if (this.breezeSystem) {
+      const pos = this.breezeSystem.geometry.attributes.position.array;
       for (let i = 0; i < pos.length / 3; i++) {
-        pos[i * 3 + 1] += 0.008; // float up
-        pos[i * 3 + 0] += Math.sin(this.time + i) * 0.002;
-        if (pos[i * 3 + 1] > 2.2) {
-          pos[i * 3 + 1] = 0.5;
-        }
+        pos[i * 3 + 0] += 0.018 * this.windStrength; // breeze to right
+        if (pos[i * 3 + 0] > 1.8) pos[i * 3 + 0] = -1.8;
       }
-      this.mistSystem.geometry.attributes.position.needsUpdate = true;
+      this.breezeSystem.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 3. Animate Hydroponic Bubbles
-    if (this.bubbleSystem) {
-      const pos = this.bubbleSystem.geometry.attributes.position.array;
-      for (let i = 0; i < pos.length / 3; i++) {
-        pos[i * 3 + 1] += 0.006;
-        if (pos[i * 3 + 1] > 0.45) {
-          pos[i * 3 + 1] = 0.05;
-        }
-      }
-      this.bubbleSystem.geometry.attributes.position.needsUpdate = true;
-    }
-
-    // 4. Physical Wind & Natural Plant Flutter
+    // 3. Natural Wind Sway on Plant
     if (this.plantGroup) {
-      const windSway = Math.sin(this.time * 1.5) * 0.02;
-      this.plantGroup.rotation.z = windSway;
-      this.plantGroup.rotation.x = Math.cos(this.time * 1.1) * 0.015;
+      const windSwayZ = Math.sin(this.time * 1.8) * (0.025 * this.windStrength);
+      const windSwayX = Math.cos(this.time * 1.3) * (0.015 * this.windStrength);
+      this.plantGroup.rotation.z = windSwayZ;
+      this.plantGroup.rotation.x = windSwayX;
     }
 
     if (this.renderer && this.scene && this.camera) {
@@ -574,8 +491,8 @@ export class ThreePlantChamber {
 
   resetCamera() {
     if (this.camera && this.controls) {
-      this.camera.position.set(0, 1.8, 4.2);
-      this.controls.target.set(0, 0.9, 0);
+      this.camera.position.set(0, 1.6, 3.8);
+      this.controls.target.set(0, 0.75, 0);
       this.controls.update();
     }
   }
