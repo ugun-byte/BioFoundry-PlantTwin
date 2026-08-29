@@ -439,8 +439,10 @@ function simulationLoop(now) {
 
     const dli = (envEngine.setpoints.ppfdTarget * envEngine.setpoints.photoperiodHours * 3600) / 1000000.0;
     DOM.dliBadge.textContent = `DLI: ${dli.toFixed(1)} mol/m²d`;
-    DOM.anLiveDisplay.textContent = `${instantPhoto.netAn} μmol/m²s (${instantPhoto.limitingFactor})`;
-    DOM.timelineDayLabel.textContent = `Day ${envTele.simulatedDay} / ${crop.harvestDays} (${envTele.timeFormatted})`;
+    DOM.anLiveDisplay.textContent = `${instantPhoto.netAn.toFixed(2)} μmol/m²s`;
+    const dayStr = String(envTele.simulatedDay).padStart(2, '0');
+    const maxDayStr = String(crop.harvestDays).padStart(2, '0');
+    DOM.timelineDayLabel.textContent = `Day ${dayStr} / ${maxDayStr} (${envTele.timeFormatted})`;
     DOM.timelineSlider.value = envTele.simulatedDay;
 
     // Update KPI Scorecards

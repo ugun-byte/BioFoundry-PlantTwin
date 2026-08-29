@@ -263,14 +263,14 @@
         <div class="timeline-slider-wrap">
           <div class="timeline-header">
             <span>생육 타임라인 (Growth Timeline)</span>
-            <span id="timelineDayLabel" style="font-weight: 700; color: var(--accent-cyan);">Day 42 (08:00 AM)</span>
+            <span id="timelineDayLabel" class="timeline-day-badge">Day 01 / 42 (08:00)</span>
           </div>
           <input type="range" id="timelineSlider" class="slider-track" min="1" max="45" value="42" step="1">
         </div>
 
-        <div style="font-size: 11px; text-align: right; color: var(--text-muted);">
-          <span>실시간 광합성:</span>
-          <div id="anLiveDisplay" style="font-weight: 700; color: var(--accent-emerald); font-size: 13px;">19.2 μmol/m²s</div>
+        <div class="timeline-stats-box">
+          <span class="timeline-stats-title">실시간 순광합성(An):</span>
+          <div id="anLiveDisplay" class="timeline-stats-val">19.20 μmol/m²s</div>
         </div>
       </div>
     </section>
