@@ -127,6 +127,7 @@ const DOM = {
   recipeModal: document.getElementById("recipeModal"),
   modalRecipeTitle: document.getElementById("modalRecipeTitle"),
   modalRecipeCode: document.getElementById("modalRecipeCode"),
+  paretoCanvas: document.getElementById("paretoCanvas"),
   modalClose: document.getElementById("modalClose"),
   btnApplyRecipe: document.getElementById("btnApplyRecipe"),
   optTabs: document.querySelectorAll(".opt-tab"),
@@ -767,6 +768,13 @@ function runOptimizationAndDisplay() {
   };
 
   DOM.modalRecipeCode.textContent = JSON.stringify(displayObj, null, 2);
+
+  // Render 2D/3D Multi-dimensional Pareto Landscape Heatmap Canvas
+  if (DOM.paretoCanvas && res.landscape) {
+    setTimeout(() => {
+      aiOptimizer.drawParetoLandscapeCanvas(DOM.paretoCanvas, res.landscape);
+    }, 60);
+  }
 }
 
 function applyAutoTuneRecipe() {
