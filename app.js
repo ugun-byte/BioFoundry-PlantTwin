@@ -125,6 +125,29 @@ const DOM = {
   modalClose: document.getElementById("modalClose"),
   btnApplyRecipe: document.getElementById("btnApplyRecipe"),
 
+  // New Crop Registration Modal DOM
+  btnOpenNewCropModal: document.getElementById("btnOpenNewCropModal"),
+  newCropModal: document.getElementById("newCropModal"),
+  newCropClose: document.getElementById("newCropClose"),
+  btnCancelNewCrop: document.getElementById("btnCancelNewCrop"),
+  btnSubmitNewCrop: document.getElementById("btnSubmitNewCrop"),
+  newCropForm: document.getElementById("newCropForm"),
+  presetButtons: document.querySelectorAll(".preset-pill"),
+
+  // Form Fields
+  regName: document.getElementById("regName"),
+  regScientific: document.getElementById("regScientific"),
+  regMolecule: document.getElementById("regMolecule"),
+  regFormula: document.getElementById("regFormula"),
+  regPubChem: document.getElementById("regPubChem"),
+  regMolWeight: document.getElementById("regMolWeight"),
+  regMorphology: document.getElementById("regMorphology"),
+  regHarvestDays: document.getElementById("regHarvestDays"),
+  regTempOpt: document.getElementById("regTempOpt"),
+  regVcmax: document.getElementById("regVcmax"),
+  regBaseConc: document.getElementById("regBaseConc"),
+  regColor: document.getElementById("regColor"),
+
   genericCodeModal: document.getElementById("genericCodeModal"),
   genericModalTitle: document.getElementById("genericModalTitle"),
   genericModalCode: document.getElementById("genericModalCode"),
@@ -134,8 +157,24 @@ const DOM = {
   warpButtons: document.querySelectorAll(".warp-btn")
 };
 
+function populateCropDropdown(selectedId = null) {
+  const profiles = profileManager.getAllProfiles();
+  DOM.cropSelect.innerHTML = "";
+  profiles.forEach((p) => {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = `${p.name} - ${p.targetMolecule}`;
+    if (selectedId ? p.id === selectedId : p.id === profileManager.activeProfileId) {
+      opt.selected = true;
+    }
+    DOM.cropSelect.appendChild(opt);
+  });
+}
+
 // Initialize Application
 function initApp() {
+  populateCropDropdown();
+
   plantChamber3d = new ThreePlantChamber(DOM.plant3dContainer);
   telemetryCharts = new LiveTelemetryCharts({
     photoScope: DOM.photoScopeChart,
@@ -164,11 +203,31 @@ function bindEventListeners() {
     const crop = profileManager.getActiveProfile();
     DOM.targetMoleculeText.textContent = `${crop.targetMolecule} (${crop.chemicalFormula})`;
     if (plantChamber3d) {
-      plantChamber3d.setCropSpecies(e.target.value);
+      plantChamber3d.setCropSpecies(crop);
     }
     buildParamEditor();
     resetPlantState();
   });
+
+  // New Crop Registration Modal Handlers
+  DOM.btnOpenNewCropModal.addEventListener("click", () => {
+    audio.playPulse();
+    DOM.newCropModal.classList.add("active");
+  });
+
+  const closeNewCropModal = () => DOM.newCropModal.classList.remove("active");
+  DOM.newCropClose.addEventListener("click", closeNewCropModal);
+  DOM.btnCancelNewCrop.addEventListener("click", closeNewCropModal);
+
+  DOM.presetButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      audio.playClick();
+      const presetKey = btn.getAttribute("data-preset");
+      fillPresetForm(presetKey);
+    });
+  });
+
+  DOM.btnSubmitNewCrop.addEventListener("click", submitNewCropForm);
 
   DOM.btnResetCamera.addEventListener("click", () => {
     audio.playClick();
@@ -640,6 +699,135 @@ function copyGenericModalCode() {
       DOM.genericCodeModal.classList.remove("active");
     }, 1200);
   });
+}
+
+function fillPresetForm(key) {
+  const presets = {
+    ginseng: {
+      name: "고려인삼 (Panax ginseng)",
+      scientific: "Panax ginseng C.A. Mey.",
+      molecule: "사포닌 진세노사이드 (Ginsenoside Rg3)",
+      formula: "C₄₂H₇₂O₁₃",
+      pubchem: 9918693,
+      molWeight: 785.0,
+      morphology: "spinach",
+      harvestDays: 45,
+      tempOpt: 21.0,
+      vcmax: 72.0,
+      baseConc: 5.2,
+      color: "#166534"
+    },
+    centella: {
+      name: "병풀/센텔라 (Centella asiatica)",
+      scientific: "Centella asiatica (L.) Urb.",
+      molecule: "마데카소사이드 & 아시아티코사이드",
+      formula: "C₄₈H₇₈O₁₉",
+      pubchem: 3083544,
+      molWeight: 959.1,
+      morphology: "spinach",
+      harvestDays: 30,
+      tempOpt: 25.0,
+      vcmax: 82.0,
+      baseConc: 6.8,
+      color: "#15803d"
+    },
+    resveratrol: {
+      name: "고기능 포도 (Vitis vinifera)",
+      scientific: "Vitis vinifera L.",
+      molecule: "항노화 레스베라트롤 (Resveratrol)",
+      formula: "C₁₄H₁₂O₃",
+      pubchem: 445154,
+      molWeight: 228.24,
+      morphology: "marigold",
+      harvestDays: 40,
+      tempOpt: 23.5,
+      vcmax: 78.0,
+      baseConc: 4.0,
+      color: "#1e824c"
+    },
+    lycopene: {
+      name: "고기능성 완숙 토마토",
+      scientific: "Solanum lycopersicum",
+      molecule: "항산화 고순도 라이코펜 (Lycopene)",
+      formula: "C₄₀H₅₆",
+      pubchem: 446925,
+      molWeight: 536.87,
+      morphology: "tobacco",
+      harvestDays: 48,
+      tempOpt: 24.0,
+      vcmax: 90.0,
+      baseConc: 7.5,
+      color: "#15803d"
+    },
+    cbd: {
+      name: "의약용 헴프 (Cannabis sativa)",
+      scientific: "Cannabis sativa subsp. sativa",
+      molecule: "고순도 칸나비디올 (CBD / Terpenes)",
+      formula: "C₂₁H₃₀O₂",
+      pubchem: 644019,
+      molWeight: 314.46,
+      morphology: "kale",
+      harvestDays: 42,
+      tempOpt: 24.5,
+      vcmax: 88.0,
+      baseConc: 5.5,
+      color: "#047857"
+    }
+  };
+
+  const p = presets[key];
+  if (!p) return;
+
+  DOM.regName.value = p.name;
+  DOM.regScientific.value = p.scientific;
+  DOM.regMolecule.value = p.molecule;
+  DOM.regFormula.value = p.formula;
+  DOM.regPubChem.value = p.pubchem;
+  DOM.regMolWeight.value = p.molWeight;
+  DOM.regMorphology.value = p.morphology;
+  DOM.regHarvestDays.value = p.harvestDays;
+  DOM.regTempOpt.value = p.tempOpt;
+  DOM.regVcmax.value = p.vcmax;
+  DOM.regBaseConc.value = p.baseConc;
+  DOM.regColor.value = p.color;
+}
+
+function submitNewCropForm() {
+  if (!DOM.regName.value || !DOM.regMolecule.value) {
+    alert("식물명과 타깃 분자명은 필수 입력 항목입니다.");
+    return;
+  }
+
+  audio.playPulse();
+  const newProfileData = {
+    id: `custom_${DOM.regName.value.replace(/[^a-zA-Z0-9가-힣]/g, "_").toLowerCase()}_${Date.now().toString().slice(-4)}`,
+    name: DOM.regName.value,
+    scientificName: DOM.regScientific.value || "Custom Botanical sp.",
+    targetMolecule: DOM.regMolecule.value,
+    chemicalFormula: DOM.regFormula.value || "C20H30O",
+    pubchemCid: parseInt(DOM.regPubChem.value, 10) || 0,
+    molecularWeight: parseFloat(DOM.regMolWeight.value) || 300,
+    morphologyType: DOM.regMorphology.value,
+    harvestDays: parseInt(DOM.regHarvestDays.value, 10) || 35,
+    tempOpt: parseFloat(DOM.regTempOpt.value) || 23.0,
+    vcmax25: parseFloat(DOM.regVcmax.value) || 80.0,
+    baseLuteinConcentration: parseFloat(DOM.regBaseConc.value) || 4.0,
+    leafColor: DOM.regColor.value || "#22c55e"
+  };
+
+  const created = profileManager.registerNewProfile(newProfileData);
+  populateCropDropdown(created.id);
+
+  DOM.targetMoleculeText.textContent = `${created.targetMolecule} (${created.chemicalFormula})`;
+  if (plantChamber3d) {
+    plantChamber3d.setCropSpecies(created);
+  }
+
+  buildParamEditor();
+  resetPlantState();
+
+  DOM.newCropModal.classList.remove("active");
+  alert(`✨ '${created.name}' (${created.targetMolecule})이 성공적으로 등록되었습니다!\n생물리학 시뮬레이터 및 3D 바이오리액터가 새 유전체 환경으로 즉시 전환 가동됩니다.`);
 }
 
 // Start Application

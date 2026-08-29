@@ -237,12 +237,12 @@ export class ThreePlantChamber {
     this.scene.add(this.breezeSystem);
   }
 
-  setCropSpecies(speciesId) {
-    this.currentSpecies = speciesId;
-    this.buildSpeciesPlant(speciesId);
+  setCropSpecies(cropProfile) {
+    this.currentCrop = typeof cropProfile === "object" ? cropProfile : { id: cropProfile };
+    this.buildSpeciesPlant(this.currentCrop);
   }
 
-  buildSpeciesPlant(speciesId) {
+  buildSpeciesPlant(cropProfile) {
     if (this.plantGroup) {
       this.scene.remove(this.plantGroup);
     }
@@ -252,15 +252,23 @@ export class ThreePlantChamber {
     this.leaves = [];
     this.flowerGroup = null;
 
-    if (speciesId === "spinach_carotenoid") {
-      this.buildSpinachPlant();
-    } else if (speciesId === "kale_antioxidant") {
-      this.buildKalePlant();
-    } else if (speciesId === "tobacco_recombinant") {
-      this.buildTobaccoPlant();
+    const cropId = cropProfile.id || "marigold_lutein";
+    const morphology = cropProfile.morphologyType || 
+      (cropId.includes("spinach") ? "spinach" : 
+      (cropId.includes("kale") ? "kale" : 
+      (cropId.includes("tobacco") ? "tobacco" : "marigold")));
+
+    const leafColorHex = cropProfile.leafColor || "#22c55e";
+
+    if (morphology === "spinach") {
+      this.buildSpinachPlant(leafColorHex);
+    } else if (morphology === "kale") {
+      this.buildKalePlant(leafColorHex);
+    } else if (morphology === "tobacco") {
+      this.buildTobaccoPlant(leafColorHex);
     } else {
-      // Default: Marigold (Tagetes erecta)
-      this.buildMarigoldPlant();
+      // Default: Marigold type
+      this.buildMarigoldPlant(leafColorHex);
     }
 
     this.scene.add(this.plantGroup);
