@@ -3,773 +3,826 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BioFoundry PlantTwin | 4K 3D 실시간 가상 식물 성장 & 분자농업 디지털 트윈 OS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <title>BioFoundry PlantTwin - B2B Phytochemical Production Digital Twin</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="app-container">
 
-  <!-- Top Futuristic Cockpit Navigation -->
-  <header class="app-header">
-    <div class="brand-section">
-      <div class="brand-logo">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"/>
-          <path d="M11 13c1.5-1.5 3-2 5-2"/>
-          <path d="M11 13l-3 3"/>
-        </svg>
+    <!-- ====================================================================
+         1. TOP GLOBAL NAVIGATION HEADER
+         ==================================================================== -->
+    <header class="global-header">
+      <div class="header-left">
+        <div class="brand-logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path>
+            <path d="M11 20v-9"></path>
+          </svg>
+          <span>BioFoundry PlantTwin</span>
+        </div>
+        <nav class="nav-tabs">
+          <button type="button" class="nav-tab-btn active" data-tab="overview">Overview</button>
+          <button type="button" class="nav-tab-btn" data-tab="telemetry">Telemetry</button>
+          <button type="button" class="nav-tab-btn" data-tab="optimization">Optimization</button>
+          <button type="button" class="nav-tab-btn" data-tab="experiments">Experiments</button>
+          <button type="button" class="nav-tab-btn" data-tab="reports">Reports</button>
+        </nav>
       </div>
-      <div class="brand-text">
-        <h1>BioFoundry PlantTwin <span class="badge-4k">4K 3D</span></h1>
-        <p>DeepMind Open Stack | 분자농업 디지털 트윈</p>
-      </div>
-    </div>
 
-    <div class="header-center">
-      <div class="crop-select-group">
-        <span style="font-size: 11px; color: var(--text-dim); flex-shrink: 0;">작물:</span>
-        <select id="cropSelect" class="crop-select"></select>
-        <button id="btnOpenNewCropModal" class="btn btn-outline btn-new-crop" title="새 식물 및 분자농업 원료 등록">
-          <svg class="hud-svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          <span>신규 등록</span>
+      <div class="header-right">
+        <button id="btnAudioMute" class="btn-header btn-icon-only" title="사운드 온/오프">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        </button>
+        <button id="btnOpenParamEditor" class="btn-header">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Parameter Editor</span>
+        </button>
+        <button id="btnExportMenu" class="btn-header">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <span>Export</span>
+        </button>
+        <button id="btnAutoTune" class="btn-header" style="color: var(--gold-accent);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          <span>AI Auto-Tune</span>
+        </button>
+        <div id="btnAiAutoPilot" class="ai-toggle-pill" title="AI 자율 최적화 운전 스위치">
+          <span id="aiAutoPilotLabel">AI Auto-Tune</span>
+          <span class="switch-badge">OFF</span>
+        </div>
+        <button id="btnOpenNewCropModal" class="btn-header">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>New Crop</span>
+        </button>
+        <button id="btnOpenScheduler" class="btn-header">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span>Scheduler</span>
         </button>
       </div>
+    </header>
 
-      <div id="targetMoleculeBadge" class="target-molecule-badge">
-        <span class="pulsing-dot"></span>
-        <span id="targetMoleculeText">눈 건강 루테인 (Lutein, C₄₀H₅₆O₂)</span>
+    <!-- ====================================================================
+         2. SECONDARY CONTEXT / META INFO STRIP
+         ==================================================================== -->
+    <div class="context-strip">
+      <div class="context-left">
+        <div class="crop-dropdown-wrap">
+          <select id="cropSelect" class="crop-select"></select>
+          <span class="crop-dropdown-arrow">▾</span>
+        </div>
+        <div class="meta-pill">
+          <span>Target Molecule:</span>
+          <b id="metaTargetMolecule">Lutein (C40H56O2)</b>
+        </div>
+        <div class="meta-pill">
+          <span>DLI:</span>
+          <b id="metaDli">27.4</b>
+          <span>mol/m²d</span>
+        </div>
+        <div class="meta-pill">
+          <span>PPFD:</span>
+          <b id="metaPpfd">487</b>
+          <span>μmol</span>
+        </div>
+        <div class="meta-pill">
+          <span>An:</span>
+          <b id="metaAn">12.4</b>
+          <span>μmol/m²s</span>
+        </div>
+      </div>
+
+      <div class="context-right">
+        <div class="diurnal-cycle-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <span id="diurnalStatusLabel">주간 광합성 사이클 12:45</span>
+          <span class="pulse-green-dot"></span>
+        </div>
       </div>
     </div>
 
-    <div class="header-actions">
-      <!-- Audio FX Toggle -->
-      <button id="btnSoundToggle" class="btn-icon" title="사이버네틱 사운드 온/오프">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-        </svg>
-      </button>
-      <button id="btnOpenParamEditor" class="btn btn-outline">
-        <svg class="hud-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M9 22c1.8-2 2.5-4 2.8-6"/><path d="M15 2c-1.8 2-2.5 4-2.8 6"/><path d="M17 6l-2.5 2.5"/><path d="M14 8l-4 4"/><path d="M7 17l2.5-2.5"/>
-        </svg>
-        <span>생물학 인스펙터</span>
-      </button>
-      <button id="btnExportMenu" class="btn btn-primary">
-        <svg class="hud-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        <span>데이터 추출</span>
-      </button>
-      <button id="btnAutoTune" class="btn btn-accent">
-        <svg class="hud-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-        </svg>
-        <span>AI 레시피</span>
-      </button>
-    </div>
-  </header>
+    <!-- ====================================================================
+         3. MAIN 3-COLUMN DASHBOARD GRID
+         ==================================================================== -->
+    <main class="main-dashboard-grid">
 
-  <!-- Main 3-Column Cockpit Layout -->
-  <main class="main-container">
-    
-    <!-- LEFT: Real-Time Environmental Control & Virtual Sensors -->
-    <aside class="control-column panel-card">
-      <div class="panel-header">
-        <div class="panel-title">
-          <svg class="hud-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1.5" fill="#00f2fe"></circle>
-          </svg>
-          <span>실시간 IoT 센서 텔레메트리</span>
-        </div>
-        <span id="dliBadge" class="panel-badge">DLI: 21.8 mol/m²d</span>
-      </div>
-
-      <!-- 8-Channel Live Sensor Strip with Crisp 4K Vector Icons -->
-      <div class="telemetry-strip">
-        <div class="telemetry-box">
-          <span class="telemetry-tag">
-            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffd32a" stroke-width="2.2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line></svg>
-            PAR 조도
-          </span>
-          <span id="telemetryPpfd" class="telemetry-num">380 μmol</span>
-        </div>
-        <div class="telemetry-box">
-          <span class="telemetry-tag">
-            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2.2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
-            대기온도
-          </span>
-          <span id="telemetryAirTemp" class="telemetry-num">24.1 °C</span>
-        </div>
-        <div class="telemetry-box">
-          <span class="telemetry-tag">
-            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#38ef7d" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path></svg>
-            엽온 (IR)
-          </span>
-          <span id="telemetryLeafTemp" class="telemetry-num" style="color: var(--accent-emerald);">23.4 °C</span>
-        </div>
-        <div class="telemetry-box">
-          <span class="telemetry-tag">
-            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffd32a" stroke-width="2.2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
-            실시간 VPD
-          </span>
-          <span id="telemetryVpd" class="telemetry-num" style="color: var(--accent-gold);">0.95 kPa</span>
-        </div>
-        <div class="telemetry-box">
-          <span class="telemetry-tag">
-            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2.2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
-            습도 (RH)
-          </span>
-          <span id="telemetryRh" class="telemetry-num">65.2 %</span>
-        </div>
-        <div class="telemetry-box">
-          <span class="telemetry-tag">
-            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a29bfe" stroke-width="2.2"><path d="M10 2v7.31L4.69 19.5a1 1 0 0 0 .88 1.5h12.86a1 1 0 0 0 .88-1.5L14 9.31V2"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line></svg>
-            CO₂ 농도
-          </span>
-          <span id="telemetryCo2" class="telemetry-num">850 ppm</span>
-        </div>
-        <div class="telemetry-box">
-          <span class="telemetry-tag">
-            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffd32a" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            양액 EC
-          </span>
-          <span id="telemetryEc" class="telemetry-num">2.1 dS/m</span>
-        </div>
-        <div class="telemetry-box">
-          <span class="telemetry-tag">
-            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#38ef7d" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><path d="M8 12l3 3 5-5"></path></svg>
-            양자수율 Fv/Fm
-          </span>
-          <span id="telemetryFvFm" class="telemetry-num" style="color: var(--accent-emerald);">0.824</span>
-        </div>
-      </div>
-
-      <!-- 1. Spectrum Mixer Controls -->
-      <div class="control-group">
-        <div class="control-label" style="font-weight: 700; color: #fff;">
-          <span>1. 조명 스펙트럼 & 광량 제어</span>
-          <span id="ppfdDisplay" class="control-value">380 μmol</span>
-        </div>
-
-        <div class="control-item">
-          <div class="control-label">
-            <span>목표 광량 (Target PPFD)</span>
-            <span id="ppfdVal">380 μmol/m²/s</span>
+      <!-- LEFT COLUMN: Environment Controls (13 Sliders & Toggles) -->
+      <aside class="panel-card controls-column">
+        <div class="panel-title-bar">
+          <div class="panel-heading">
+            <span>Environment Controls</span>
           </div>
-          <input type="range" id="sliderPpfd" class="slider-track" min="100" max="800" value="380" step="10">
-        </div>
-
-        <div class="control-item">
-          <div class="control-label">
-            <span>일일 광주기 (Photoperiod)</span>
-            <span id="photoperiodVal">16 시간/일</span>
-          </div>
-          <input type="range" id="sliderPhotoperiod" class="slider-track" min="8" max="24" value="16" step="1">
-        </div>
-
-        <!-- Spectrum Ratio Row -->
-        <div class="spectrum-row">
-          <div class="spectrum-box red">
-            <div class="spectrum-name">Red (660nm)</div>
-            <div id="valRed" class="spectrum-val">55%</div>
-            <input type="range" id="sliderRed" class="slider-track" min="10" max="80" value="55">
-          </div>
-          <div class="spectrum-box blue">
-            <div class="spectrum-name">Blue (450nm)</div>
-            <div id="valBlue" class="spectrum-val">30%</div>
-            <input type="range" id="sliderBlue" class="slider-track" min="5" max="60" value="30">
-          </div>
-          <div class="spectrum-box green">
-            <div class="spectrum-name">Green</div>
-            <div id="valGreen" class="spectrum-val">10%</div>
-            <input type="range" id="sliderGreen" class="slider-track" min="0" max="30" value="10">
-          </div>
-          <div class="spectrum-box far-red">
-            <div class="spectrum-name">Far-Red</div>
-            <div id="valFarRed" class="spectrum-val">5%</div>
-            <input type="range" id="sliderFarRed" class="slider-track" min="0" max="25" value="5">
+          <div class="panel-actions">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
           </div>
         </div>
-      </div>
 
-      <!-- 2. Climate & VPD Setpoints -->
-      <div class="control-group">
-        <div class="control-label" style="font-weight: 700; color: #fff;">
-          <span>2. 온실 대기 및 온습도 제어</span>
-        </div>
-
-        <div class="control-item">
-          <div class="control-label">
-            <span>주간 목표온도 (Day Temp)</span>
-            <span id="dayTempVal">24.0 °C</span>
-          </div>
-          <input type="range" id="sliderDayTemp" class="slider-track" min="15" max="34" value="24.0" step="0.5">
-        </div>
-
-        <div class="control-item">
-          <div class="control-label">
-            <span>야간 목표온도 (Night Temp)</span>
-            <span id="nightTempVal">17.5 °C</span>
-          </div>
-          <input type="range" id="sliderNightTemp" class="slider-track" min="10" max="26" value="17.5" step="0.5">
-        </div>
-
-        <div class="control-item">
-          <div class="control-label">
-            <span>목표 습도 (RH %)</span>
-            <span id="humidityVal">65 %</span>
-          </div>
-          <input type="range" id="sliderHumidity" class="slider-track" min="35" max="90" value="65" step="1">
-        </div>
-
-        <div class="control-item">
-          <div class="control-label">
-            <span>이산화탄소 농도 (CO₂)</span>
-            <span id="co2Val">850 ppm</span>
-          </div>
-          <input type="range" id="sliderCo2" class="slider-track" min="400" max="1500" value="850" step="50">
-        </div>
-      </div>
-
-      <!-- 3. Molecular Elicitation & Fertigation -->
-      <div class="control-group">
-        <div class="control-label" style="font-weight: 700; color: #fff;">
-          <span>3. 분자농업 유도 스트레스 처방</span>
-        </div>
-
-        <div class="control-item">
-          <div class="control-label">
-            <span>양액 전기전도도 (EC)</span>
-            <span id="ecVal">2.1 dS/m</span>
-          </div>
-          <input type="range" id="sliderEc" class="slider-track" min="1.0" max="3.5" value="2.1" step="0.1">
-        </div>
-
-        <div class="switch-row">
-          <div>
-            <div class="switch-label">
-              <svg class="sensor-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffd32a" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-              펄스형 UV-B 조사 (PSY 효소 활성화)
+        <div class="sliders-scroll-list">
+          <!-- 1. PPFD -->
+          <div class="slider-row">
+            <div class="slider-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line></svg>
             </div>
-            <div class="switch-desc">루테인/카로티노이드 2차 대사산물 폭발적 합성</div>
+            <div class="slider-label-group">
+              <span class="slider-label">PPFD</span>
+              <span class="slider-unit">μmol/m²/s</span>
+            </div>
+            <input type="range" id="sliderPpfd" min="0" max="1000" step="10" value="487" class="slider-input-track">
+            <span id="valPpfd" class="slider-val-badge">487</span>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="checkUvb" checked>
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
 
-        <div class="switch-row">
-          <div>
-            <div class="switch-label">
-              <svg class="sensor-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-              수확기 저온 시프트 (Cold Shock)
+          <!-- 2. Photoperiod -->
+          <div class="slider-row">
+            <div class="slider-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             </div>
-            <div class="switch-desc">야간 저온으로 항산화 분자 체내 농축</div>
+            <div class="slider-label-group">
+              <span class="slider-label">Photoperiod</span>
+              <span class="slider-unit">h</span>
+            </div>
+            <input type="range" id="sliderPhotoperiod" min="0" max="24" step="1" value="16" class="slider-input-track">
+            <span id="valPhotoperiod" class="slider-val-badge">16</span>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="checkColdShift" checked>
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>
-    </aside>
 
-    <!-- CENTER: 4K 3D Living Plant Canvas & View Controls -->
-    <section class="center-column">
-      <div id="plant3dContainer" class="viewport-card">
-        <!-- Viewport Sleek Top Bar -->
-        <div class="view-mode-bar">
-          <button id="btnAiAutoPilot" class="ai-autopilot-btn" title="시뮬레이터 자율 AI 환경 최적화 운전">
-            <span class="ai-pulse-dot"></span>
-            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></svg>
-            <span id="aiAutoPilotLabel">AI 자율 최적화: OFF</span>
-          </button>
-          <button id="btnOpenScheduler" class="diurnal-status-tag" style="cursor: pointer;" title="24시간 스마트팜 환경 자동 제어 타임테이블 스케줄러">
-            <span class="pulse-emerald"></span>
-            <span id="diurnalStatusLabel">24H 자동 일주기</span>
-            <svg class="hud-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-          <button id="btnResetCamera" class="view-tab-icon" title="3D 카메라 뷰 리셋">
-            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
-            <span>시점 리셋</span>
-          </button>
-        </div>
-
-        <!-- 3D Orbit Tip -->
-        <div class="orbit-hint">
-          <span class="hint-item">
-            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38ef7d" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"/></svg>
-            <span>바이오리액터 트윈</span>
-          </span>
-          <span class="hint-sep">|</span>
-          <span class="hint-item">
-            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/></svg>
-            <b>360° 마우스 드래그 3D 회전</b> (휠 줌)
-          </span>
-          <span class="hint-sep">|</span>
-          <span class="hint-item">
-            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffd32a" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-            <b style="color: #ffd32a;">잎/꽃 클릭 시 생체 정보 HUD 핀</b>
-          </span>
-        </div>
-
-        <!-- 3D Holographic Bio-HUD Tooltip Pin -->
-        <div id="hologramBioHud" class="hologram-hud-pin">
-          <div class="hud-pin-header">
-            <div class="hud-pin-title">
-              <span class="hud-dot"></span>
-              <span id="hudNodeTitle">제 4엽 상위 엽맥 (Leaf #4)</span>
+          <!-- 3. Spectrum Red -->
+          <div class="slider-row">
+            <div class="slider-icon"><span class="color-dot red"></span></div>
+            <div class="slider-label-group">
+              <span class="slider-label">Spectrum Red</span>
+              <span class="slider-unit">%</span>
             </div>
-            <button id="hudPinClose" class="hud-pin-close" title="닫기">✕</button>
+            <input type="range" id="sliderRed" min="0" max="100" step="1" value="62" class="slider-input-track">
+            <span id="valRed" class="slider-val-badge">62</span>
           </div>
-          <div class="hud-pin-body">
-            <div class="hud-stat-row">
-              <span>국소 엽온 (T_leaf)</span>
-              <b id="hudLeafTemp" style="color: #fff;">23.4 °C</b>
+
+          <!-- 4. Spectrum Blue -->
+          <div class="slider-row">
+            <div class="slider-icon"><span class="color-dot blue"></span></div>
+            <div class="slider-label-group">
+              <span class="slider-label">Spectrum Blue</span>
+              <span class="slider-unit">%</span>
             </div>
-            <div class="hud-stat-row">
-              <span>순광합성 (Net An)</span>
-              <b id="hudNetAn" style="color: var(--accent-cyan);">19.20 μmol</b>
+            <input type="range" id="sliderBlue" min="0" max="100" step="1" value="18" class="slider-input-track">
+            <span id="valBlue" class="slider-val-badge">18</span>
+          </div>
+
+          <!-- 5. Spectrum Green -->
+          <div class="slider-row">
+            <div class="slider-icon"><span class="color-dot green"></span></div>
+            <div class="slider-label-group">
+              <span class="slider-label">Spectrum Green</span>
+              <span class="slider-unit">%</span>
             </div>
-            <div class="hud-stat-row">
-              <span>유효성분 농도</span>
-              <b id="hudMoleculeConc" style="color: var(--accent-gold);">4.85 mg/g</b>
+            <input type="range" id="sliderGreen" min="0" max="100" step="1" value="10" class="slider-input-track">
+            <span id="valGreen" class="slider-val-badge">10</span>
+          </div>
+
+          <!-- 6. Spectrum Far-Red -->
+          <div class="slider-row">
+            <div class="slider-icon"><span class="color-dot far-red"></span></div>
+            <div class="slider-label-group">
+              <span class="slider-label">Spectrum Far-Red</span>
+              <span class="slider-unit">%</span>
             </div>
-            <div class="hud-stat-row">
-              <span>기공전도도 (gs)</span>
-              <b id="hudStomatalGs" style="color: var(--accent-emerald);">0.42 mol</b>
+            <input type="range" id="sliderFarRed" min="0" max="100" step="1" value="10" class="slider-input-track">
+            <span id="valFarRed" class="slider-val-badge">10</span>
+          </div>
+
+          <!-- 7. Day Temp -->
+          <div class="slider-row">
+            <div class="slider-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
+            </div>
+            <div class="slider-label-group">
+              <span class="slider-label">Day Temp</span>
+              <span class="slider-unit">°C</span>
+            </div>
+            <input type="range" id="sliderDayTemp" min="15" max="35" step="0.5" value="24.6" class="slider-input-track">
+            <span id="valDayTemp" class="slider-val-badge">24.6</span>
+          </div>
+
+          <!-- 8. Night Temp -->
+          <div class="slider-row">
+            <div class="slider-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </div>
+            <div class="slider-label-group">
+              <span class="slider-label">Night Temp</span>
+              <span class="slider-unit">°C</span>
+            </div>
+            <input type="range" id="sliderNightTemp" min="10" max="25" step="0.5" value="20.1" class="slider-input-track">
+            <span id="valNightTemp" class="slider-val-badge">20.1</span>
+          </div>
+
+          <!-- 9. Humidity -->
+          <div class="slider-row">
+            <div class="slider-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+            </div>
+            <div class="slider-label-group">
+              <span class="slider-label">Humidity</span>
+              <span class="slider-unit">%</span>
+            </div>
+            <input type="range" id="sliderHumidity" min="20" max="100" step="1" value="69.2" class="slider-input-track">
+            <span id="valHumidity" class="slider-val-badge">69.2</span>
+          </div>
+
+          <!-- 10. CO2 -->
+          <div class="slider-row">
+            <div class="slider-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+            </div>
+            <div class="slider-label-group">
+              <span class="slider-label">CO₂</span>
+              <span class="slider-unit">ppm</span>
+            </div>
+            <input type="range" id="sliderCo2" min="200" max="2000" step="25" value="825" class="slider-input-track">
+            <span id="valCo2" class="slider-val-badge">825</span>
+          </div>
+
+          <!-- 11. EC -->
+          <div class="slider-row">
+            <div class="slider-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            </div>
+            <div class="slider-label-group">
+              <span class="slider-label">EC</span>
+              <span class="slider-unit">mS/cm</span>
+            </div>
+            <input type="range" id="sliderEc" min="0.5" max="4.0" step="0.1" value="2.31" class="slider-input-track">
+            <span id="valEc" class="slider-val-badge">2.31</span>
+          </div>
+
+          <!-- 12. UV-B Toggle Switch -->
+          <div class="toggle-row">
+            <div class="toggle-left">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+              <div class="slider-label-group">
+                <span class="slider-label">UV-B</span>
+                <span class="slider-unit">μmol/m²/s</span>
+              </div>
+            </div>
+            <div class="toggle-right">
+              <label class="switch-pill">
+                <input type="checkbox" id="checkUvb">
+                <span class="switch-slider"></span>
+              </label>
+              <span id="valUvb" class="slider-val-badge">1.20</span>
+            </div>
+          </div>
+
+          <!-- 13. Cold Shift Toggle Switch -->
+          <div class="toggle-row">
+            <div class="toggle-left">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              <div class="slider-label-group">
+                <span class="slider-label">Cold Shift</span>
+                <span class="slider-unit">°C below day</span>
+              </div>
+            </div>
+            <div class="toggle-right">
+              <label class="switch-pill">
+                <input type="checkbox" id="checkColdShift">
+                <span class="switch-slider"></span>
+              </label>
+              <span id="valColdShift" class="slider-val-badge">2.0</span>
             </div>
           </div>
         </div>
-      </div>
+      </aside>
 
-      <!-- Timeline & Playback Controller -->
-      <div class="timeline-controller">
-        <div class="playback-btns">
-          <button id="btnPlay" class="btn-play" title="실시간 시뮬레이션 일시정지/재생">
-            <svg id="playIconSvg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-          </button>
-          <button id="btnReset" class="btn-step" title="생육 1일차로 리셋">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+      <!-- CENTER COLUMN: Simulation Chamber 3D & Timeline Scrubber -->
+      <section class="center-column">
+        <!-- 3D Chamber Card -->
+        <div class="viewport-card">
+          <!-- Viewport Floating Header -->
+          <div class="viewport-floating-header">
+            <div class="viewport-title">Simulation Chamber</div>
+            <div class="viewport-tools">
+              <button id="btnCapture4K" class="btn-tool-icon" title="4K 스냅샷 캡처">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+              </button>
+              <button class="btn-tool-icon" title="타깃 포커스">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+              </button>
+              <button class="btn-tool-icon" title="전체화면">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Three.js Canvas Container -->
+          <div id="plant3dContainer"></div>
+
+          <!-- Glassmorphic HUD Card 1: LEAF ANALYSIS -->
+          <div class="chamber-hud-card leaf-pos">
+            <div class="hud-card-header">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path></svg>
+              <span>LEAF ANALYSIS</span>
+            </div>
+            <div class="hud-stat-grid">
+              <span>Chl a/b</span>
+              <b id="hudChlAb">3.21</b>
+              <span>Stomatal Cond.</span>
+              <b id="hudStomatalGs">0.36 mol m⁻² s⁻¹</b>
+              <span>NPQ</span>
+              <b id="hudNpq">1.28</b>
+            </div>
+          </div>
+
+          <!-- Glassmorphic HUD Card 2: ROOT ZONE -->
+          <div class="chamber-hud-card root-pos">
+            <div class="hud-card-header emerald">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              <span>ROOT ZONE</span>
+            </div>
+            <div class="hud-stat-grid">
+              <span>RH</span>
+              <b id="hudRootRh">98.7 %</b>
+              <span>Temp</span>
+              <b id="hudRootTemp">22.1 °C</b>
+              <span>O₂</span>
+              <b id="hudRootO2">21.3 %</b>
+            </div>
+          </div>
+
+          <!-- Dynamic Raycasting Bio-HUD Pin (Preserved) -->
+          <div id="hologramBioHud" class="chamber-hud-card" style="display: none;">
+            <div class="hud-card-header" style="justify-content: space-between;">
+              <span id="hudNodeTitle">Leaf #4</span>
+              <button id="hudPinClose" style="background:transparent; border:none; color:#f87171; cursor:pointer;">✕</button>
+            </div>
+            <div class="hud-stat-grid">
+              <span>Leaf Temp</span>
+              <b id="hudLeafTemp">24.6 °C</b>
+              <span>Net An</span>
+              <b id="hudNetAn">12.4 μmol</b>
+              <span>Molecule Conc.</span>
+              <b id="hudMoleculeConc">18.7 mg/g</b>
+            </div>
+          </div>
+
+          <!-- Bottom Viewport Tip -->
+          <div class="viewport-bottom-tip">
+            👆 Click + drag to rotate • Scroll to zoom • R to reset
+          </div>
+
+          <!-- Reset Camera Button -->
+          <button id="btnResetCamera" class="viewport-reset-btn">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+            <span>Reset Camera</span>
           </button>
         </div>
 
-        <!-- Time Warp Speed Controller unified in timeline bar -->
-        <div class="warp-control">
-          <button class="warp-btn" data-speed="1">1x</button>
-          <button class="warp-btn" data-speed="5">5x</button>
-          <button class="warp-btn active" data-speed="60">60x</button>
-          <button class="warp-btn" data-speed="300">300x</button>
-          <button class="warp-btn" data-speed="3600">3600x</button>
-        </div>
-
-        <div class="timeline-slider-wrap">
-          <div class="timeline-header">
-            <span>생육 타임라인 (Growth Timeline)</span>
-            <span id="timelineDayLabel" class="timeline-day-badge">Day 01 / 42 (08:00)</span>
+        <!-- Timeline Scrubber Card -->
+        <div class="timeline-card">
+          <div class="timeline-playback-group">
+            <button id="btnPlay" class="btn-play-action" title="재생/일시정지">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            </button>
+            <button id="btnReset" class="btn-play-action" title="처음부터 재생">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+            </button>
           </div>
-          <input type="range" id="timelineSlider" class="slider-track" min="1" max="45" value="42" step="1">
+
+          <div class="timeline-track-wrap">
+            <div class="timeline-info-row">
+              <span class="timeline-day-tag">Day <span id="teleDay">18</span> / <span id="teleHarvestDay">42</span></span>
+              <span id="teleStage" class="timeline-stage-tag">Vegetative Stage</span>
+            </div>
+            <input type="range" id="timelineSlider" min="1" max="42" value="18" class="timeline-slider-bar">
+            <div class="timeline-ticks">
+              <span>0</span>
+              <span>7</span>
+              <span>14</span>
+              <span>21</span>
+              <span>28</span>
+              <span>35</span>
+              <span>42</span>
+            </div>
+          </div>
+
+          <div class="timewarp-group">
+            <span class="timewarp-label">Time Warp</span>
+            <button type="button" class="warp-btn active" data-speed="1">1x</button>
+            <button type="button" class="warp-btn" data-speed="60">60x</button>
+            <button type="button" class="warp-btn" data-speed="600">600x</button>
+            <button type="button" class="warp-btn" data-speed="3600">3600x</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: Telemetry (8 Tiles) & KPI (6 Tiles) -->
+      <aside class="telemetry-column">
+
+        <!-- Top Card: Telemetry (Live ●) -->
+        <div class="panel-card">
+          <div class="panel-title-bar">
+            <div class="panel-heading">
+              <span>Telemetry</span>
+            </div>
+            <div class="panel-actions" style="color: var(--emerald-glow); font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+              <span>Live</span>
+              <span class="pulse-green-dot"></span>
+            </div>
+          </div>
+
+          <div class="telemetry-grid-8">
+            <!-- 1. PPFD -->
+            <div class="telemetry-card-tile">
+              <div class="tele-top-row">
+                <div class="tele-label-group">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-primary)" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
+                  <span class="tele-name">PPFD</span>
+                </div>
+                <span id="teleSensPpfd" class="tele-val">487</span>
+              </div>
+              <div class="tele-bottom-row">
+                <span class="tele-range-text">0<br>1000</span>
+                <canvas id="sparkPpfd" class="sparkline-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- 2. RH -->
+            <div class="telemetry-card-tile">
+              <div class="tele-top-row">
+                <div class="tele-label-group">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--blue-accent)" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                  <span class="tele-name">RH</span>
+                </div>
+                <span id="teleSensRh" class="tele-val">69.2</span>
+              </div>
+              <div class="tele-bottom-row">
+                <span class="tele-range-text">0<br>100</span>
+                <canvas id="sparkRh" class="sparkline-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- 3. Air Temp -->
+            <div class="telemetry-card-tile">
+              <div class="tele-top-row">
+                <div class="tele-label-group">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--red-accent)" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
+                  <span class="tele-name">Air Temp</span>
+                </div>
+                <span id="teleSensAirTemp" class="tele-val">23.7</span>
+              </div>
+              <div class="tele-bottom-row">
+                <span class="tele-range-text">16<br>28</span>
+                <canvas id="sparkAirTemp" class="sparkline-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- 4. CO2 -->
+            <div class="telemetry-card-tile">
+              <div class="tele-top-row">
+                <div class="tele-label-group">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-primary)" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+                  <span class="tele-name">CO₂</span>
+                </div>
+                <span id="teleSensCo2" class="tele-val">825</span>
+              </div>
+              <div class="tele-bottom-row">
+                <span class="tele-range-text">200<br>2000</span>
+                <canvas id="sparkCo2" class="sparkline-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- 5. Leaf Temp -->
+            <div class="telemetry-card-tile">
+              <div class="tele-top-row">
+                <div class="tele-label-group">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-accent)" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path></svg>
+                  <span class="tele-name">Leaf Temp</span>
+                </div>
+                <span id="teleSensLeafTemp" class="tele-val">24.6</span>
+              </div>
+              <div class="tele-bottom-row">
+                <span class="tele-range-text">16<br>32</span>
+                <canvas id="sparkLeafTemp" class="sparkline-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- 6. EC -->
+            <div class="telemetry-card-tile">
+              <div class="tele-top-row">
+                <div class="tele-label-group">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--gold-accent)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                  <span class="tele-name">EC</span>
+                </div>
+                <span id="teleSensEc" class="tele-val">2.31</span>
+              </div>
+              <div class="tele-bottom-row">
+                <span class="tele-range-text">0.5<br>4.0</span>
+                <canvas id="sparkEc" class="sparkline-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- 7. VPD -->
+            <div class="telemetry-card-tile">
+              <div class="tele-top-row">
+                <div class="tele-label-group">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-primary)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                  <span class="tele-name">VPD</span>
+                </div>
+                <span id="teleSensVpd" class="tele-val">1.12</span>
+              </div>
+              <div class="tele-bottom-row">
+                <span class="tele-range-text">0.5<br>2.5</span>
+                <canvas id="sparkVpd" class="sparkline-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- 8. Fv/Fm -->
+            <div class="telemetry-card-tile">
+              <div class="tele-top-row">
+                <div class="tele-label-group">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--purple-accent)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                  <span class="tele-name">Fv/Fm</span>
+                </div>
+                <span id="teleSensFvFm" class="tele-val">0.812</span>
+              </div>
+              <div class="tele-bottom-row">
+                <span class="tele-range-text">0.0<br>1.0</span>
+                <canvas id="sparkFvFm" class="sparkline-canvas"></canvas>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="timeline-stats-box">
-          <span class="timeline-stats-title">실시간 순광합성(An):</span>
-          <div id="anLiveDisplay" class="timeline-stats-val">19.20 μmol/m²s</div>
+        <!-- Bottom Card: KPI Matrix (6 Tiles) -->
+        <div class="panel-card">
+          <div class="panel-title-bar">
+            <div class="panel-heading">
+              <span>KPI</span>
+            </div>
+          </div>
+
+          <div class="kpi-matrix-6">
+            <!-- 1. Total Lutein Accumulated -->
+            <div class="kpi-tile">
+              <div class="kpi-top">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-accent)" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                <span>Total Lutein Accumulated</span>
+              </div>
+              <div class="kpi-mid">
+                <span id="kpiTotalLutein" class="kpi-big-val cyan">132.4 mg</span>
+                <canvas id="kpiSparkTotal" class="kpi-sparkline-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- 2. Increase vs Standard -->
+            <div class="kpi-tile featured">
+              <div class="kpi-top">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-primary)" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                <span>Increase vs Standard</span>
+              </div>
+              <div class="kpi-mid">
+                <span id="kpiYieldGain" class="kpi-big-val emerald">+154%</span>
+                <canvas id="kpiSparkGain" class="kpi-sparkline-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- 3. Lutein Concentration -->
+            <div class="kpi-tile">
+              <div class="kpi-top">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--purple-accent)" stroke-width="2"><path d="M10 2v7.31L4.69 19.5a1 1 0 0 0 .88 1.5h12.86a1 1 0 0 0 .88-1.5L14 9.31V2"></path></svg>
+                <span>Lutein Concentration</span>
+              </div>
+              <div class="kpi-mid">
+                <span id="kpiLuteinConc" class="kpi-big-val purple">18.7 mg/g DW</span>
+                <canvas id="kpiSparkConc" class="kpi-sparkline-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- 4. Fresh Weight -->
+            <div class="kpi-tile">
+              <div class="kpi-top">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-primary)" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path></svg>
+                <span>Fresh Weight</span>
+              </div>
+              <div class="kpi-mid">
+                <span id="kpiFreshWeight" class="kpi-big-val emerald">128.6 g</span>
+                <canvas id="kpiSparkFresh" class="kpi-sparkline-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- 5. Dry Weight -->
+            <div class="kpi-tile">
+              <div class="kpi-top">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                <span>Dry Weight</span>
+              </div>
+              <div class="kpi-mid">
+                <span id="kpiDryWeight" class="kpi-big-val">12.8 g</span>
+                <canvas id="kpiSparkDry" class="kpi-sparkline-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- 6. Energy Efficiency -->
+            <div class="kpi-tile">
+              <div class="kpi-top">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--gold-accent)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span>Energy Efficiency</span>
+              </div>
+              <div class="kpi-mid">
+                <span id="kpiEnergyEff" class="kpi-big-val gold">41.3 mg/kWh</span>
+                <canvas id="kpiSparkEnergy" class="kpi-sparkline-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- ====================================================================
+         4. BOTTOM DUAL OSCILLOSCOPES (FULL-WIDTH GRID)
+         ==================================================================== -->
+    <section class="bottom-scopes-grid">
+
+      <!-- Scope 1: Photosynthesis Scope -->
+      <div class="scope-card">
+        <div class="scope-header">
+          <div class="scope-title-area">
+            <span class="scope-heading">Photosynthesis Scope</span>
+            <div class="scope-legends">
+              <span class="legend-item"><span class="legend-line emerald"></span> <b>A</b> (μmol CO₂/m²/s)</span>
+              <span class="legend-item"><span class="legend-line cyan"></span> <b>gs</b> (mol/m²/s)</span>
+              <span class="legend-item"><span class="legend-line purple"></span> <b>Ci</b> (ppm)</span>
+            </div>
+          </div>
+
+          <div class="scope-controls">
+            <div class="scope-range-pills" id="scopeScalePills1">
+              <button type="button" class="range-btn active" data-scale="1m">1 min</button>
+              <button type="button" class="range-btn" data-scale="24h">24 h</button>
+              <button type="button" class="range-btn" data-scale="42d">42 d</button>
+            </div>
+            <button class="btn-card-action" title="확대">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="scope-canvas-wrap">
+          <canvas id="photoScopeChart" class="scope-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Scope 2: Lutein Flux Scope -->
+      <div class="scope-card">
+        <div class="scope-header">
+          <div class="scope-title-area">
+            <span class="scope-heading">Lutein Flux Scope</span>
+            <div class="scope-legends">
+              <span class="legend-item"><span class="legend-line emerald"></span> <b>Lutein Flux</b> (mg/m²/h)</span>
+              <span class="legend-item"><span class="legend-line purple"></span> <b>Lutein Conc.</b> (mg/g DW)</span>
+            </div>
+          </div>
+
+          <div class="scope-controls">
+            <div class="scope-range-pills" id="scopeScalePills2">
+              <button type="button" class="range-btn active" data-scale="1m">1 min</button>
+              <button type="button" class="range-btn" data-scale="24h">24 h</button>
+              <button type="button" class="range-btn" data-scale="42d">42 d</button>
+            </div>
+            <button class="btn-card-action" title="확대">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="scope-canvas-wrap">
+          <canvas id="luteinScopeChart" class="scope-canvas"></canvas>
         </div>
       </div>
     </section>
 
-    <!-- RIGHT: Real-time Streaming Oscilloscope & Morphometrics -->
-    <aside class="analytics-column">
-      <!-- 4 Top KPI Scorecards -->
-      <div class="kpi-grid">
-        <div class="kpi-card gold">
-          <div class="kpi-title">총 유효성분 수확량 (Yield)</div>
-          <div id="kpiTotalLutein" class="kpi-value gold">17.2 mg</div>
-          <div id="kpiIncrease" class="kpi-sub">+258% (표준재배 대비)</div>
-        </div>
+  </div>
 
-        <div class="kpi-card">
-          <div class="kpi-title">조직 내 분자 농도</div>
-          <div id="kpiLuteinConc" class="kpi-value">4.4 mg/g</div>
-          <div class="kpi-sub">의약품 원료 규격 충족</div>
-        </div>
+  <!-- ====================================================================
+       5. ALL PRESERVED MODALS & DIALOGS
+       ==================================================================== -->
 
-        <div class="kpi-card">
-          <div class="kpi-title">누적 생체중 (Fresh Weight)</div>
-          <div id="kpiFreshWeight" class="kpi-value">64.8 g</div>
-          <div id="kpiDryWeight" class="kpi-sub">건중량 6.1g</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-title">전력당 생산 효율</div>
-          <div id="kpiEnergyEff" class="kpi-value" style="color: var(--accent-cyan);">1.52 mg/kWh</div>
-          <div class="kpi-sub">스마트팜 경제성 극대화</div>
-        </div>
-      </div>
-
-      <!-- Scope 1: Live Photosynthetic Rate (An) -->
-      <div class="panel-card chart-card">
-        <div class="panel-header">
-          <div class="panel-title">
-            <svg class="hud-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-            <span>광합성 속도 스트림 (Net An)</span>
-          </div>
-          <!-- Time Scale Zoom Controller -->
-          <div class="scale-pills" id="scopeScalePills1">
-            <button class="scale-btn active" data-scale="1m">1분</button>
-            <button class="scale-btn" data-scale="24h">24H</button>
-            <button class="scale-btn" data-scale="42d">42일</button>
-          </div>
-        </div>
-        <canvas id="photoScopeChart" class="chart-canvas"></canvas>
-      </div>
-
-      <!-- Scope 2: Live Lutein Biosynthetic Flux -->
-      <div class="panel-card chart-card">
-        <div class="panel-header">
-          <div class="panel-title">
-            <svg class="hud-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31L4.69 19.5a1 1 0 0 0 .88 1.5h12.86a1 1 0 0 0 .88-1.5L14 9.31V2"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line></svg>
-            <span>2차 대사물질 플럭스 & 수율</span>
-          </div>
-          <!-- Time Scale Zoom Controller -->
-          <div class="scale-pills" id="scopeScalePills2">
-            <button class="scale-btn active" data-scale="1m">1분</button>
-            <button class="scale-btn" data-scale="24h">24H</button>
-            <button class="scale-btn" data-scale="42d">42일</button>
-          </div>
-        </div>
-        <canvas id="luteinScopeChart" class="chart-canvas"></canvas>
-      </div>
-    </aside>
-
-  </main>
-
-  <!-- Modal 1: Parameter Inspector & Editor (No Hardcoding) -->
+  <!-- Modal 1: Parameter Editor -->
   <div id="paramModal" class="modal-backdrop">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 style="color: var(--accent-cyan); font-size: 16px; display: flex; align-items: center; gap: 8px;">
-          <svg class="hud-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2"><path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M9 22c1.8-2 2.5-4 2.8-6"/><path d="M15 2c-1.8 2-2.5 4-2.8 6"/><path d="M17 6l-2.5 2.5"/><path d="M14 8l-4 4"/></svg>
-          식물 생물리학 & 유전체 파라미터 인스펙터
-        </h3>
+        <h3 style="color: var(--emerald-glow); font-size: 15px;">식물 생물리학 & 유전체 파라미터 에디터</h3>
         <button id="paramClose" class="modal-close">✕</button>
       </div>
-      <p style="font-size: 12px; color: var(--text-muted);">
-        모든 수식 계수는 동적으로 실시간 적용됩니다. 파라미터를 직접 수정하거나 새 유전형 데이터를 입력하세요.
-      </p>
-
-      <div class="param-grid" id="paramEditorGrid"></div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+      <div id="paramGrid" class="param-grid"></div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
         <button id="btnExportProfile" class="btn btn-outline">JSON 내보내기</button>
-        <button id="btnSaveParams" class="btn btn-primary">파라미터 즉시 적용</button>
+        <button id="btnSaveParams" class="btn btn-primary">변경사항 저장</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal 2: Data Extraction & Export Hub -->
+  <!-- Modal 2: Export Menu -->
   <div id="exportModal" class="modal-backdrop">
-    <div class="modal-content">
+    <div class="modal-content" style="width: 500px;">
       <div class="modal-header">
-        <h3 style="color: var(--accent-cyan); font-size: 16px; display: flex; align-items: center; gap: 8px;">
-          <svg class="hud-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          연구 데이터 추출 & 스마트팜 연동 허브
-        </h3>
+        <h3 style="color: #fff; font-size: 15px;">바이오파운드리 데이터 추출 & 배포</h3>
         <button id="exportClose" class="modal-close">✕</button>
       </div>
-      <p style="font-size: 12px; color: var(--text-muted);">
-        시뮬레이션된 모든 생물리학/분자합성 시계열 데이터를 표준 연구 및 산업 자동화 형식으로 추출합니다.
-      </p>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px;">
-        <div class="export-option-card" id="btnExportCSV">
-          <div style="color: var(--accent-cyan);">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-          </div>
-          <div style="font-weight: 700; color: #fff; font-size: 13px;">시계열 텔레메트리 CSV</div>
-          <div style="font-size: 11px; color: var(--text-muted);">전체 센서 + 광합성 + 유효성분 플럭스 초단위 데이터</div>
-        </div>
-
-        <div class="export-option-card" id="btnCapture4K">
-          <div style="color: var(--accent-emerald);">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-          </div>
-          <div style="font-weight: 700; color: #fff; font-size: 13px;">4K 디지털 트윈 스냅샷</div>
-          <div style="font-size: 11px; color: var(--text-muted);">고해상도 PNG 리포트 이미지 저장</div>
-        </div>
-
-        <div class="export-option-card" id="btnExportPlc">
-          <div style="color: var(--accent-gold);">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-          </div>
-          <div style="font-weight: 700; color: #fff; font-size: 13px;">스마트팜 PLC 제어 JSON</div>
-          <div style="font-size: 11px; color: var(--text-muted);">BACnet / MQTT / Modbus 제어 레시피</div>
-        </div>
-
-        <div class="export-option-card" id="btnExportP2HModal">
-          <div style="color: #a29bfe;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-          </div>
-          <div style="font-weight: 700; color: #fff; font-size: 13px;">Plant2Human AI 페이로드</div>
-          <div style="font-size: 11px; color: var(--text-muted);">바이오 파운드리 원료 연동 데이터</div>
-        </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button id="btnExportCSV" class="btn btn-outline" style="justify-content: flex-start; padding: 12px;">📊 생육 시계열 텔레메트리 CSV 내보내기</button>
+        <button id="btnExportPlc" class="btn btn-outline" style="justify-content: flex-start; padding: 12px;">📜 스마트팜 BACnet / MQTT PLC 제어 스크립트</button>
+        <button id="btnExportP2HModal" class="btn btn-outline" style="justify-content: flex-start; padding: 12px;">🔗 Plant2Human AI 원료 규격 연동 페이로드</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal 3: Autonomous AI Optimization Engine -->
+  <!-- Modal 3: AI Optimizer & Pareto Landscape -->
   <div id="recipeModal" class="modal-backdrop">
     <div class="modal-content" style="width: 860px;">
       <div class="modal-header">
-        <h3 id="modalRecipeTitle" style="color: var(--accent-gold); font-size: 16px; display: flex; align-items: center; gap: 8px;">
-          <svg class="hud-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/></svg>
-          시뮬레이터 AI 자율 최적 환경 역추적 솔버
-        </h3>
+        <h3 id="modalRecipeTitle" style="color: var(--gold-accent); font-size: 15px;">AI 자율 최적 환경 역추적 솔버</h3>
         <button id="modalClose" class="modal-close">✕</button>
       </div>
-
-      <!-- Objective Selection Tabs -->
-      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+      <div style="display: flex; gap: 6px; margin-bottom: 12px;">
         <button type="button" class="opt-tab active" data-obj="yield_max">분자 수확량 극대화</button>
-        <button type="button" class="opt-tab" data-obj="speed_breeding">초고속 생육 가속 (-11일 단축)</button>
+        <button type="button" class="opt-tab" data-obj="speed_breeding">초고속 생육 가속</button>
         <button type="button" class="opt-tab" data-obj="energy_eff">전력당 경제성 극대화</button>
       </div>
-
-      <!-- Quantified Improvement HUD Cards -->
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;" id="aiImpactCards">
-        <div class="kpi-card gold">
-          <div class="kpi-title">예상 수율 증가</div>
-          <div id="optYieldGain" class="kpi-value gold">+43.8%</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">수확 일수 단축</div>
-          <div id="optDaysSaved" class="kpi-value" style="color: var(--accent-cyan);">-9일 (33일차)</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">최대 순광합성(An)</div>
-          <div id="optNetAn" class="kpi-value" style="color: var(--accent-emerald);">24.8 μmol</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">가상 시뮬레이션 횟수</div>
-          <div id="optTotalRuns" class="kpi-value" style="font-size: 15px;">560회 탐색</div>
-        </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px;">
+        <div class="kpi-tile"><span style="font-size:9px; color:var(--text-muted);">수율 증가</span><b id="optYieldGain" class="kpi-big-val gold">+43.8%</b></div>
+        <div class="kpi-tile"><span style="font-size:9px; color:var(--text-muted);">수확일 단축</span><b id="optDaysSaved" class="kpi-big-val cyan">-9일</b></div>
+        <div class="kpi-tile"><span style="font-size:9px; color:var(--text-muted);">순광합성(An)</span><b id="optNetAn" class="kpi-big-val emerald">24.8 μmol</b></div>
+        <div class="kpi-tile"><span style="font-size:9px; color:var(--text-muted);">시뮬레이션</span><b id="optTotalRuns" class="kpi-big-val">560회</b></div>
       </div>
-
-      <!-- 2-Column: Left Pareto Landscape Canvas + Right Scientific Recipe Block -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
-        <!-- Left: Pareto Landscape Canvas Card -->
-        <div style="background: rgba(6, 12, 18, 0.9); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: var(--radius-md); padding: 10px; display: flex; flex-direction: column;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <span style="font-size: 11px; font-weight: 700; color: var(--accent-cyan);">🔬 다차원 파레토 등고선 지형도</span>
-            <span style="font-size: 9px; color: var(--text-dim);">온도 × 광량 탐색 궤적</span>
-          </div>
-          <canvas id="paretoCanvas" style="width: 100%; height: 185px; border-radius: 4px; background: #03080e;"></canvas>
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px; font-size: 9px; color: var(--text-dim);">
-            <span>0% 저수율 (Navy)</span>
-            <div style="width: 120px; height: 6px; border-radius: 3px; background: linear-gradient(to right, rgb(8,20,45), #00f2fe, #2ecc71, #f1c40f, #ffffff);"></div>
-            <span style="color: #ffd32a; font-weight: 700;">100% 최적점 (Peak)</span>
-          </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+        <div style="background: var(--bg-input); border: 1px solid var(--border-card); border-radius: var(--radius-sm); padding: 8px;">
+          <canvas id="paretoCanvas" style="width:100%; height:180px;"></canvas>
         </div>
-
-        <!-- Right: Recipe Details & Biological Rationale -->
-        <div class="code-block" id="modalRecipeCode" style="max-height: 228px; height: 228px; font-size: 10.5px; line-height: 1.55; margin: 0;"></div>
+        <div id="modalRecipeCode" class="code-block" style="height: 180px; max-height: 180px;"></div>
       </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-        <span style="font-size: 11px; color: var(--text-dim);">적용 시 시뮬레이터가 24시간 환경을 스스로 자율 조정합니다.</span>
-        <button id="btnApplyRecipe" class="btn btn-accent" style="padding: 8px 16px; font-size: 12px; font-weight: 700;">
-          <svg class="hud-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-          최적 환경 즉시 적용 & AI 자율 주행 가동
-        </button>
+      <div style="display: flex; justify-content: flex-end;">
+        <button id="btnApplyRecipe" class="btn btn-accent">최적 환경 적용 & AI 자율 주행 가동</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal 4: Generic Code View Modal -->
+  <!-- Modal 4: Generic JSON Viewer -->
   <div id="genericCodeModal" class="modal-backdrop">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 id="genericModalTitle" style="color: var(--accent-cyan); font-size: 16px;">JSON 페이로드</h3>
+        <h3 id="genericModalTitle" style="color: var(--cyan-accent); font-size: 15px;">JSON 데이터</h3>
         <button id="genericModalClose" class="modal-close">✕</button>
       </div>
-      <div class="code-block" id="genericModalCode"></div>
-      <div style="display: flex; justify-content: flex-end;">
+      <div id="genericModalCode" class="code-block"></div>
+      <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
         <button id="btnGenericCopy" class="btn btn-primary">클립보드 복사</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal 5: New Botanical Species Registration Wizard (No Hardcoding) -->
+  <!-- Modal 5: New Crop Registration -->
   <div id="newCropModal" class="modal-backdrop">
     <div class="modal-content" style="width: 720px;">
       <div class="modal-header">
-        <h3 style="color: var(--accent-emerald); font-size: 16px; display: flex; align-items: center; gap: 8px;">
-          <svg class="hud-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38ef7d" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"/><path d="M11 13c1.5-1.5 3-2 5-2"/></svg>
-          신규 식물 및 분자농업 원료 등록 마법사
-        </h3>
+        <h3 style="color: var(--emerald-glow); font-size: 15px;">신규 작물 & 약리 분자 등록</h3>
         <button id="newCropClose" class="modal-close">✕</button>
       </div>
-      <div style="background: rgba(0, 242, 254, 0.06); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-        <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">⚡ 원클릭 추천 프리셋 (클릭 시 자동 완성):</div>
-        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <button type="button" class="preset-pill" data-preset="ginseng">🌿 인삼 (진세노사이드)</button>
-          <button type="button" class="preset-pill" data-preset="centella">🍀 병풀 (아시아티코사이드)</button>
-          <button type="button" class="preset-pill" data-preset="resveratrol">🍇 포도 (레스베라트롤)</button>
-          <button type="button" class="preset-pill" data-preset="lycopene">🍅 토마토 (라이코펜)</button>
-          <button type="button" class="preset-pill" data-preset="cbd">🌿 헴프 (CBD 칸나비디올)</button>
-        </div>
+      <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+        <button type="button" class="btn btn-outline" style="font-size:10px; padding:4px 8px;" data-preset="ginseng">고려인삼 (진세노사이드)</button>
+        <button type="button" class="btn btn-outline" style="font-size:10px; padding:4px 8px;" data-preset="centella">병풀 (마데카소사이드)</button>
+        <button type="button" class="btn btn-outline" style="font-size:10px; padding:4px 8px;" data-preset="resveratrol">적포도 (레스베라트롤)</button>
       </div>
-
-      <!-- Form Grid -->
-      <form id="newCropForm" class="param-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; max-height: 380px;">
-        <div class="param-field">
-          <label>식물명 (Common Name)</label>
-          <input type="text" id="regName" required placeholder="예: 고려인삼 (Panax ginseng)">
-        </div>
-        <div class="param-field">
-          <label>학명 (Scientific Name)</label>
-          <input type="text" id="regScientific" required placeholder="예: Panax ginseng C.A. Mey.">
-        </div>
-        <div class="param-field">
-          <label>타깃 유효 분자 (Target Molecule)</label>
-          <input type="text" id="regMolecule" required placeholder="예: 사포닌 진세노사이드 (Ginsenoside Rg3)">
-        </div>
-        <div class="param-field">
-          <label>화학식 (Chemical Formula)</label>
-          <input type="text" id="regFormula" required placeholder="예: C₄₂H₇₂O₁₃">
-        </div>
-        <div class="param-field">
-          <label>PubChem CID</label>
-          <input type="number" id="regPubChem" placeholder="예: 9918693">
-        </div>
-        <div class="param-field">
-          <label>분자량 (g/mol)</label>
-          <input type="number" id="regMolWeight" step="0.1" value="785.0">
-        </div>
-        <div class="param-field">
-          <label>3D 수형 템플릿 (3D Morphology)</label>
-          <select id="regMorphology" class="crop-select" style="width: 100%; height: 32px;">
-            <option value="marigold">초본 직립 개화형 (Marigold type - 꽃 만개)</option>
-            <option value="spinach">컴팩트 로제트 엽채형 (Spinach type - 넓은 잎)</option>
-            <option value="kale">주름형 케일 캐노피 (Kale type - 청록색 잎)</option>
-            <option value="tobacco">대형 부채꼴 바이오팩토리 (Tobacco type - 대형 줄기)</option>
-          </select>
-        </div>
-        <div class="param-field">
-          <label>수확 일수 (Harvest Days)</label>
-          <input type="number" id="regHarvestDays" value="35" min="10" max="180">
-        </div>
-        <div class="param-field">
-          <label>최적 생육 온도 (Opt Temp, °C)</label>
-          <input type="number" id="regTempOpt" step="0.5" value="22.0">
-        </div>
-        <div class="param-field">
-          <label>최대 루비스코 탄소고정 속도 (Vcmax25)</label>
-          <input type="number" id="regVcmax" step="1.0" value="85.0">
-        </div>
-        <div class="param-field">
-          <label>기저 대사물질 농도 (Base mg/g DW)</label>
-          <input type="number" id="regBaseConc" step="0.1" value="4.5">
-        </div>
-        <div class="param-field">
-          <label>잎 렌더링 컬러</label>
-          <input type="color" id="regColor" value="#16a34a" style="height: 34px; padding: 2px;">
-        </div>
+      <form id="newCropForm" class="param-grid">
+        <div class="param-field"><label>식물 국명</label><input type="text" id="regName" value="마리골드"></div>
+        <div class="param-field"><label>학명</label><input type="text" id="regScientific" value="Tagetes erecta L."></div>
+        <div class="param-field"><label>타깃 약리 분자</label><input type="text" id="regMolecule" value="루테인 (Lutein)"></div>
+        <div class="param-field"><label>화학식</label><input type="text" id="regFormula" value="C₄₀H₅₆O₂"></div>
+        <div class="param-field"><label>수확 일수 (Days)</label><input type="number" id="regHarvestDays" value="42"></div>
+        <div class="param-field"><label>최적 생육 온도 (°C)</label><input type="number" id="regTempOpt" value="23.5"></div>
       </form>
-
-      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;">
-        <button type="button" id="btnCancelNewCrop" class="btn btn-outline">취소</button>
-        <button type="button" id="btnSubmitNewCrop" class="btn btn-accent">✨ 즉시 등록 및 바이오파운드리 가동</button>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+        <button id="btnCancelNewCrop" class="btn btn-outline">취소</button>
+        <button id="btnSubmitNewCrop" class="btn btn-primary">등록 및 가동</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal 6: 24-Hour Diurnal Timetable Scheduler -->
+  <!-- Modal 6: 24H Diurnal Scheduler -->
   <div id="schedulerModal" class="modal-backdrop">
-    <div class="modal-content" style="width: 760px;">
+    <div class="modal-content" style="width: 700px;">
       <div class="modal-header">
-        <h3 style="color: var(--accent-cyan); font-size: 16px; display: flex; align-items: center; gap: 8px;">
-          <svg class="hud-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          24시간 스마트팜 환경 자동 제어 타임테이블 스케줄러
-        </h3>
+        <h3 style="color: var(--cyan-accent); font-size: 15px;">24시간 스마트팜 환경 자동 제어 타임테이블</h3>
         <button id="schedulerClose" class="modal-close">✕</button>
       </div>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
-        식물의 24시간 생체 시계(Circadian Clock)에 맞춰 일출 디밍, 피크 광합성, 일몰 원적색광(Far-Red), 야간 변온(DIF)을 자동으로 제어합니다.
-      </p>
-
-      <!-- 4-Phase Diurnal Visual Segments Bar -->
-      <div class="diurnal-bar-wrap">
-        <div class="diurnal-phase-segment phase-sunrise" style="width: 8.33%;" title="06:00~08:00 일출 램프업">일출 램프</div>
-        <div class="diurnal-phase-segment phase-peak" style="width: 33.33%;" title="08:00~16:00 피크 광합성 (UV-B)">피크 광합성 (UV-B 펄스)</div>
-        <div class="diurnal-phase-segment phase-sunset" style="width: 25.0%;" title="16:00~22:00 일몰 & Far-Red 점등">일몰 & Far-Red 유도</div>
-        <div class="diurnal-phase-segment phase-night" style="width: 33.33%;" title="22:00~06:00 야간 변온 DIF">야간 암호흡 & 변온 DIF (16.5°C)</div>
+      <div class="param-grid" style="margin-bottom: 12px;">
+        <div class="param-card"><h4 style="color:#fbbf24; font-size:11px;">🌅 1. 일출 램프업 (06~08h)</h4><p style="font-size:10px; color:var(--text-muted); margin-top:4px;">100→420 μmol / 18→24°C / 미스팅 On</p></div>
+        <div class="param-card"><h4 style="color:#00f2fe; font-size:11px;">☀️ 2. 피크 광합성 (08~16h)</h4><p style="font-size:10px; color:var(--text-muted); margin-top:4px;">480 μmol / CO₂ 950ppm / UV-B 펄스</p></div>
+        <div class="param-card"><h4 style="color:#c084fc; font-size:11px;">🌆 3. 일몰 & Far-Red (16~22h)</h4><p style="font-size:10px; color:var(--text-muted); margin-top:4px;">420→120 μmol / FR 20% / 24→19°C</p></div>
+        <div class="param-card"><h4 style="color:#10b981; font-size:11px;">🌙 4. 야간 변온 DIF (22~06h)</h4><p style="font-size:10px; color:var(--text-muted); margin-top:4px;">소등 (0 μmol) / 16.5°C (DIF -8°C)</p></div>
       </div>
-
-      <div class="param-grid" style="margin-top: 14px;">
-        <div class="param-card">
-          <h4 style="color: #ffd32a; font-size: 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
-            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffd32a" stroke-width="2.2"><circle cx="12" cy="12" r="5"></circle></svg>
-            1. 일출 램프업 (06:00 ~ 08:00)
-          </h4>
-          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6;">
-            광량: 100 → 420 μmol 서서히 증가<br>
-            온도: 18.0°C → 24.0°C 승온<br>
-            미스팅: 기공 개방 유도 분무 On
-          </div>
-        </div>
-        <div class="param-card">
-          <h4 style="color: #00f2fe; font-size: 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
-            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2.2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line></svg>
-            2. 피크 광합성 (08:00 ~ 16:00)
-          </h4>
-          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6;">
-            광량: 480 μmol (R55:B30:G10:FR5)<br>
-            CO₂: 950 ppm 초고농도 주입<br>
-            UV-B: PSY 유전자 발현 펄스 활성화
-          </div>
-        </div>
-        <div class="param-card">
-          <h4 style="color: #c56cf0; font-size: 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
-            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c56cf0" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            3. 일몰 & Far-Red (16:00 ~ 22:00)
-          </h4>
-          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6;">
-            광량: 420 → 120 μmol 감광<br>
-            Far-Red: 20% EOD-FR 분기 유도<br>
-            온도: 24.0°C → 19.0°C 하강
-          </div>
-        </div>
-        <div class="param-card">
-          <h4 style="color: #38ef7d; font-size: 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
-            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38ef7d" stroke-width="2.2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            4. 야간 변온 DIF (22:00 ~ 06:00)
-          </h4>
-          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6;">
-            광량: 완전 소등 (0 μmol)<br>
-            온도: 16.5°C (DIF -8°C 저온 시프트)<br>
-            습도: 75% 팽압 회복
-          </div>
-        </div>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
-        <button id="btnExportDiurnalPlc" class="btn btn-outline">
-          <svg class="hud-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-          24시간 PLC 스케줄 JSON 추출
-        </button>
-        <button id="btnApplyDiurnalSchedule" class="btn btn-primary">
-          <svg class="hud-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          스마트팜 24H 자동 운전 적용
-        </button>
+      <div style="display: flex; justify-content: space-between;">
+        <button id="btnExportDiurnalPlc" class="btn btn-outline">24시간 PLC JSON 추출</button>
+        <button id="btnApplyDiurnalSchedule" class="btn btn-primary">스마트팜 24H 자동 운전 적용</button>
       </div>
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="three.min.js"></script>
   <script src="OrbitControls.js"></script>
   <script type="module" src="app.js"></script>
