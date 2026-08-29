@@ -2,10 +2,8 @@
  * Real-time Streaming Oscilloscope & Bio-Telemetry Multi-Channel Canvas Charts
  * 
  * Channels:
- * 1. Live Photosynthetic Rate (An) & Transpiration Flux (E)
- * 2. Cumulative Biomass Dry Weight (g) & Leaf Area Index (LAI)
- * 3. Real-time Lutein Biosynthetic Flux (mg/hr) & Total Lutein Yield (mg/plant)
- * 4. Stomatal Conductance (gs) & Leaf Temperature Differential
+ * 1. Live Photosynthetic Rate (An) & Transpiration Flux
+ * 2. Real-time Targeted Secondary Metabolite Biosynthetic Flux (dLutein/dt, dGinsenoside/dt, etc.)
  */
 
 export class LiveTelemetryCharts {
@@ -20,8 +18,8 @@ export class LiveTelemetryCharts {
       }
     });
 
-    // Ring buffers for live streaming telemetry (100 real-time tick history)
-    this.bufferSize = 90;
+    // Ring buffers for live streaming telemetry (90 data ticks)
+    this.bufferSize = 80;
     this.history = {
       an: [],
       transpiration: [],
@@ -45,11 +43,15 @@ export class LiveTelemetryCharts {
   initCanvas(canvas, ctx) {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    const w = rect.width > 0 ? rect.width : 340;
+    const h = rect.height > 0 ? rect.height : 125;
+
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // reset scale
     ctx.scale(dpr, dpr);
-    canvas.dispW = rect.width;
-    canvas.dispH = rect.height;
+    canvas.dispW = w;
+    canvas.dispH = h;
   }
 
   pushTelemetryPoint(point) {
@@ -75,135 +77,207 @@ export class LiveTelemetryCharts {
     this.renderLuteinMolecularScope();
   }
 
+  /**
+   * Scope 1: Live Photosynthetic Rate (An)
+   */
   renderPhotosynthesisScope() {
     const canvas = this.canvases.photoScope;
     const ctx = this.contexts.photoScope;
     if (!canvas || !ctx) return;
 
-    const w = canvas.dispW;
-    const h = canvas.dispH;
+    const w = canvas.dispW || canvas.clientWidth || 340;
+    const h = canvas.dispH || canvas.clientHeight || 125;
     ctx.clearRect(0, 0, w, h);
 
-    // Dark grid
-    this.drawOscilloscopeGrid(ctx, w, h, "rgba(0, 242, 254, 0.08)");
+    const padL = 34, padR = 16, padT = 18, padB = 20;
+    const plotW = Math.max(10, w - padL - padR);
+    const plotH = Math.max(10, h - padT - padB);
+
+    // Dark high-tech oscilloscope grid
+    this.drawOscilloscopeGrid(ctx, padL, padT, plotW, plotH, "rgba(0, 242, 254, 0.07)");
 
     const dataAn = this.history.an;
     if (dataAn.length < 2) return;
 
-    const padL = 40, padR = 20, padT = 20, padB = 24;
-    const plotW = w - padL - padR;
-    const plotH = h - padT - padB;
-
     // Y Axis Range: 0 ~ 30 umol/m2s
     const maxY = 30.0;
-    const minY = 0.0;
 
     // Y Labels
     ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.font = "10px Inter, monospace";
-    for (let yVal = 0; yVal <= 30; yVal += 10) {
+    ctx.font = "9px Inter, monospace";
+    for (let yVal = 0; yVal <= 30; yVal += 15) {
       const yPos = padT + plotH - (yVal / maxY) * plotH;
-      ctx.fillText(`${yVal}`, 8, yPos + 3);
+      ctx.fillText(`${yVal}`, 6, yPos + 3);
     }
 
-    // Draw Live An Line (Cyan Glow)
-    ctx.strokeStyle = "#00f2fe";
-    ctx.lineWidth = 2.2;
-    ctx.shadowColor = "#00f2fe";
-    ctx.shadowBlur = 8;
-    ctx.beginPath();
+    const lastIdx = dataAn.length - 1;
+    const latestVal = Math.max(0, dataAn[lastIdx]);
 
+    // Live Value Tag Top Right
+    ctx.fillStyle = "#00f2fe";
+    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.fillText(`${latestVal.toFixed(2)} μmol/m²s`, w - 110, 14);
+
+    // Clip rendering inside chart plot box (Prevents any line overflow)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(padL, padT, plotW, plotH + 2);
+    ctx.clip();
+
+    // Area Fill Under Curve
+    const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+    grad.addColorStop(0, "rgba(0, 242, 254, 0.22)");
+    grad.addColorStop(1, "rgba(0, 242, 254, 0.0)");
+
+    ctx.beginPath();
     dataAn.forEach((val, i) => {
       const x = padL + (i / (this.bufferSize - 1)) * plotW;
-      const y = padT + plotH - (Math.max(0, val) / maxY) * plotH;
+      const clamped = Math.min(maxY, Math.max(0, val));
+      const y = padT + plotH - (clamped / maxY) * plotH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+
+    const lastX = padL + (lastIdx / (this.bufferSize - 1)) * plotW;
+    ctx.lineTo(lastX, padT + plotH);
+    ctx.lineTo(padL, padT + plotH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Main Stroke Line
+    ctx.strokeStyle = "#00f2fe";
+    ctx.lineWidth = 2.0;
+    ctx.shadowColor = "#00f2fe";
+    ctx.shadowBlur = 6;
+
+    ctx.beginPath();
+    dataAn.forEach((val, i) => {
+      const x = padL + (i / (this.bufferSize - 1)) * plotW;
+      const clamped = Math.min(maxY, Math.max(0, val));
+      const y = padT + plotH - (clamped / maxY) * plotH;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
     ctx.stroke();
-    ctx.shadowBlur = 0;
+    ctx.restore();
 
     // Pulse dot at current stream end
-    const lastIdx = dataAn.length - 1;
-    const lastX = padL + (lastIdx / (this.bufferSize - 1)) * plotW;
-    const lastY = padT + plotH - (Math.max(0, dataAn[lastIdx]) / maxY) * plotH;
-
+    const lastY = padT + plotH - (Math.min(maxY, latestVal) / maxY) * plotH;
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+    ctx.arc(lastX, lastY, 3.5, 0, Math.PI * 2);
     ctx.fill();
-
-    // Live Value Tag
-    ctx.fillStyle = "#00f2fe";
-    ctx.font = "bold 11px Inter, sans-serif";
-    ctx.fillText(`${dataAn[lastIdx].toFixed(2)} μmol/m²s`, w - 120, 16);
   }
 
+  /**
+   * Scope 2: Live Secondary Metabolite Biosynthetic Flux (Gold Oscilloscope)
+   */
   renderLuteinMolecularScope() {
     const canvas = this.canvases.luteinScope;
     const ctx = this.contexts.luteinScope;
     if (!canvas || !ctx) return;
 
-    const w = canvas.dispW;
-    const h = canvas.dispH;
+    const w = canvas.dispW || canvas.clientWidth || 340;
+    const h = canvas.dispH || canvas.clientHeight || 125;
     ctx.clearRect(0, 0, w, h);
 
-    this.drawOscilloscopeGrid(ctx, w, h, "rgba(241, 196, 15, 0.08)");
+    const padL = 34, padR = 16, padT = 18, padB = 20;
+    const plotW = Math.max(10, w - padL - padR);
+    const plotH = Math.max(10, h - padT - padB);
+
+    this.drawOscilloscopeGrid(ctx, padL, padT, plotW, plotH, "rgba(241, 196, 15, 0.07)");
 
     const dataFlux = this.history.luteinFlux;
     if (dataFlux.length < 2) return;
 
-    const padL = 40, padR = 20, padT = 20, padB = 24;
-    const plotW = w - padL - padR;
-    const plotH = h - padT - padB;
+    const maxFlux = 0.6; // mg / plant / hour
+    const lastIdx = dataFlux.length - 1;
+    const latestFluxUg = Math.max(0, dataFlux[lastIdx] * 1000);
 
-    const maxFlux = 0.8; // mg / plant / hour max scale
+    // Y Labels
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.font = "9px Inter, monospace";
+    ctx.fillText("600", 6, padT + 4);
+    ctx.fillText("300", 6, padT + plotH / 2 + 3);
+    ctx.fillText("0", 12, padT + plotH);
 
-    // Draw Live Lutein Biosynthetic Flux Line (Gold #f1c40f)
-    ctx.strokeStyle = "#f1c40f";
-    ctx.lineWidth = 2.2;
-    ctx.shadowColor = "#f1c40f";
-    ctx.shadowBlur = 10;
+    // Live Value Tag Top Right
+    ctx.fillStyle = "#f1c40f";
+    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.fillText(`플럭스: ${latestFluxUg.toFixed(1)} μg/hr`, w - 125, 14);
+
+    // Clip rendering inside chart plot box (Prevents yellow line from overflowing outside box)
+    ctx.save();
     ctx.beginPath();
+    ctx.rect(padL, padT, plotW, plotH + 1);
+    ctx.clip();
 
+    // Fill underneath
+    const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+    grad.addColorStop(0, "rgba(241, 196, 15, 0.25)");
+    grad.addColorStop(1, "rgba(241, 196, 15, 0.0)");
+
+    ctx.beginPath();
     dataFlux.forEach((val, i) => {
       const x = padL + (i / (this.bufferSize - 1)) * plotW;
-      const y = padT + plotH - (Math.min(maxFlux, Math.max(0, val)) / maxFlux) * plotH;
+      const clamped = Math.min(maxFlux, Math.max(0, val));
+      const y = padT + plotH - (clamped / maxFlux) * plotH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+
+    const lastX = padL + (lastIdx / (this.bufferSize - 1)) * plotW;
+    ctx.lineTo(lastX, padT + plotH);
+    ctx.lineTo(padL, padT + plotH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Main Gold Stroke Line
+    ctx.strokeStyle = "#f1c40f";
+    ctx.lineWidth = 2.0;
+    ctx.shadowColor = "#f1c40f";
+    ctx.shadowBlur = 8;
+
+    ctx.beginPath();
+    dataFlux.forEach((val, i) => {
+      const x = padL + (i / (this.bufferSize - 1)) * plotW;
+      const clamped = Math.min(maxFlux, Math.max(0, val));
+      const y = padT + plotH - (clamped / maxFlux) * plotH;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
     ctx.stroke();
-    ctx.shadowBlur = 0;
+    ctx.restore();
 
-    // Fill underneath
-    const lastIdx = dataFlux.length - 1;
-    const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
-    grad.addColorStop(0, "rgba(241, 196, 15, 0.25)");
-    grad.addColorStop(1, "rgba(241, 196, 15, 0.0)");
-    ctx.fillStyle = grad;
-    ctx.lineTo(padL + (lastIdx / (this.bufferSize - 1)) * plotW, padT + plotH);
-    ctx.lineTo(padL, padT + plotH);
-    ctx.closePath();
+    // Pulse dot at current stream end
+    const lastY = padT + plotH - (Math.min(maxFlux, Math.max(0, dataFlux[lastIdx])) / maxFlux) * plotH;
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 3.5, 0, Math.PI * 2);
     ctx.fill();
-
-    // Live Value Tag
-    ctx.fillStyle = "#f1c40f";
-    ctx.font = "bold 11px Inter, sans-serif";
-    ctx.fillText(`플럭스: ${(dataFlux[lastIdx] * 1000).toFixed(1)} μg/hr`, w - 130, 16);
   }
 
-  drawOscilloscopeGrid(ctx, w, h, gridColor) {
+  drawOscilloscopeGrid(ctx, padL, padT, plotW, plotH, gridColor) {
     ctx.strokeStyle = gridColor;
     ctx.lineWidth = 1;
-    for (let x = 0; x < w; x += 25) {
+
+    // Outer Plot Border
+    ctx.strokeRect(padL, padT, plotW, plotH);
+
+    // Vertical lines
+    for (let x = padL; x <= padL + plotW; x += 28) {
       ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + plotH);
       ctx.stroke();
     }
-    for (let y = 0; y < h; y += 20) {
+    // Horizontal lines
+    for (let y = padT; y <= padT + plotH; y += 18) {
       ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + plotW, y);
       ctx.stroke();
     }
   }
