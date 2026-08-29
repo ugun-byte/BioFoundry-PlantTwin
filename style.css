@@ -376,29 +376,36 @@ body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
-  background: #04090e;
+  background: rgba(4, 10, 16, 0.75);
   padding: 8px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(0, 242, 254, 0.1);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 242, 254, 0.15);
+  backdrop-filter: blur(10px);
 }
 
 .telemetry-box {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  background: rgba(10, 22, 34, 0.6);
+  padding: 5px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .telemetry-tag {
   font-size: 9px;
   color: var(--text-dim);
-  text-transform: uppercase;
+  white-space: nowrap;
+  font-weight: 500;
 }
 
 .telemetry-num {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   font-family: var(--font-mono);
   color: var(--accent-cyan);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Controls */
@@ -713,6 +720,103 @@ input:checked + .toggle-slider:before {
   height: 100% !important;
   display: block;
   cursor: grab;
+}
+
+/* 3D Holographic Bio-HUD Tooltip Pin */
+.hologram-hud-pin {
+  position: absolute;
+  z-index: 50;
+  width: 240px;
+  background: rgba(4, 12, 20, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--accent-cyan);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 24px rgba(0, 242, 254, 0.35), inset 0 0 12px rgba(0, 242, 254, 0.1);
+  padding: 10px 12px;
+  pointer-events: auto;
+  transform: translate(-50%, -100%) translateY(-14px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.hologram-hud-pin.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.hologram-hud-pin::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 10px;
+  height: 10px;
+  background: #040c14;
+  border-right: 1px solid var(--accent-cyan);
+  border-bottom: 1px solid var(--accent-cyan);
+}
+
+.hud-pin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+}
+
+.hud-pin-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+}
+
+.hud-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+  animation: pulse-cyan 1.2s infinite;
+}
+
+.hud-pin-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 2px;
+  transition: 0.2s;
+}
+
+.hud-pin-close:hover {
+  color: #ff4d4d;
+}
+
+.hud-pin-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hud-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.hud-stat-row b {
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
 #plant3dContainer canvas:active {

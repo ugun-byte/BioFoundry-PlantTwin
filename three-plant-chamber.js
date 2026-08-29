@@ -27,6 +27,10 @@ export class ThreePlantChamber {
     this.buildBioreactorChamber();
     this.buildPhysicsParticles();
     this.buildSpeciesPlant(this.currentSpecies);
+    this.setupRaycasting();
+
+    this.onNodeClickCallback = null;
+    this.pinned3DWorldPos = null;
 
     this.animate = this.animate.bind(this);
     requestAnimationFrame(this.animate);
@@ -690,6 +694,88 @@ export class ThreePlantChamber {
     if (this.renderer && this.scene && this.camera) {
       this.renderer.render(this.scene, this.camera);
     }
+  }
+
+  setupRaycasting() {
+    this.raycaster = new THREE.Raycaster();
+    this.mouse = new THREE.Vector2();
+
+    // 3D Pin Marker Ring
+    const markerGeo = new THREE.RingGeometry(0.025, 0.045, 32);
+    const markerMat = new THREE.MeshBasicMaterial({
+      color: 0x00f2fe,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.9
+    });
+    this.pinMarker = new THREE.Mesh(markerGeo, markerMat);
+    this.pinMarker.visible = false;
+    this.scene.add(this.pinMarker);
+
+    // Click handler
+    this.container.addEventListener("pointerdown", (e) => {
+      // Don't trigger if clicked on HUD button
+      if (e.target.closest("#hologramBioHud") || e.target.closest(".view-mode-bar") || e.target.closest(".orbit-hint")) return;
+
+      const rect = this.renderer.domElement.getBoundingClientRect();
+      this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+      if (!this.plantGroup) return;
+
+      const intersects = this.raycaster.intersectObjects(this.plantGroup.children, true);
+
+      if (intersects.length > 0) {
+        const hit = intersects[0];
+        this.pinned3DWorldPos = hit.point.clone();
+        this.pinMarker.position.copy(hit.point);
+        this.pinMarker.position.y += 0.01;
+        this.pinMarker.rotation.x = -Math.PI / 2;
+        this.pinMarker.visible = true;
+
+        let nodeType = "엽육 광합성 세포 (Mesophyll Cell)";
+        if (hit.object === this.stemMesh) {
+          nodeType = "주원경 목질부 도관 (Main Xylem Stalk)";
+        } else if (this.flowerGroup && this.flowerGroup.children.includes(hit.object)) {
+          nodeType = "정단 화경 & 꽃잎 (Apical Floral Petal)";
+        } else {
+          // Identify leaf index
+          const leafMatchIdx = this.leaves.findIndex(l => l.mesh === hit.object || l.mesh.children.includes(hit.object));
+          nodeType = leafMatchIdx >= 0 ? `제 ${leafMatchIdx + 1}엽 상위 엽맥 (Leaf #${leafMatchIdx + 1})` : "엽신 광합성 조직 (Lamina Tissue)";
+        }
+
+        const screenPos = this.project3DToScreen(hit.point);
+        if (this.onNodeClickCallback) {
+          this.onNodeClickCallback({
+            nodeType,
+            point3D: hit.point,
+            screenX: screenPos.x,
+            screenY: screenPos.y
+          });
+        }
+      }
+    });
+  }
+
+  project3DToScreen(worldPos) {
+    if (!this.camera || !this.renderer) return { x: 0, y: 0 };
+    const vector = worldPos.clone();
+    vector.project(this.camera);
+
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const x = ((vector.x + 1) * rect.width) / 2;
+    const y = ((-vector.y + 1) * rect.height) / 2;
+    return { x, y, visible: vector.z < 1.0 };
+  }
+
+  clearPin() {
+    this.pinned3DWorldPos = null;
+    if (this.pinMarker) this.pinMarker.visible = false;
+  }
+
+  setNodeClickCallback(cb) {
+    this.onNodeClickCallback = cb;
   }
 
   resetCamera() {

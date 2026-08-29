@@ -137,6 +137,15 @@ const DOM = {
   btnAiAutoPilot: document.getElementById("btnAiAutoPilot"),
   aiAutoPilotLabel: document.getElementById("aiAutoPilotLabel"),
 
+  // 3D Holographic Bio-HUD Pin
+  hologramBioHud: document.getElementById("hologramBioHud"),
+  hudNodeTitle: document.getElementById("hudNodeTitle"),
+  hudPinClose: document.getElementById("hudPinClose"),
+  hudLeafTemp: document.getElementById("hudLeafTemp"),
+  hudNetAn: document.getElementById("hudNetAn"),
+  hudMoleculeConc: document.getElementById("hudMoleculeConc"),
+  hudStomatalGs: document.getElementById("hudStomatalGs"),
+
   // New Crop Registration Modal DOM
   btnOpenNewCropModal: document.getElementById("btnOpenNewCropModal"),
   newCropModal: document.getElementById("newCropModal"),
@@ -191,6 +200,36 @@ function initApp() {
   telemetryCharts = new LiveTelemetryCharts({
     photoScope: DOM.photoScopeChart,
     luteinScope: DOM.luteinScopeChart
+  });
+
+  // Wire 3D Raycasting Bio-HUD Pin Callback
+  plantChamber3d.setNodeClickCallback((data) => {
+    audio.playPulse();
+    const crop = profileManager.getActiveProfile();
+    const envTele = envEngine.getLiveSensorTelemetry();
+    const instantPhoto = bioEngine.calculateInstantaneousPhotosynthesis({
+      ppfd: envTele.sensors.ppfd,
+      airTemp: envTele.sensors.airTemp,
+      humidity: envTele.sensors.humidity,
+      co2Air: envTele.sensors.co2,
+      vpdAir: envTele.sensors.vpd,
+      spectrum: envTele.sensors.spectrum
+    }, crop);
+
+    DOM.hudNodeTitle.textContent = data.nodeType;
+    DOM.hudLeafTemp.textContent = `${instantPhoto.stomata.leafTemp} °C`;
+    DOM.hudNetAn.textContent = `${instantPhoto.netAn.toFixed(2)} μmol`;
+    DOM.hudMoleculeConc.textContent = `${plantState.luteinConcentration.toFixed(2)} mg/g DW`;
+    DOM.hudStomatalGs.textContent = `${instantPhoto.stomata.gs.toFixed(3)} mol`;
+
+    DOM.hologramBioHud.style.left = `${data.screenX}px`;
+    DOM.hologramBioHud.style.top = `${data.screenY}px`;
+    DOM.hologramBioHud.classList.add("active");
+  });
+
+  DOM.hudPinClose.addEventListener("click", () => {
+    DOM.hologramBioHud.classList.remove("active");
+    if (plantChamber3d) plantChamber3d.clearPin();
   });
 
   bindEventListeners();
@@ -548,6 +587,19 @@ function simulationLoop(now) {
 
     // 7. Update True 3D Physical Bioreactor Plant & Lighting
     if (plantChamber3d) plantChamber3d.updateSimulation(plantState, envTele, crop);
+
+    // 8. Update live Raycast Bio-HUD tracking position & metrics if pinned
+    if (plantChamber3d && plantChamber3d.pinned3DWorldPos && DOM.hologramBioHud.classList.contains("active")) {
+      const sp = plantChamber3d.project3DToScreen(plantChamber3d.pinned3DWorldPos);
+      if (sp.visible) {
+        DOM.hologramBioHud.style.left = `${sp.x}px`;
+        DOM.hologramBioHud.style.top = `${sp.y}px`;
+        DOM.hudLeafTemp.textContent = `${instantPhoto.stomata.leafTemp} °C`;
+        DOM.hudNetAn.textContent = `${instantPhoto.netAn.toFixed(2)} μmol`;
+        DOM.hudMoleculeConc.textContent = `${plantState.luteinConcentration.toFixed(2)} mg/g DW`;
+        DOM.hudStomatalGs.textContent = `${instantPhoto.stomata.gs.toFixed(3)} mol`;
+      }
+    }
   }
 
   requestAnimationFrame(simulationLoop);
