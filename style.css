@@ -718,17 +718,43 @@ input:checked + .toggle-slider:before {
 
 .orbit-hint {
   position: absolute;
-  bottom: 12px;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(6, 14, 20, 0.85);
-  padding: 4px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 242, 254, 0.2);
-  font-size: 10px;
-  color: var(--text-muted);
+  background: rgba(4, 12, 20, 0.92);
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 242, 254, 0.45);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.85), 0 0 16px rgba(0, 242, 254, 0.3);
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
   pointer-events: none;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(12px);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+}
+
+.hint-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #f1f5f9;
+  font-size: 11px;
+}
+
+.hint-item b {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.hint-sep {
+  color: rgba(0, 242, 254, 0.45);
+  font-weight: 300;
+  font-size: 12px;
 }
 
 #plant3dContainer canvas {
