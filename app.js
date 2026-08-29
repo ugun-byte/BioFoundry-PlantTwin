@@ -77,11 +77,8 @@ const DOM = {
   checkUvb: document.getElementById("checkUvb"),
   checkColdShift: document.getElementById("checkColdShift"),
 
-  // Natural Weather & View Modes
-  btnWeatherSun: document.getElementById("btnWeatherSun"),
-  btnWeatherRain: document.getElementById("btnWeatherRain"),
-  btnWeatherWind: document.getElementById("btnWeatherWind"),
-  btnWeatherNight: document.getElementById("btnWeatherNight"),
+  // 3D Viewport Controls
+  diurnalStatusLabel: document.getElementById("diurnalStatusLabel"),
   btnResetCamera: document.getElementById("btnResetCamera"),
 
   // Timeline
@@ -168,41 +165,6 @@ function bindEventListeners() {
     DOM.targetMoleculeText.textContent = `${crop.targetMolecule} (${crop.chemicalFormula})`;
     buildParamEditor();
     resetPlantState();
-  });
-
-  // Natural Weather & Environment Modes
-  const weatherBtns = [
-    { btn: DOM.btnWeatherSun, mode: "sun" },
-    { btn: DOM.btnWeatherRain, mode: "rain" },
-    { btn: DOM.btnWeatherWind, mode: "wind" },
-    { btn: DOM.btnWeatherNight, mode: "night" }
-  ];
-
-  weatherBtns.forEach(({ btn, mode }) => {
-    btn.addEventListener("click", () => {
-      audio.playClick();
-      weatherBtns.forEach(w => w.btn.classList.remove("active"));
-      btn.classList.add("active");
-
-      if (plantChamber3d) {
-        plantChamber3d.weatherMode = mode;
-        if (mode === "sun") {
-          envEngine.simulatedHour = 12.0;
-          plantChamber3d.windStrength = 1.0;
-          plantChamber3d.rainSystem.material.opacity = 0.0;
-        } else if (mode === "rain") {
-          plantChamber3d.rainSystem.material.opacity = 0.75;
-          envEngine.updateSetpoints({ humidityTarget: 85 });
-          DOM.sliderHumidity.value = 85;
-          DOM.humidityVal.textContent = "85 %";
-        } else if (mode === "wind") {
-          plantChamber3d.windStrength = 3.5;
-        } else if (mode === "night") {
-          envEngine.simulatedHour = 23.0;
-          plantChamber3d.rainSystem.material.opacity = 0.0;
-        }
-      }
-    });
   });
 
   DOM.btnResetCamera.addEventListener("click", () => {
@@ -467,6 +429,11 @@ function simulationLoop(now) {
     const maxDayStr = String(crop.harvestDays).padStart(2, '0');
     DOM.timelineDayLabel.textContent = `Day ${dayStr} / ${maxDayStr} (${envTele.timeFormatted})`;
     DOM.timelineSlider.value = envTele.simulatedDay;
+
+    const isDay = envTele.simulatedHour >= 6.0 && envTele.simulatedHour < 22.0;
+    DOM.diurnalStatusLabel.textContent = isDay 
+      ? `☀️ 주간 광합성 사이클 (${envTele.timeFormatted})` 
+      : `🌙 야간 암호흡 휴면 (${envTele.timeFormatted})`;
 
     // Update KPI Scorecards
     DOM.kpiTotalLutein.textContent = `${plantState.totalLuteinAccumulatedMg.toFixed(2)} mg`;
