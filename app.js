@@ -1,7 +1,7 @@
 import { BioPhysicalEngine } from "./biophysical-model.js";
 import { PlantProfileManager } from "./plant-profile-manager.js";
 import { EnvironmentalEngine } from "./environmental-engine.js";
-import { PlantCanvas3D } from "./plant-canvas-3d.js";
+import { ThreePlantChamber } from "./three-plant-chamber.js";
 import { LiveTelemetryCharts } from "./live-telemetry-charts.js";
 import { CyberAudioEngine } from "./sound-effects.js";
 import { DataExporter } from "./data-exporter.js";
@@ -12,7 +12,7 @@ const profileManager = new PlantProfileManager();
 const envEngine = new EnvironmentalEngine();
 const audio = new CyberAudioEngine();
 
-let plantCanvas3d = null;
+let plantChamber3d = null;
 let telemetryCharts = null;
 
 // Dynamic Plant Biological State (Continuous ODE integrated state)
@@ -96,8 +96,8 @@ const DOM = {
   kpiDryWeight: document.getElementById("kpiDryWeight"),
   kpiEnergyEff: document.getElementById("kpiEnergyEff"),
 
-  // Canvases
-  plantCanvas: document.getElementById("plantCanvas"),
+  // Canvases & 3D Container
+  plant3dContainer: document.getElementById("plant3dContainer"),
   photoScopeChart: document.getElementById("photoScopeChart"),
   luteinScopeChart: document.getElementById("luteinScopeChart"),
 
@@ -137,7 +137,7 @@ const DOM = {
 
 // Initialize Application
 function initApp() {
-  plantCanvas3d = new PlantCanvas3D(DOM.plantCanvas);
+  plantChamber3d = new ThreePlantChamber(DOM.plant3dContainer);
   telemetryCharts = new LiveTelemetryCharts({
     photoScope: DOM.photoScopeChart,
     luteinScope: DOM.luteinScopeChart
@@ -173,19 +173,17 @@ function bindEventListeners() {
     audio.playClick();
     DOM.btnViewMacro.classList.add("active");
     DOM.btnViewMicro.classList.remove("active");
-    plantCanvas3d.setViewMode("macro");
   });
 
   DOM.btnViewMicro.addEventListener("click", () => {
     audio.playPulse();
     DOM.btnViewMicro.classList.add("active");
     DOM.btnViewMacro.classList.remove("active");
-    plantCanvas3d.setViewMode("micro");
   });
 
   DOM.btnResetCamera.addEventListener("click", () => {
     audio.playClick();
-    plantCanvas3d.resetCamera();
+    if (plantChamber3d) plantChamber3d.resetCamera();
   });
 
   // Time Warp Speed Buttons
@@ -306,7 +304,8 @@ function bindEventListeners() {
 
   DOM.btnCapture4K.addEventListener("click", () => {
     audio.playPulse();
-    DataExporter.captureCanvasSnapshot(DOM.plantCanvas, `BioFoundry_4K_${profileManager.getActiveProfile().id}.png`);
+    const canvas = DOM.plant3dContainer.querySelector("canvas");
+    DataExporter.captureCanvasSnapshot(canvas, `BioFoundry_4K_${profileManager.getActiveProfile().id}.png`);
   });
 
   DOM.btnExportPlc.addEventListener("click", () => {
@@ -471,8 +470,8 @@ function simulationLoop(now) {
       vpd: envTele.sensors.vpd
     });
 
-    // 7. Render 3D Living Plant Canvas
-    plantCanvas3d.render(plantState, envTele, crop);
+    // 7. Update True 3D Physical Bioreactor Plant & Lighting
+    if (plantChamber3d) plantChamber3d.updateSimulation(plantState, envTele, crop);
   }
 
   requestAnimationFrame(simulationLoop);

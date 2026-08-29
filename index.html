@@ -237,7 +237,7 @@
 
     <!-- CENTER: 4K 3D Living Plant Canvas & View Controls -->
     <section class="center-column">
-      <div class="viewport-card">
+      <div id="plant3dContainer" class="viewport-card">
         <!-- View Mode Switcher -->
         <div class="view-mode-bar">
           <button id="btnViewMacro" class="view-tab active">🌿 3D 거시 챔버 (Macro)</button>
@@ -245,11 +245,9 @@
           <button id="btnResetCamera" class="view-tab-icon" title="3D 카메라 뷰 리셋">🎯 시점 리셋</button>
         </div>
 
-        <canvas id="plantCanvas"></canvas>
-
         <!-- 3D Orbit Tip -->
         <div class="orbit-hint">
-          <span>🖱️ 마우스 드래그로 3D 회전 | 휠로 줌 인/아웃</span>
+          <span>🖱️ 360° 마우스 드래그 회전 | 휠 줌 인/아웃</span>
         </div>
       </div>
 
@@ -421,6 +419,8 @@
     </div>
   </div>
 
+  <script src="three.min.js"></script>
+  <script src="OrbitControls.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>
