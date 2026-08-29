@@ -163,6 +163,9 @@ function bindEventListeners() {
     profileManager.setActiveProfile(e.target.value);
     const crop = profileManager.getActiveProfile();
     DOM.targetMoleculeText.textContent = `${crop.targetMolecule} (${crop.chemicalFormula})`;
+    if (plantChamber3d) {
+      plantChamber3d.setCropSpecies(e.target.value);
+    }
     buildParamEditor();
     resetPlantState();
   });
