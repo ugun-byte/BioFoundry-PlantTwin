@@ -359,7 +359,7 @@ body {
   display: grid;
   grid-template-columns: 260px 1fr 340px;
   gap: 8px;
-  flex: 1;
+  align-items: stretch;
 }
 
 .panel-card {
@@ -417,6 +417,7 @@ body {
 .controls-column {
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .sliders-scroll-list {
@@ -424,7 +425,8 @@ body {
   flex-direction: column;
   gap: 7px;
   overflow-y: auto;
-  max-height: calc(100vh - 360px);
+  flex: 1;
+  max-height: none;
   padding-right: 2px;
 }
 
@@ -583,6 +585,7 @@ input:checked + .switch-slider:before {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  height: 100%;
 }
 
 .viewport-card {
@@ -590,7 +593,9 @@ input:checked + .switch-slider:before {
   background: #04090e;
   border: 1px solid var(--border-card);
   border-radius: var(--radius-md);
-  height: 380px;
+  flex: 1;
+  min-height: 480px;
+  height: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;

@@ -75,6 +75,12 @@ export class ThreePlantChamber {
       this.controls.maxDistance = 5.5;
     }
 
+    window.addEventListener("resize", () => this.onResize());
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => this.onResize());
+      ro.observe(this.container);
+    }
+
     this.isInitialized = true;
   }
 
