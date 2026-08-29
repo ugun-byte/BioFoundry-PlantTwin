@@ -17,28 +17,20 @@
       <div class="brand-logo">🌿</div>
       <div class="brand-text">
         <h1>BioFoundry PlantTwin <span class="badge-4k">4K 3D</span></h1>
-        <p>Google DeepMind Open Stack | 분자농업 바이오 파운드리 디지털 트윈</p>
+        <p>DeepMind Open Stack | 분자농업 디지털 트윈</p>
       </div>
     </div>
 
     <div class="header-center">
-      <span style="font-size: 11px; color: var(--text-dim);">작물:</span>
-      <select id="cropSelect" class="crop-select"></select>
-      <button id="btnOpenNewCropModal" class="btn btn-outline" style="padding: 5px 9px; font-size: 11px; border-color: var(--accent-emerald); color: var(--accent-emerald);" title="새 식물 및 분자농업 원료 등록">➕ 신규 등록</button>
+      <div class="crop-select-group">
+        <span style="font-size: 11px; color: var(--text-dim); flex-shrink: 0;">작물:</span>
+        <select id="cropSelect" class="crop-select"></select>
+        <button id="btnOpenNewCropModal" class="btn btn-outline btn-new-crop" title="새 식물 및 분자농업 원료 등록">➕ 신규 등록</button>
+      </div>
 
       <div id="targetMoleculeBadge" class="target-molecule-badge">
         <span class="pulsing-dot"></span>
         <span id="targetMoleculeText">눈 건강 루테인 (Lutein, C₄₀H₅₆O₂)</span>
-      </div>
-
-      <!-- Time Warp Speed Controller -->
-      <div class="warp-control">
-        <span style="font-size: 10px; color: var(--text-dim); margin-right: 4px;">속도:</span>
-        <button class="warp-btn" data-speed="1">1x</button>
-        <button class="warp-btn" data-speed="5">5x</button>
-        <button class="warp-btn active" data-speed="60">60x</button>
-        <button class="warp-btn" data-speed="300">300x</button>
-        <button class="warp-btn" data-speed="3600">3600x</button>
       </div>
     </div>
 
@@ -49,10 +41,10 @@
         <span>🧬 생물학 인스펙터</span>
       </button>
       <button id="btnExportMenu" class="btn btn-primary">
-        <span>💾 데이터 추출 허브</span>
+        <span>💾 데이터 추출</span>
       </button>
       <button id="btnAutoTune" class="btn btn-accent">
-        <span>✨ AI 레시피 최적화</span>
+        <span>✨ AI 레시피</span>
       </button>
     </div>
   </header>
@@ -254,6 +246,15 @@
         <div class="playback-btns">
           <button id="btnPlay" class="btn-play" title="실시간 시뮬레이션 일시정지/재생">⏸</button>
           <button id="btnReset" class="btn-step" title="생육 1일차로 리셋">⏮</button>
+        </div>
+
+        <!-- Time Warp Speed Controller unified in timeline bar -->
+        <div class="warp-control">
+          <button class="warp-btn" data-speed="1">1x</button>
+          <button class="warp-btn" data-speed="5">5x</button>
+          <button class="warp-btn active" data-speed="60">60x</button>
+          <button class="warp-btn" data-speed="300">300x</button>
+          <button class="warp-btn" data-speed="3600">3600x</button>
         </div>
 
         <div class="timeline-slider-wrap">

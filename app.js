@@ -163,7 +163,7 @@ function populateCropDropdown(selectedId = null) {
   profiles.forEach((p) => {
     const opt = document.createElement("option");
     opt.value = p.id;
-    opt.textContent = `${p.name} - ${p.targetMolecule}`;
+    opt.textContent = p.name;
     if (selectedId ? p.id === selectedId : p.id === profileManager.activeProfileId) {
       opt.selected = true;
     }
