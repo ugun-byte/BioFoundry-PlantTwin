@@ -858,11 +858,23 @@ input:checked + .switch-slider:before {
   font-weight: 700;
   color: #fff;
   font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+}
+
+.timeline-time-badge {
+  color: var(--cyan-accent);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11.5px;
+  margin-left: 5px;
+  text-shadow: 0 0 8px rgba(0, 242, 254, 0.4);
 }
 
 .timeline-stage-tag {
   color: var(--emerald-glow);
-  font-weight: 600;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(52, 211, 153, 0.35);
 }
 
 .timeline-slider-bar {

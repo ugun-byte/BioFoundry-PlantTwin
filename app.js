@@ -117,6 +117,7 @@ const DOM = {
   timelineSlider: document.getElementById("timelineSlider"),
   teleDay: document.getElementById("teleDay"),
   teleHarvestDay: document.getElementById("teleHarvestDay"),
+  teleTimeFormatted: document.getElementById("teleTimeFormatted"),
   teleStage: document.getElementById("teleStage"),
   warpButtons: document.querySelectorAll(".warp-btn"),
 
@@ -601,7 +602,10 @@ function simulationLoop(now) {
     DOM.hudRootO2.textContent = `${(21.2 + Math.cos(now * 0.002) * 0.2).toFixed(1)} %`;
 
     // 9. Update Timeline Scrubber Text
-    DOM.teleDay.textContent = envTele.simulatedDay;
+    DOM.teleDay.textContent = String(envTele.simulatedDay).padStart(2, '0');
+    if (DOM.teleTimeFormatted) {
+      DOM.teleTimeFormatted.textContent = `(${envTele.timeFormatted})`;
+    }
     const stageKey = envTele.simulatedDay < 12 
       ? "stageSeedling" 
       : (envTele.simulatedDay < 28 ? "stageVegetative" : "stageFlowering");
