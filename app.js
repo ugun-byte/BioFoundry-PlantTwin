@@ -5,15 +5,19 @@ import { ThreePlantChamber } from "./three-plant-chamber.js";
 import { LiveTelemetryCharts } from "./live-telemetry-charts.js";
 import { CyberAudioEngine } from "./sound-effects.js";
 import { DataExporter } from "./data-exporter.js";
+import { AutonomousAiOptimizer } from "./autonomous-ai-optimizer.js";
 
 // Core Engines
 const bioEngine = new BioPhysicalEngine();
 const profileManager = new PlantProfileManager();
 const envEngine = new EnvironmentalEngine();
 const audio = new CyberAudioEngine();
+const aiOptimizer = new AutonomousAiOptimizer();
 
 let plantChamber3d = null;
 let telemetryCharts = null;
+let isAiAutoPilotActive = false;
+let currentOptimizationObjective = 'yield_max';
 
 // Dynamic Plant Biological State (Continuous ODE integrated state)
 const plantState = {
@@ -120,10 +124,18 @@ const DOM = {
   btnAutoTune: document.getElementById("btnAutoTune"),
   recipeModal: document.getElementById("recipeModal"),
   modalRecipeTitle: document.getElementById("modalRecipeTitle"),
-  modalRecipeDesc: document.getElementById("modalRecipeDesc"),
   modalRecipeCode: document.getElementById("modalRecipeCode"),
   modalClose: document.getElementById("modalClose"),
   btnApplyRecipe: document.getElementById("btnApplyRecipe"),
+  optTabs: document.querySelectorAll(".opt-tab"),
+  optYieldGain: document.getElementById("optYieldGain"),
+  optDaysSaved: document.getElementById("optDaysSaved"),
+  optNetAn: document.getElementById("optNetAn"),
+  optTotalRuns: document.getElementById("optTotalRuns"),
+
+  // AI Auto-Pilot Controls
+  btnAiAutoPilot: document.getElementById("btnAiAutoPilot"),
+  aiAutoPilotLabel: document.getElementById("aiAutoPilotLabel"),
 
   // New Crop Registration Modal DOM
   btnOpenNewCropModal: document.getElementById("btnOpenNewCropModal"),
@@ -368,12 +380,23 @@ function bindEventListeners() {
     showGenericCodeModal("🔗 Plant2Human AI (localhost:3006) 바이오 파운드리 페이로드", p2hData);
   });
 
-  DOM.genericModalClose.addEventListener("click", () => DOM.genericCodeModal.classList.remove("active"));
-  DOM.btnGenericCopy.addEventListener("click", copyGenericModalCode);
-
   DOM.btnAutoTune.addEventListener("click", showAutoTuneModal);
   DOM.modalClose.addEventListener("click", () => DOM.recipeModal.classList.remove("active"));
   DOM.btnApplyRecipe.addEventListener("click", applyAutoTuneRecipe);
+
+  // AI Auto-Pilot Toggle
+  DOM.btnAiAutoPilot.addEventListener("click", toggleAiAutoPilot);
+
+  // AI Optimizer Objective Tabs
+  DOM.optTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      audio.playClick();
+      DOM.optTabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      currentOptimizationObjective = tab.getAttribute("data-obj");
+      runOptimizationAndDisplay();
+    });
+  });
 }
 
 function resetPlantState() {
@@ -578,41 +601,49 @@ function exportProfileJson() {
   });
 }
 
-let pendingAutoTuneRecipe = null;
+let pendingOptimizationResult = null;
 
 function showAutoTuneModal() {
   audio.playPulse();
-  const crop = profileManager.getActiveProfile();
-  pendingAutoTuneRecipe = {
-    recipeName: `AI 파레토 최적화: ${crop.name} 분자농업 생산 극대화 레시피 (v4.0)`,
-    description: "생물리학적 광합성 모델과 2차 대사산물 생합성 플럭스를 결합하여 최단 일수 내 최고 수율을 도출한 스마트팜 제어 데이터",
-    settings: {
-      ppfd: 480,
-      photoperiod: 18,
-      spectrum: { red: 50, blue: 38, green: 7, farRed: 5 },
-      dayTemp: 23.5,
-      nightTemp: 16.5,
-      humidity: 62,
-      co2: 950,
-      ec: 2.3,
-      uvbActive: true,
-      coldShiftActive: true
-    },
-    projectedYield: "+275% 루테인 생산 증대 (18.4 mg/plant)",
-    energyCostSavings: "전력 효율 1.62 mg/kWh"
-  };
-
-  DOM.modalRecipeTitle.textContent = "✨ " + pendingAutoTuneRecipe.recipeName;
-  DOM.modalRecipeDesc.textContent = `${pendingAutoTuneRecipe.description} (${pendingAutoTuneRecipe.projectedYield})`;
-  DOM.modalRecipeCode.textContent = JSON.stringify(pendingAutoTuneRecipe, null, 2);
-  DOM.btnApplyRecipe.style.display = "inline-flex";
+  runOptimizationAndDisplay();
   DOM.recipeModal.classList.add("active");
 }
 
+function runOptimizationAndDisplay() {
+  const crop = profileManager.getActiveProfile();
+  const res = aiOptimizer.searchOptimalEnvironment(crop, currentOptimizationObjective);
+  pendingOptimizationResult = res;
+
+  DOM.modalRecipeTitle.innerHTML = `<span>🤖</span> AI 역추적 최적화: <b>${crop.name}</b> (${crop.targetMolecule})`;
+  DOM.optYieldGain.textContent = `+${res.improvements.yieldGainPercent}%`;
+  DOM.optDaysSaved.textContent = `-${res.improvements.daysSaved}일 (${res.improvements.acceleratedDays}일차)`;
+  DOM.optNetAn.textContent = `${res.improvements.netPhotosynthesis} μmol`;
+  DOM.optTotalRuns.textContent = `${res.totalSimulations}회 가상 탐색`;
+
+  const recipe = res.optimalRecipe;
+  const displayObj = {
+    targetObjective: res.objective === 'yield_max' ? "🥇 분자 수확량 극대화" : (res.objective === 'speed_breeding' ? "⚡ 초고속 생육 가속" : "🌱 전력당 경제성 극대화"),
+    optimizedSetpoints: {
+      ppfd: `${recipe.ppfd} μmol/m²s`,
+      spectrum: `R ${recipe.spectrum.red}% | B ${recipe.spectrum.blue}% | G ${recipe.spectrum.green}% | FR ${recipe.spectrum.farRed}%`,
+      dayTemperature: `${recipe.dayTemp} °C`,
+      nightTemperature: `${recipe.nightTemp} °C (일교차 DIF: -${(recipe.dayTemp - recipe.nightTemp).toFixed(1)}°C)`,
+      carbonDioxide: `${recipe.co2} ppm`,
+      targetHumidity: `${recipe.humidity} %`,
+      photoperiod: `${recipe.photoperiod} hours/day`,
+      nutrientEc: `${recipe.ec} dS/m`,
+      uvbElicitation: recipe.uvbActive ? "활성화 (PSY 유전자 발현)" : "비활성"
+    },
+    scientificBiologicalRationale: res.scientificExplanation
+  };
+
+  DOM.modalRecipeCode.textContent = JSON.stringify(displayObj, null, 2);
+}
+
 function applyAutoTuneRecipe() {
-  audio.playClick();
-  if (!pendingAutoTuneRecipe) return;
-  const s = pendingAutoTuneRecipe.settings;
+  audio.playPulse();
+  if (!pendingOptimizationResult) return;
+  const s = pendingOptimizationResult.optimalRecipe;
 
   envEngine.updateSetpoints({
     ppfdTarget: s.ppfd,
@@ -655,7 +686,26 @@ function applyAutoTuneRecipe() {
   DOM.checkUvb.checked = s.uvbActive;
   DOM.checkColdShift.checked = s.coldShiftActive;
 
+  setAiAutoPilot(true);
   DOM.recipeModal.classList.remove("active");
+  alert(`🤖 AI 자율 제어 모드가 가동되었습니다!\n시뮬레이터가 계산한 이론상 100% 최적 환경(광량 ${s.ppfd}μmol, CO2 ${s.co2}ppm, R:B:G:FR)으로 자동 전환되었습니다.`);
+}
+
+function toggleAiAutoPilot() {
+  setAiAutoPilot(!isAiAutoPilotActive);
+}
+
+function setAiAutoPilot(active) {
+  isAiAutoPilotActive = active;
+  if (isAiAutoPilotActive) {
+    audio.playPulse();
+    DOM.btnAiAutoPilot.classList.add("active");
+    DOM.aiAutoPilotLabel.textContent = "🤖 AI 자율 최적화 운전: ON";
+  } else {
+    audio.playClick();
+    DOM.btnAiAutoPilot.classList.remove("active");
+    DOM.aiAutoPilotLabel.textContent = "🤖 AI 자율 최적화 운전: OFF";
+  }
 }
 
 function generatePlant2HumanPayload() {

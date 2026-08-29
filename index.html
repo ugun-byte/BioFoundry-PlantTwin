@@ -228,9 +228,13 @@
       <div id="plant3dContainer" class="viewport-card">
         <!-- Viewport Sleek Top Bar -->
         <div class="view-mode-bar">
+          <button id="btnAiAutoPilot" class="ai-autopilot-btn" title="시뮬레이터 자율 AI 환경 최적화 운전">
+            <span class="ai-pulse-dot"></span>
+            <span id="aiAutoPilotLabel">🤖 AI 자율 최적화 운전: OFF</span>
+          </button>
           <div class="diurnal-status-tag">
             <span class="pulse-emerald"></span>
-            <span id="diurnalStatusLabel">🌿 실시간 24H 자동 일주기 물리 동기화</span>
+            <span id="diurnalStatusLabel">🌿 24H 자동 일주기</span>
           </div>
           <button id="btnResetCamera" class="view-tab-icon" title="3D 카메라 뷰 리셋">🎯 시점 리셋</button>
         </div>
@@ -387,19 +391,50 @@
     </div>
   </div>
 
-  <!-- Modal 3: AI Auto-Tune Optimizer -->
+  <!-- Modal 3: Autonomous AI Optimization Engine -->
   <div id="recipeModal" class="modal-backdrop">
-    <div class="modal-content">
+    <div class="modal-content" style="width: 740px;">
       <div class="modal-header">
-        <h3 id="modalRecipeTitle" style="color: var(--accent-gold); font-size: 16px;">AI 최적화 레시피 도출</h3>
+        <h3 id="modalRecipeTitle" style="color: var(--accent-gold); font-size: 16px; display: flex; align-items: center; gap: 8px;">
+          <span>🤖</span> 시뮬레이터 AI 자율 최적 환경 역추적 솔버
+        </h3>
         <button id="modalClose" class="modal-close">✕</button>
       </div>
-      <p id="modalRecipeDesc" style="font-size: 13px; color: var(--text-muted); line-height: 1.5;"></p>
-      
-      <div class="code-block" id="modalRecipeCode"></div>
 
-      <div style="display: flex; justify-content: flex-end; gap: 10px;">
-        <button id="btnApplyRecipe" class="btn btn-accent">레시피 시뮬레이터에 즉시 적용</button>
+      <!-- Objective Selection Tabs -->
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button type="button" class="opt-tab active" data-obj="yield_max">🥇 분자 수확량 극대화</button>
+        <button type="button" class="opt-tab" data-obj="speed_breeding">⚡ 초고속 생육 가속 (-11일 단축)</button>
+        <button type="button" class="opt-tab" data-obj="energy_eff">🌱 전력당 경제성 극대화</button>
+      </div>
+
+      <!-- Quantified Improvement HUD Cards -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;" id="aiImpactCards">
+        <div class="kpi-card gold">
+          <div class="kpi-title">예상 수율 증가</div>
+          <div id="optYieldGain" class="kpi-value gold">+43.8%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">수확 일수 단축</div>
+          <div id="optDaysSaved" class="kpi-value" style="color: var(--accent-cyan);">-9일 (33일차)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">최대 순광합성(An)</div>
+          <div id="optNetAn" class="kpi-value" style="color: var(--accent-emerald);">24.8 μmol</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">가상 시뮬레이션 횟수</div>
+          <div id="optTotalRuns" class="kpi-value" style="font-size: 15px;">560회 탐색</div>
+        </div>
+      </div>
+
+      <div class="code-block" id="modalRecipeCode" style="max-height: 190px; font-size: 11px; line-height: 1.6;"></div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <span style="font-size: 11px; color: var(--text-dim);">💡 적용 시 시뮬레이터가 24시간 환경을 스스로 자율 조정합니다.</span>
+        <button id="btnApplyRecipe" class="btn btn-accent" style="padding: 8px 16px; font-size: 12px; font-weight: 700;">
+          🚀 최적 환경 즉시 적용 & AI 자율 주행 가동
+        </button>
       </div>
     </div>
   </div>
