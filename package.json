@@ -1,0 +1,13 @@
+{
+  "name": "plant-growth-molecular-farming-simulator",
+  "version": "1.0.0",
+  "description": "Virtual Plant Growth and Molecular Farming Digital Twin Simulator by Google DeepMind Open Stack",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve -l 3007 .",
+    "start": "npx serve -l 3007 ."
+  },
+  "keywords": ["simulation", "digital-twin", "molecular-farming", "smart-farm", "photosynthesis", "lutein"],
+  "author": "BioFoundry AI",
+  "license": "Apache-2.0"
+}

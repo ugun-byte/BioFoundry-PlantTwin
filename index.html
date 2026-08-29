@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BioFoundry AI | 실시간 가상 식물 성장 & 분자농업 디지털 트윈 OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-logo">🌿</div>
+      <div class="brand-text">
+        <h1>BioFoundry AI Digital Twin</h1>
+        <p>Google DeepMind Open Stack | 실시간 물리/생화학 시뮬레이션 엔진</p>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <span style="font-size: 11px; color: var(--text-dim);">대상 작물:</span>
+      <select id="cropSelect" class="crop-select">
+        <option value="marigold_lutein">메리골드 (Tagetes erecta) - 루테인 바이오파운드리</option>
+        <option value="spinach_carotenoid">유기농 시금치 - 카로티노이드/엽록소</option>
+        <option value="kale_antioxidant">슈퍼푸드 케일 - 설포라판/퀘르세틴</option>
+        <option value="tobacco_recombinant">담배 바이오팩토리 - 치료용 재조합 단백질</option>
+      </select>
+
+      <div id="targetMoleculeBadge" class="target-molecule-badge">
+        <span>🧬</span>
+        <span id="targetMoleculeText">눈 건강 루테인 (Lutein, C₄₀H₅₆O₂)</span>
+      </div>
+
+      <!-- Time Warp Speed Controller -->
+      <div class="warp-control">
+        <span style="font-size: 10px; color: var(--text-dim); margin-right: 4px;">속도:</span>
+        <button class="warp-btn" data-speed="1">1x</button>
+        <button class="warp-btn" data-speed="5">5x</button>
+        <button class="warp-btn active" data-speed="60">60x</button>
+        <button class="warp-btn" data-speed="300">300x</button>
+        <button class="warp-btn" data-speed="3600">3600x</button>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button id="btnOpenParamEditor" class="btn btn-outline">
+        <span>🧬 생물학 파라미터</span>
+      </button>
+      <button id="btnAutoTune" class="btn btn-accent">
+        <span>✨ AI 레시피 최적화</span>
+      </button>
+      <button id="btnExportRecipe" class="btn btn-outline">
+        <span>📜 스마트팜 레시피</span>
+      </button>
+      <button id="btnConnectP2H" class="btn btn-primary">
+        <span>🔗 Plant2Human 연동</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main 3-Column Layout Grid -->
+  <main class="main-container">
+    
+    <!-- LEFT: Real-Time Environmental Control & Virtual Sensors -->
+    <aside class="control-column panel-card">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>📡</span>
+          <span>실시간 IoT 센서 텔레메트리</span>
+        </div>
+        <span id="dliBadge" class="panel-badge">DLI: 21.8 mol/m²d</span>
+      </div>
+
+      <!-- 8-Channel Live Sensor Strip -->
+      <div class="telemetry-strip">
+        <div class="telemetry-box">
+          <span class="telemetry-tag">PAR 조도</span>
+          <span id="telemetryPpfd" class="telemetry-num">380 μmol</span>
+        </div>
+        <div class="telemetry-box">
+          <span class="telemetry-tag">대기온도</span>
+          <span id="telemetryAirTemp" class="telemetry-num">24.1 °C</span>
+        </div>
+        <div class="telemetry-box">
+          <span class="telemetry-tag">엽온(IR)</span>
+          <span id="telemetryLeafTemp" class="telemetry-num" style="color: var(--accent-emerald);">23.4 °C</span>
+        </div>
+        <div class="telemetry-box">
+          <span class="telemetry-tag">실시간 VPD</span>
+          <span id="telemetryVpd" class="telemetry-num" style="color: var(--accent-gold);">0.95 kPa</span>
+        </div>
+        <div class="telemetry-box">
+          <span class="telemetry-tag">습도(RH)</span>
+          <span id="telemetryRh" class="telemetry-num">65.2 %</span>
+        </div>
+        <div class="telemetry-box">
+          <span class="telemetry-tag">CO₂ 농도</span>
+          <span id="telemetryCo2" class="telemetry-num">850 ppm</span>
+        </div>
+        <div class="telemetry-box">
+          <span class="telemetry-tag">양액 EC</span>
+          <span id="telemetryEc" class="telemetry-num">2.1 dS/m</span>
+        </div>
+        <div class="telemetry-box">
+          <span class="telemetry-tag">PSII (Fv/Fm)</span>
+          <span id="telemetryFvFm" class="telemetry-num" style="color: var(--accent-emerald);">0.824</span>
+        </div>
+      </div>
+
+      <!-- 1. Spectrum Mixer Controls -->
+      <div class="control-group">
+        <div class="control-label" style="font-weight: 700; color: #fff;">
+          <span>1. 조명 스펙트럼 & 광량 제어</span>
+          <span id="ppfdDisplay" class="control-value">380 μmol</span>
+        </div>
+
+        <div class="control-item">
+          <div class="control-label">
+            <span>목표 광량 (Target PPFD)</span>
+            <span id="ppfdVal">380 μmol/m²/s</span>
+          </div>
+          <input type="range" id="sliderPpfd" class="slider-track" min="100" max="800" value="380" step="10">
+        </div>
+
+        <div class="control-item">
+          <div class="control-label">
+            <span>일일 광주기 (Photoperiod)</span>
+            <span id="photoperiodVal">16 시간/일</span>
+          </div>
+          <input type="range" id="sliderPhotoperiod" class="slider-track" min="8" max="24" value="16" step="1">
+        </div>
+
+        <!-- Spectrum Ratio Row -->
+        <div class="spectrum-row">
+          <div class="spectrum-box red">
+            <div class="spectrum-name">Red (660nm)</div>
+            <div id="valRed" class="spectrum-val">55%</div>
+            <input type="range" id="sliderRed" class="slider-track" min="10" max="80" value="55">
+          </div>
+          <div class="spectrum-box blue">
+            <div class="spectrum-name">Blue (450nm)</div>
+            <div id="valBlue" class="spectrum-val">30%</div>
+            <input type="range" id="sliderBlue" class="slider-track" min="5" max="60" value="30">
+          </div>
+          <div class="spectrum-box green">
+            <div class="spectrum-name">Green</div>
+            <div id="valGreen" class="spectrum-val">10%</div>
+            <input type="range" id="sliderGreen" class="slider-track" min="0" max="30" value="10">
+          </div>
+          <div class="spectrum-box far-red">
+            <div class="spectrum-name">Far-Red</div>
+            <div id="valFarRed" class="spectrum-val">5%</div>
+            <input type="range" id="sliderFarRed" class="slider-track" min="0" max="25" value="5">
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Climate & VPD Setpoints -->
+      <div class="control-group">
+        <div class="control-label" style="font-weight: 700; color: #fff;">
+          <span>2. 온실 대기 및 온습도 제어</span>
+        </div>
+
+        <div class="control-item">
+          <div class="control-label">
+            <span>주간 목표온도 (Day Temp)</span>
+            <span id="dayTempVal">24.0 °C</span>
+          </div>
+          <input type="range" id="sliderDayTemp" class="slider-track" min="15" max="34" value="24.0" step="0.5">
+        </div>
+
+        <div class="control-item">
+          <div class="control-label">
+            <span>야간 목표온도 (Night Temp)</span>
+            <span id="nightTempVal">17.5 °C</span>
+          </div>
+          <input type="range" id="sliderNightTemp" class="slider-track" min="10" max="26" value="17.5" step="0.5">
+        </div>
+
+        <div class="control-item">
+          <div class="control-label">
+            <span>목표 습도 (RH %)</span>
+            <span id="humidityVal">65 %</span>
+          </div>
+          <input type="range" id="sliderHumidity" class="slider-track" min="35" max="90" value="65" step="1">
+        </div>
+
+        <div class="control-item">
+          <div class="control-label">
+            <span>이산화탄소 농도 (CO₂)</span>
+            <span id="co2Val">850 ppm</span>
+          </div>
+          <input type="range" id="sliderCo2" class="slider-track" min="400" max="1500" value="850" step="50">
+        </div>
+      </div>
+
+      <!-- 3. Molecular Elicitation & Fertigation -->
+      <div class="control-group">
+        <div class="control-label" style="font-weight: 700; color: #fff;">
+          <span>3. 분자농업 유도 스트레스 처방</span>
+        </div>
+
+        <div class="control-item">
+          <div class="control-label">
+            <span>양액 전기전도도 (EC)</span>
+            <span id="ecVal">2.1 dS/m</span>
+          </div>
+          <input type="range" id="sliderEc" class="slider-track" min="1.0" max="3.5" value="2.1" step="0.1">
+        </div>
+
+        <div class="switch-row">
+          <div>
+            <div class="switch-label">⚡ 펄스형 UV-B 조사 (PSY 효소 활성화)</div>
+            <div class="switch-desc">광보호 2차 대사산물(루테인) 생합성 유도</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="checkUvb" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <div>
+            <div class="switch-label">❄️ 수확기 저온 시프트 (Cold Shock)</div>
+            <div class="switch-desc">야간 저온으로 항산화 분자 체내 농축</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="checkColdShift" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER: 3D Living Plant Canvas & Timeline -->
+    <section class="center-column">
+      <div class="viewport-card">
+        <canvas id="plantCanvas"></canvas>
+      </div>
+
+      <!-- Timeline & Playback Controller -->
+      <div class="timeline-controller">
+        <div class="playback-btns">
+          <button id="btnPlay" class="btn-play" title="실시간 시뮬레이션 일시정지/재생">⏸</button>
+          <button id="btnReset" class="btn-step" title="생육 1일차로 리셋">⏮</button>
+        </div>
+
+        <div class="timeline-slider-wrap">
+          <div class="timeline-header">
+            <span>생육 타임라인 (Growth Timeline)</span>
+            <span id="timelineDayLabel" style="font-weight: 700; color: var(--accent-cyan);">Day 42 (08:00 AM)</span>
+          </div>
+          <input type="range" id="timelineSlider" class="slider-track" min="1" max="45" value="42" step="1">
+        </div>
+
+        <div style="font-size: 11px; text-align: right; color: var(--text-muted);">
+          <span>실시간 광합성:</span>
+          <div id="anLiveDisplay" style="font-weight: 700; color: var(--accent-emerald); font-size: 13px;">19.2 μmol/m²s</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Real-time Streaming Oscilloscope & Morphometrics -->
+    <aside class="analytics-column">
+      <!-- 4 Top KPI Scorecards -->
+      <div class="kpi-grid">
+        <div class="kpi-card gold">
+          <div class="kpi-title">총 루테인 생산량 (Yield)</div>
+          <div id="kpiTotalLutein" class="kpi-value gold">17.2 mg</div>
+          <div id="kpiIncrease" class="kpi-sub">+258% (표준재배 대비)</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-title">조직 내 분자 농도</div>
+          <div id="kpiLuteinConc" class="kpi-value">4.4 mg/g</div>
+          <div class="kpi-sub">의약품 원료 규격 충족</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-title">누적 생체중 (Fresh Weight)</div>
+          <div id="kpiFreshWeight" class="kpi-value">64.8 g</div>
+          <div id="kpiDryWeight" class="kpi-sub">건중량 6.1g</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-title">전력당 생산 효율</div>
+          <div id="kpiEnergyEff" class="kpi-value" style="color: var(--accent-cyan);">1.52 mg/kWh</div>
+          <div class="kpi-sub">스마트팜 경제성 극대화</div>
+        </div>
+      </div>
+
+      <!-- Scope 1: Live Photosynthetic Rate (An) -->
+      <div class="panel-card chart-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>📈</span>
+            <span>실시간 광합성 속도 스트림 (Net An)</span>
+          </div>
+          <span class="panel-badge">μmol CO₂/m²s</span>
+        </div>
+        <canvas id="photoScopeChart" class="chart-canvas"></canvas>
+      </div>
+
+      <!-- Scope 2: Live Lutein Biosynthetic Flux -->
+      <div class="panel-card chart-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>🧬</span>
+            <span>실시간 루테인 생합성 플럭스 (dLutein/dt)</span>
+          </div>
+          <span class="panel-badge" style="background: rgba(241, 196, 15, 0.15); color: var(--accent-gold);">Flux (μg/hr)</span>
+        </div>
+        <canvas id="luteinScopeChart" class="chart-canvas"></canvas>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- Modal 1: Parameter Inspector & Editor (No Hardcoding) -->
+  <div id="paramModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="color: var(--accent-cyan); font-size: 16px;">🧬 식물 생물리학 & 유전체 파라미터 인스펙터</h3>
+        <button id="paramClose" class="modal-close">✕</button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-muted);">
+        모든 수식 계수는 동적으로 실시간 적용됩니다. 파라미터를 직접 수정하거나 새 유전형 데이터를 입력하세요.
+      </p>
+
+      <div class="param-grid" id="paramEditorGrid">
+        <!-- Dynamically populated via JS -->
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+        <button id="btnExportProfile" class="btn btn-outline">JSON 내보내기</button>
+        <button id="btnSaveParams" class="btn btn-primary">파라미터 즉시 적용</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: AI Auto-Tune Optimizer -->
+  <div id="recipeModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalRecipeTitle" style="color: var(--accent-gold); font-size: 16px;">AI 최적화 레시피 도출</h3>
+        <button id="modalClose" class="modal-close">✕</button>
+      </div>
+      <p id="modalRecipeDesc" style="font-size: 13px; color: var(--text-muted); line-height: 1.5;"></p>
+      
+      <div class="code-block" id="modalRecipeCode"></div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button id="btnApplyRecipe" class="btn btn-accent">레시피 시뮬레이터에 즉시 적용</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Plant2Human AI Bridge Payload -->
+  <div id="bridgeModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="color: var(--accent-cyan); font-size: 16px;">Plant2Human AI (localhost:3006) 파이프라인 연동</h3>
+        <button id="bridgeClose" class="modal-close">✕</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+        Plant2Human의 <strong>[눈 건강 루테인 원료 (P2H-9942)]</strong> 파이프라인과 시뮬레이터의 실시간 분자농업 생산 데이터를 연결하는 표준 바이오 파운드리 페이로드입니다.
+      </p>
+      
+      <div class="code-block" id="bridgePayloadCode"></div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button id="btnCopyPayload" class="btn btn-primary">페이로드 복사 & 연동 완료</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

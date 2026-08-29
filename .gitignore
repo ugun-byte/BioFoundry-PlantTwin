@@ -1,0 +1,21 @@
+# Environments
+.env
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Data & Models
+checkpoints/
+*.pt
+*.safetensors
+*.onnx
+*.bin
+downloads/
+logs/
+.DS_Store
