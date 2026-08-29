@@ -36,23 +36,23 @@ export class ThreePlantChamber {
     const w = this.container.clientWidth || 800;
     const h = this.container.clientHeight || 480;
 
-    // 1. Scene with deep high-tech obsidian atmosphere
+    // 1. Scene with modern luminous cyan-slate cleanroom atmosphere
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x050b12);
-    this.scene.fog = new THREE.FogExp2(0x050b12, 0.04);
+    this.scene.background = new THREE.Color(0x101f2f); // Luminous cleanroom deep cyan-slate
+    this.scene.fog = new THREE.FogExp2(0x101f2f, 0.035);
 
     // 2. Camera with cinematic focal length
     this.camera = new THREE.PerspectiveCamera(38, w / h, 0.1, 50);
     this.camera.position.set(0, 1.3, 3.2);
 
-    // 3. High-End WebGL Renderer
+    // 3. High-End WebGL Renderer with crisp bright exposure
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     this.renderer.setSize(w, h);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.toneMappingExposure = 1.32;
 
     const oldCanvas = this.container.querySelector("canvas");
     if (oldCanvas) oldCanvas.remove();
@@ -163,11 +163,11 @@ export class ThreePlantChamber {
     this.scene.add(topCapGroup);
 
     // 4. Real-time Physical Light Sources
-    this.ambientLight = new THREE.AmbientLight(0x0e2236, 0.9);
+    this.ambientLight = new THREE.AmbientLight(0x325980, 1.45);
     this.scene.add(this.ambientLight);
 
     // Main Top LED Grow Spotlight
-    this.growSpotLight = new THREE.SpotLight(0xffeedd, 3.5);
+    this.growSpotLight = new THREE.SpotLight(0xfffaed, 4.6);
     this.growSpotLight.position.set(0, 2.55, 0);
     this.growSpotLight.angle = Math.PI / 3.0;
     this.growSpotLight.penumbra = 0.5;
@@ -179,12 +179,12 @@ export class ThreePlantChamber {
     this.growSpotLight.shadow.bias = -0.0005;
     this.scene.add(this.growSpotLight);
 
-    // Subtle Cyan/Emerald Fill Lights
-    this.sideFillLight = new THREE.PointLight(0x00f2fe, 0.6, 5);
+    // Luminous Cyan/Emerald Fill Lights
+    this.sideFillLight = new THREE.PointLight(0x00f2fe, 0.95, 6);
     this.sideFillLight.position.set(1.8, 1.5, 1.8);
     this.scene.add(this.sideFillLight);
 
-    this.accentGoldLight = new THREE.PointLight(0xffd32a, 0.4, 4);
+    this.accentGoldLight = new THREE.PointLight(0xffd32a, 0.7, 5);
     this.accentGoldLight.position.set(-1.8, 1.2, -1.2);
     this.scene.add(this.accentGoldLight);
   }
@@ -395,22 +395,22 @@ export class ThreePlantChamber {
       const spectrumColor = new THREE.Color(r, g, b);
 
       this.growSpotLight.color.lerp(spectrumColor, 0.1);
-      this.growSpotLight.intensity = (sensors.ppfd / 800) * 4.2;
+      this.growSpotLight.intensity = (sensors.ppfd / 800) * 4.8;
 
       this.ledDiodes.forEach((diode) => {
         diode.material.color.lerp(spectrumColor, 0.1);
       });
 
-      this.ambientLight.color.setHex(0x0e2236);
-      this.ambientLight.intensity = 0.9;
+      this.ambientLight.color.setHex(0x325980);
+      this.ambientLight.intensity = 1.45;
     } else {
       // Night Mode (Automated)
-      this.growSpotLight.intensity = 0.1;
+      this.growSpotLight.intensity = 0.2;
       this.ledDiodes.forEach((diode) => {
-        diode.material.color.setHex(0x071522);
+        diode.material.color.setHex(0x0f283d);
       });
-      this.ambientLight.color.setHex(0x040a12);
-      this.ambientLight.intensity = 0.25;
+      this.ambientLight.color.setHex(0x0b1d2e);
+      this.ambientLight.intensity = 0.45;
     }
 
     // 2. Automated Mist / Transpiration based on VPD & Humidity
