@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BioFoundry AI | 실시간 가상 식물 성장 & 분자농업 디지털 트윈 OS</title>
+  <title>BioFoundry PlantTwin | 4K 3D 실시간 가상 식물 성장 & 분자농업 디지털 트윈 OS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- App Header -->
+  <!-- Top Futuristic Cockpit Navigation -->
   <header class="app-header">
     <div class="brand-section">
       <div class="brand-logo">🌿</div>
       <div class="brand-text">
-        <h1>BioFoundry AI Digital Twin</h1>
-        <p>Google DeepMind Open Stack | 실시간 물리/생화학 시뮬레이션 엔진</p>
+        <h1>BioFoundry PlantTwin <span class="badge-4k">4K 3D</span></h1>
+        <p>Google DeepMind Open Stack | 분자농업 바이오 파운드리 디지털 트윈</p>
       </div>
     </div>
 
     <div class="header-center">
-      <span style="font-size: 11px; color: var(--text-dim);">대상 작물:</span>
+      <span style="font-size: 11px; color: var(--text-dim);">작물:</span>
       <select id="cropSelect" class="crop-select">
         <option value="marigold_lutein">메리골드 (Tagetes erecta) - 루테인 바이오파운드리</option>
         <option value="spinach_carotenoid">유기농 시금치 - 카로티노이드/엽록소</option>
@@ -31,7 +31,7 @@
       </select>
 
       <div id="targetMoleculeBadge" class="target-molecule-badge">
-        <span>🧬</span>
+        <span class="pulsing-dot"></span>
         <span id="targetMoleculeText">눈 건강 루테인 (Lutein, C₄₀H₅₆O₂)</span>
       </div>
 
@@ -47,29 +47,28 @@
     </div>
 
     <div class="header-actions">
+      <!-- Audio FX Toggle -->
+      <button id="btnSoundToggle" class="btn-icon" title="사이버네틱 사운드 온/오프">🔊</button>
       <button id="btnOpenParamEditor" class="btn btn-outline">
-        <span>🧬 생물학 파라미터</span>
+        <span>🧬 생물학 인스펙터</span>
+      </button>
+      <button id="btnExportMenu" class="btn btn-primary">
+        <span>💾 데이터 추출 허브</span>
       </button>
       <button id="btnAutoTune" class="btn btn-accent">
         <span>✨ AI 레시피 최적화</span>
       </button>
-      <button id="btnExportRecipe" class="btn btn-outline">
-        <span>📜 스마트팜 레시피</span>
-      </button>
-      <button id="btnConnectP2H" class="btn btn-primary">
-        <span>🔗 Plant2Human 연동</span>
-      </button>
     </div>
   </header>
 
-  <!-- Main 3-Column Layout Grid -->
+  <!-- Main 3-Column Cockpit Layout -->
   <main class="main-container">
     
     <!-- LEFT: Real-Time Environmental Control & Virtual Sensors -->
     <aside class="control-column panel-card">
       <div class="panel-header">
         <div class="panel-title">
-          <span>📡</span>
+          <span class="hud-icon">📡</span>
           <span>실시간 IoT 센서 텔레메트리</span>
         </div>
         <span id="dliBadge" class="panel-badge">DLI: 21.8 mol/m²d</span>
@@ -215,7 +214,7 @@
         <div class="switch-row">
           <div>
             <div class="switch-label">⚡ 펄스형 UV-B 조사 (PSY 효소 활성화)</div>
-            <div class="switch-desc">광보호 2차 대사산물(루테인) 생합성 유도</div>
+            <div class="switch-desc">루테인/카로티노이드 2차 대사산물 폭발적 합성</div>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" id="checkUvb" checked>
@@ -236,10 +235,22 @@
       </div>
     </aside>
 
-    <!-- CENTER: 3D Living Plant Canvas & Timeline -->
+    <!-- CENTER: 4K 3D Living Plant Canvas & View Controls -->
     <section class="center-column">
       <div class="viewport-card">
+        <!-- View Mode Switcher -->
+        <div class="view-mode-bar">
+          <button id="btnViewMacro" class="view-tab active">🌿 3D 거시 챔버 (Macro)</button>
+          <button id="btnViewMicro" class="view-tab">🔬 미세 세포/엽록체 (Micro)</button>
+          <button id="btnResetCamera" class="view-tab-icon" title="3D 카메라 뷰 리셋">🎯 시점 리셋</button>
+        </div>
+
         <canvas id="plantCanvas"></canvas>
+
+        <!-- 3D Orbit Tip -->
+        <div class="orbit-hint">
+          <span>🖱️ 마우스 드래그로 3D 회전 | 휠로 줌 인/아웃</span>
+        </div>
       </div>
 
       <!-- Timeline & Playback Controller -->
@@ -297,7 +308,7 @@
       <div class="panel-card chart-card">
         <div class="panel-header">
           <div class="panel-title">
-            <span>📈</span>
+            <span class="hud-icon">📈</span>
             <span>실시간 광합성 속도 스트림 (Net An)</span>
           </div>
           <span class="panel-badge">μmol CO₂/m²s</span>
@@ -309,7 +320,7 @@
       <div class="panel-card chart-card">
         <div class="panel-header">
           <div class="panel-title">
-            <span>🧬</span>
+            <span class="hud-icon">🧬</span>
             <span>실시간 루테인 생합성 플럭스 (dLutein/dt)</span>
           </div>
           <span class="panel-badge" style="background: rgba(241, 196, 15, 0.15); color: var(--accent-gold);">Flux (μg/hr)</span>
@@ -331,9 +342,7 @@
         모든 수식 계수는 동적으로 실시간 적용됩니다. 파라미터를 직접 수정하거나 새 유전형 데이터를 입력하세요.
       </p>
 
-      <div class="param-grid" id="paramEditorGrid">
-        <!-- Dynamically populated via JS -->
-      </div>
+      <div class="param-grid" id="paramEditorGrid"></div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
         <button id="btnExportProfile" class="btn btn-outline">JSON 내보내기</button>
@@ -342,7 +351,46 @@
     </div>
   </div>
 
-  <!-- Modal 2: AI Auto-Tune Optimizer -->
+  <!-- Modal 2: Data Extraction & Export Hub (NEW!) -->
+  <div id="exportModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="color: var(--accent-cyan); font-size: 16px;">💾 연구 데이터 추출 & 스마트팜 연동 허브</h3>
+        <button id="exportClose" class="modal-close">✕</button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-muted);">
+        시뮬레이션된 모든 생물리학/분자합성 시계열 데이터를 표준 연구 및 산업 자동화 형식으로 추출합니다.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px;">
+        <div class="export-option-card" id="btnExportCSV">
+          <div style="font-size: 24px;">📊</div>
+          <div style="font-weight: 700; color: #fff; font-size: 13px;">시계열 텔레메트리 CSV</div>
+          <div style="font-size: 11px; color: var(--text-muted);">전체 센서 + 광합성 + 루테인 플럭스 초단위 데이터</div>
+        </div>
+
+        <div class="export-option-card" id="btnCapture4K">
+          <div style="font-size: 24px;">📸</div>
+          <div style="font-weight: 700; color: #fff; font-size: 13px;">4K 디지털 트윈 스냅샷</div>
+          <div style="font-size: 11px; color: var(--text-muted);">고해상도 투명/배경 PNG 리포트 이미지 저장</div>
+        </div>
+
+        <div class="export-option-card" id="btnExportPlc">
+          <div style="font-size: 24px;">📜</div>
+          <div style="font-weight: 700; color: #fff; font-size: 13px;">스마트팜 PLC 제어 JSON</div>
+          <div style="font-size: 11px; color: var(--text-muted);">BACnet / MQTT / Modbus 제어 레시피</div>
+        </div>
+
+        <div class="export-option-card" id="btnExportP2HModal">
+          <div style="font-size: 24px;">🔗</div>
+          <div style="font-weight: 700; color: #fff; font-size: 13px;">Plant2Human AI 페이로드</div>
+          <div style="font-size: 11px; color: var(--text-muted);">바이오 파운드리 원료 연동 데이터</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: AI Auto-Tune Optimizer -->
   <div id="recipeModal" class="modal-backdrop">
     <div class="modal-content">
       <div class="modal-header">
@@ -359,21 +407,16 @@
     </div>
   </div>
 
-  <!-- Modal 3: Plant2Human AI Bridge Payload -->
-  <div id="bridgeModal" class="modal-backdrop">
+  <!-- Modal 4: Generic Code View Modal -->
+  <div id="genericCodeModal" class="modal-backdrop">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 style="color: var(--accent-cyan); font-size: 16px;">Plant2Human AI (localhost:3006) 파이프라인 연동</h3>
-        <button id="bridgeClose" class="modal-close">✕</button>
+        <h3 id="genericModalTitle" style="color: var(--accent-cyan); font-size: 16px;">JSON 페이로드</h3>
+        <button id="genericModalClose" class="modal-close">✕</button>
       </div>
-      <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
-        Plant2Human의 <strong>[눈 건강 루테인 원료 (P2H-9942)]</strong> 파이프라인과 시뮬레이터의 실시간 분자농업 생산 데이터를 연결하는 표준 바이오 파운드리 페이로드입니다.
-      </p>
-      
-      <div class="code-block" id="bridgePayloadCode"></div>
-
-      <div style="display: flex; justify-content: flex-end; gap: 10px;">
-        <button id="btnCopyPayload" class="btn btn-primary">페이로드 복사 & 연동 완료</button>
+      <div class="code-block" id="genericModalCode"></div>
+      <div style="display: flex; justify-content: flex-end;">
+        <button id="btnGenericCopy" class="btn btn-primary">클립보드 복사</button>
       </div>
     </div>
   </div>

@@ -3,11 +3,14 @@ import { PlantProfileManager } from "./plant-profile-manager.js";
 import { EnvironmentalEngine } from "./environmental-engine.js";
 import { PlantCanvas3D } from "./plant-canvas-3d.js";
 import { LiveTelemetryCharts } from "./live-telemetry-charts.js";
+import { CyberAudioEngine } from "./sound-effects.js";
+import { DataExporter } from "./data-exporter.js";
 
 // Core Engines
 const bioEngine = new BioPhysicalEngine();
 const profileManager = new PlantProfileManager();
 const envEngine = new EnvironmentalEngine();
+const audio = new CyberAudioEngine();
 
 let plantCanvas3d = null;
 let telemetryCharts = null;
@@ -46,7 +49,7 @@ const DOM = {
   telemetryEc: document.getElementById("telemetryEc"),
   telemetryFvFm: document.getElementById("telemetryFvFm"),
 
-  // Control Sliders
+  // Sliders
   sliderPpfd: document.getElementById("sliderPpfd"),
   ppfdVal: document.getElementById("ppfdVal"),
   sliderPhotoperiod: document.getElementById("sliderPhotoperiod"),
@@ -74,6 +77,11 @@ const DOM = {
   checkUvb: document.getElementById("checkUvb"),
   checkColdShift: document.getElementById("checkColdShift"),
 
+  // 3D View Modes
+  btnViewMacro: document.getElementById("btnViewMacro"),
+  btnViewMicro: document.getElementById("btnViewMicro"),
+  btnResetCamera: document.getElementById("btnResetCamera"),
+
   // Timeline
   timelineSlider: document.getElementById("timelineSlider"),
   timelineDayLabel: document.getElementById("timelineDayLabel"),
@@ -94,6 +102,7 @@ const DOM = {
   luteinScopeChart: document.getElementById("luteinScopeChart"),
 
   // Modals & Action buttons
+  btnSoundToggle: document.getElementById("btnSoundToggle"),
   btnOpenParamEditor: document.getElementById("btnOpenParamEditor"),
   paramModal: document.getElementById("paramModal"),
   paramClose: document.getElementById("paramClose"),
@@ -101,10 +110,15 @@ const DOM = {
   btnSaveParams: document.getElementById("btnSaveParams"),
   btnExportProfile: document.getElementById("btnExportProfile"),
 
-  btnAutoTune: document.getElementById("btnAutoTune"),
-  btnExportRecipe: document.getElementById("btnExportRecipe"),
-  btnConnectP2H: document.getElementById("btnConnectP2H"),
+  btnExportMenu: document.getElementById("btnExportMenu"),
+  exportModal: document.getElementById("exportModal"),
+  exportClose: document.getElementById("exportClose"),
+  btnExportCSV: document.getElementById("btnExportCSV"),
+  btnCapture4K: document.getElementById("btnCapture4K"),
+  btnExportPlc: document.getElementById("btnExportPlc"),
+  btnExportP2HModal: document.getElementById("btnExportP2HModal"),
 
+  btnAutoTune: document.getElementById("btnAutoTune"),
   recipeModal: document.getElementById("recipeModal"),
   modalRecipeTitle: document.getElementById("modalRecipeTitle"),
   modalRecipeDesc: document.getElementById("modalRecipeDesc"),
@@ -112,10 +126,11 @@ const DOM = {
   modalClose: document.getElementById("modalClose"),
   btnApplyRecipe: document.getElementById("btnApplyRecipe"),
 
-  bridgeModal: document.getElementById("bridgeModal"),
-  bridgePayloadCode: document.getElementById("bridgePayloadCode"),
-  bridgeClose: document.getElementById("bridgeClose"),
-  btnCopyPayload: document.getElementById("btnCopyPayload"),
+  genericCodeModal: document.getElementById("genericCodeModal"),
+  genericModalTitle: document.getElementById("genericModalTitle"),
+  genericModalCode: document.getElementById("genericModalCode"),
+  genericModalClose: document.getElementById("genericModalClose"),
+  btnGenericCopy: document.getElementById("btnGenericCopy"),
 
   warpButtons: document.querySelectorAll(".warp-btn")
 };
@@ -137,8 +152,15 @@ function initApp() {
 }
 
 function bindEventListeners() {
+  // Audio Toggle
+  DOM.btnSoundToggle.addEventListener("click", () => {
+    audio.enabled = !audio.enabled;
+    DOM.btnSoundToggle.textContent = audio.enabled ? "🔊" : "🔇";
+  });
+
   // Crop Selector
   DOM.cropSelect.addEventListener("change", (e) => {
+    audio.playClick();
     profileManager.setActiveProfile(e.target.value);
     const crop = profileManager.getActiveProfile();
     DOM.targetMoleculeText.textContent = `${crop.targetMolecule} (${crop.chemicalFormula})`;
@@ -146,9 +168,30 @@ function bindEventListeners() {
     resetPlantState();
   });
 
+  // View Modes (Macro vs Micro Cellular)
+  DOM.btnViewMacro.addEventListener("click", () => {
+    audio.playClick();
+    DOM.btnViewMacro.classList.add("active");
+    DOM.btnViewMicro.classList.remove("active");
+    plantCanvas3d.setViewMode("macro");
+  });
+
+  DOM.btnViewMicro.addEventListener("click", () => {
+    audio.playPulse();
+    DOM.btnViewMicro.classList.add("active");
+    DOM.btnViewMacro.classList.remove("active");
+    plantCanvas3d.setViewMode("micro");
+  });
+
+  DOM.btnResetCamera.addEventListener("click", () => {
+    audio.playClick();
+    plantCanvas3d.resetCamera();
+  });
+
   // Time Warp Speed Buttons
   DOM.warpButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
+      audio.playClick();
       DOM.warpButtons.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       const speed = parseFloat(btn.getAttribute("data-speed"));
@@ -156,7 +199,7 @@ function bindEventListeners() {
     });
   });
 
-  // Live Sliders Handlers
+  // Sliders Handlers
   const bindSlider = (slider, displayEl, unit, callback) => {
     slider.addEventListener("input", (e) => {
       const val = parseFloat(e.target.value);
@@ -213,28 +256,36 @@ function bindEventListeners() {
 
   // Switches
   DOM.checkUvb.addEventListener("change", (e) => {
+    if (e.target.checked) audio.playUvElicitationTone();
+    else audio.playClick();
     envEngine.updateSetpoints({ uvbActive: e.target.checked });
   });
 
   DOM.checkColdShift.addEventListener("change", (e) => {
+    audio.playClick();
     envEngine.updateSetpoints({ coldShiftActive: e.target.checked });
   });
 
   // Timeline & Playback
   DOM.btnPlay.addEventListener("click", () => {
+    audio.playClick();
     isRunning = !isRunning;
     DOM.btnPlay.textContent = isRunning ? "⏸" : "▶";
   });
 
-  DOM.btnReset.addEventListener("click", resetPlantState);
+  DOM.btnReset.addEventListener("click", () => {
+    audio.playClick();
+    resetPlantState();
+  });
 
   DOM.timelineSlider.addEventListener("input", (e) => {
     const targetDay = parseInt(e.target.value, 10);
     seekToDay(targetDay);
   });
 
-  // Modals
+  // Modals & Exporters
   DOM.btnOpenParamEditor.addEventListener("click", () => {
+    audio.playClick();
     buildParamEditor();
     DOM.paramModal.classList.add("active");
   });
@@ -242,14 +293,40 @@ function bindEventListeners() {
   DOM.btnSaveParams.addEventListener("click", saveEditedParams);
   DOM.btnExportProfile.addEventListener("click", exportProfileJson);
 
+  DOM.btnExportMenu.addEventListener("click", () => {
+    audio.playClick();
+    DOM.exportModal.classList.add("active");
+  });
+  DOM.exportClose.addEventListener("click", () => DOM.exportModal.classList.remove("active"));
+
+  DOM.btnExportCSV.addEventListener("click", () => {
+    audio.playPulse();
+    DataExporter.exportTelemetryCSV(telemetryCharts.history, profileManager.getActiveProfile(), envEngine.setpoints);
+  });
+
+  DOM.btnCapture4K.addEventListener("click", () => {
+    audio.playPulse();
+    DataExporter.captureCanvasSnapshot(DOM.plantCanvas, `BioFoundry_4K_${profileManager.getActiveProfile().id}.png`);
+  });
+
+  DOM.btnExportPlc.addEventListener("click", () => {
+    audio.playClick();
+    const plcData = DataExporter.generateSmartFarmScript(profileManager.getActiveProfile(), envEngine, plantState);
+    showGenericCodeModal("📜 스마트팜 BACnet / MQTT PLC 제어 스크립트", plcData);
+  });
+
+  DOM.btnExportP2HModal.addEventListener("click", () => {
+    audio.playClick();
+    const p2hData = generatePlant2HumanPayload();
+    showGenericCodeModal("🔗 Plant2Human AI (localhost:3006) 바이오 파운드리 페이로드", p2hData);
+  });
+
+  DOM.genericModalClose.addEventListener("click", () => DOM.genericCodeModal.classList.remove("active"));
+  DOM.btnGenericCopy.addEventListener("click", copyGenericModalCode);
+
   DOM.btnAutoTune.addEventListener("click", showAutoTuneModal);
   DOM.modalClose.addEventListener("click", () => DOM.recipeModal.classList.remove("active"));
   DOM.btnApplyRecipe.addEventListener("click", applyAutoTuneRecipe);
-
-  DOM.btnExportRecipe.addEventListener("click", showSmartFarmRecipeModal);
-  DOM.btnConnectP2H.addEventListener("click", showPlant2HumanBridgeModal);
-  DOM.bridgeClose.addEventListener("click", () => DOM.bridgeModal.classList.remove("active"));
-  DOM.btnCopyPayload.addEventListener("click", copyBridgePayload);
 }
 
 function resetPlantState() {
@@ -278,7 +355,6 @@ function seekToDay(targetDay) {
   envEngine.simulatedDay = dayClamped;
   envEngine.simulatedHour = 8.0;
 
-  // Approximate integration curve for instant seek
   const progress = (dayClamped - 1) / (crop.harvestDays - 1);
   const logistic = 1 / (1 + Math.exp(-0.2 * (dayClamped - 20)));
 
@@ -330,20 +406,15 @@ function simulationLoop(now) {
     const dtSimSeconds = dtRealSeconds * envEngine.timeWarp;
     const dtSimHours = dtSimSeconds / 3600.0;
 
-    // Light Interception by Canopy (Lambert-Beer)
     const lightInterception = 1 - Math.exp(-crop.k_extinction * plantState.lai);
-
-    // Carbon assimilation rate to biomass dry weight (g/sec)
-    // 1 umol CO2 = ~30 ug biomass (CH2O carbohydrate)
     const netAnGramsPerM2Hour = (instantPhoto.netAn * 3600 * 30) / 1000000.0;
-    const plantGroundAreaM2 = 0.04; // 25 plants / m2 -> 0.04 m2 per plant
+    const plantGroundAreaM2 = 0.04;
     const dBiomassGrams = Math.max(0, netAnGramsPerM2Hour * lightInterception * plantGroundAreaM2 * dtSimHours);
 
     plantState.dryWeightGrams += dBiomassGrams;
     plantState.freshWeightGrams = plantState.dryWeightGrams * 11.0;
     plantState.leafDryWeightGrams = plantState.dryWeightGrams * crop.leafPartitionRatio;
 
-    // Leaf Area Index expansion (SLA m2/kg DW)
     const leafAreaM2 = (plantState.leafDryWeightGrams / 1000.0) * crop.sla;
     plantState.lai = Math.min(crop.maxLai, leafAreaM2 / plantGroundAreaM2);
     plantState.heightCm = Math.min(48.0, 2.0 + Math.pow(plantState.dryWeightGrams, 0.65) * 12.0);
@@ -410,9 +481,9 @@ function buildParamEditor() {
   DOM.paramEditorGrid.innerHTML = "";
 
   const editableFields = [
-    { key: "vcmax25", label: "Vcmax25 (최대 루비스코 카르복실화 속도)", unit: "μmol/m²s" },
-    { key: "jmax25", label: "Jmax25 (최대 전자전달계 속도)", unit: "μmol e-/m²s" },
-    { key: "rd25", label: "Rd25 (미토콘드리아 암호흡 속도)", unit: "μmol/m²s" },
+    { key: "vcmax25", label: "Vcmax25 (최대 루비스코 탄소고정 속도)", unit: "μmol/m²s" },
+    { key: "jmax25", label: "Jmax25 (최대 전자전달 속도)", unit: "μmol e-/m²s" },
+    { key: "rd25", label: "Rd25 (미토콘드리아 암호흡)", unit: "μmol/m²s" },
     { key: "gs_max", label: "gs_max (최대 기공전도도)", unit: "mol H2O/m²s" },
     { key: "sla", label: "SLA (비엽면적 Specific Leaf Area)", unit: "m²/kg DW" },
     { key: "maxLai", label: "최대 엽면적지수 (Max LAI)", unit: "" },
@@ -436,7 +507,7 @@ function buildParamEditor() {
 }
 
 function saveEditedParams() {
-  const crop = profileManager.getActiveProfile();
+  audio.playClick();
   const inputs = DOM.paramEditorGrid.querySelectorAll("input");
   inputs.forEach((input) => {
     const key = input.id.replace("param_", "");
@@ -446,18 +517,20 @@ function saveEditedParams() {
 }
 
 function exportProfileJson() {
+  audio.playClick();
   const jsonStr = profileManager.exportProfileJson();
   navigator.clipboard.writeText(jsonStr).then(() => {
-    alert("식물 생리학/유전체 파라미터 JSON이 클립보드에 복사되었습니다.");
+    alert("식물 생물리학/유전체 파라미터 JSON이 클립보드에 복사되었습니다.");
   });
 }
 
 let pendingAutoTuneRecipe = null;
 
 function showAutoTuneModal() {
+  audio.playPulse();
   const crop = profileManager.getActiveProfile();
   pendingAutoTuneRecipe = {
-    recipeName: `AI 파레토 최적화: ${crop.name} 분자농업 생산 극대화 레시피 (v3.2)`,
+    recipeName: `AI 파레토 최적화: ${crop.name} 분자농업 생산 극대화 레시피 (v4.0)`,
     description: "생물리학적 광합성 모델과 2차 대사산물 생합성 플럭스를 결합하여 최단 일수 내 최고 수율을 도출한 스마트팜 제어 데이터",
     settings: {
       ppfd: 480,
@@ -483,6 +556,7 @@ function showAutoTuneModal() {
 }
 
 function applyAutoTuneRecipe() {
+  audio.playClick();
   if (!pendingAutoTuneRecipe) return;
   const s = pendingAutoTuneRecipe.settings;
 
@@ -530,51 +604,9 @@ function applyAutoTuneRecipe() {
   DOM.recipeModal.classList.remove("active");
 }
 
-function showSmartFarmRecipeModal() {
+function generatePlant2HumanPayload() {
   const crop = profileManager.getActiveProfile();
-  DOM.modalRecipeTitle.textContent = "📜 스마트팜 제어 표준 JSON 레시피 (MQTT / BACnet / Modbus)";
-  DOM.modalRecipeDesc.textContent = "실제 온실 및 수직농장 제어기(PLC/IoT Gateway)에 즉시 전송할 수 있는 환경 설정 데이터입니다.";
-
-  const recipePayload = {
-    protocol: "BioFoundry-Farm-Control-v1",
-    timestamp: new Date().toISOString(),
-    cropId: crop.id,
-    cropName: crop.name,
-    targetCompound: crop.targetMolecule,
-    growChamber: {
-      light: {
-        ppfd_setpoint: envEngine.setpoints.ppfdTarget,
-        photoperiod_hours: envEngine.setpoints.photoperiodHours,
-        spectrum_distribution_pct: envEngine.setpoints.spectrum,
-        uvb_elicitation_pulse_72h: envEngine.setpoints.uvbActive
-      },
-      climate: {
-        temperature_day_c: envEngine.setpoints.dayTempTarget,
-        temperature_night_c: envEngine.setpoints.nightTempTarget,
-        relative_humidity_pct: envEngine.setpoints.humidityTarget,
-        co2_ppm: envEngine.setpoints.co2Target
-      },
-      fertigation: {
-        ec_ds_m: envEngine.setpoints.ecTarget,
-        target_ph: envEngine.setpoints.phTarget
-      }
-    },
-    livePlantState: {
-      dryWeightGrams: parseFloat(plantState.dryWeightGrams.toFixed(2)),
-      freshWeightGrams: parseFloat(plantState.freshWeightGrams.toFixed(2)),
-      totalLuteinMg: parseFloat(plantState.totalLuteinAccumulatedMg.toFixed(2)),
-      concentrationMgPerG: parseFloat(plantState.luteinConcentration.toFixed(2))
-    }
-  };
-
-  DOM.modalRecipeCode.textContent = JSON.stringify(recipePayload, null, 2);
-  DOM.btnApplyRecipe.style.display = "none";
-  DOM.recipeModal.classList.add("active");
-}
-
-function showPlant2HumanBridgeModal() {
-  const crop = profileManager.getActiveProfile();
-  const bridgePayload = {
+  return {
     bridgeProtocol: "Plant2Human-Molecular-Farming-Bridge-v1",
     connectionTarget: "http://localhost:3006/api/molecular-farming",
     linkedProject: "P2H-9942 (눈 건강 루테인 원료)",
@@ -595,21 +627,25 @@ function showPlant2HumanBridgeModal() {
     },
     status: "READY_FOR_BIO_FOUNDRY_PRODUCTION"
   };
-
-  DOM.bridgePayloadCode.textContent = JSON.stringify(bridgePayload, null, 2);
-  DOM.bridgeModal.classList.add("active");
 }
 
-function copyBridgePayload() {
-  const text = DOM.bridgePayloadCode.textContent;
+function showGenericCodeModal(title, jsonPayload) {
+  DOM.genericModalTitle.textContent = title;
+  DOM.genericModalCode.textContent = JSON.stringify(jsonPayload, null, 2);
+  DOM.exportModal.classList.remove("active");
+  DOM.genericCodeModal.classList.add("active");
+}
+
+function copyGenericModalCode() {
+  const text = DOM.genericModalCode.textContent;
   navigator.clipboard.writeText(text).then(() => {
-    DOM.btnCopyPayload.textContent = "✅ 클립보드 복사 완료 (연동 준비 완료)";
+    DOM.btnGenericCopy.textContent = "✅ 복사 완료";
     setTimeout(() => {
-      DOM.btnCopyPayload.textContent = "페이로드 복사 & 연동 완료";
-      DOM.bridgeModal.classList.remove("active");
-    }, 1500);
+      DOM.btnGenericCopy.textContent = "클립보드 복사";
+      DOM.genericCodeModal.classList.remove("active");
+    }, 1200);
   });
 }
 
-// Start
+// Start Application
 window.addEventListener("DOMContentLoaded", initApp);
