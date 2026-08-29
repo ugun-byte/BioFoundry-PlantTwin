@@ -113,20 +113,47 @@ export class ThreePlantChamber {
     grid.position.y = 0.0;
     this.scene.add(grid);
 
-    // 2. Hydroponic Culture Basin (DWC Reservoir)
+    // 2. Hydroponic Culture Basin (Transparent Aeroponic Glass Observation Pod)
     const basinGroup = new THREE.Group();
     basinGroup.position.set(0, 0.32, 0);
 
-    const potBodyGeo = new THREE.CylinderGeometry(0.55, 0.42, 0.30, 32);
-    const potBodyMat = new THREE.MeshStandardMaterial({
-      color: 0x1a2e40,
-      metalness: 0.65,
-      roughness: 0.3
+    // Translucent Glass Basin Body
+    const potGlassGeo = new THREE.CylinderGeometry(0.55, 0.42, 0.32, 32);
+    const potGlassMat = new THREE.MeshPhysicalMaterial({
+      color: 0x0c2438,
+      transparent: true,
+      opacity: 0.38,
+      roughness: 0.12,
+      metalness: 0.2,
+      transmission: 0.75,
+      ior: 1.45
     });
-    const potBody = new THREE.Mesh(potBodyGeo, potBodyMat);
-    potBody.castShadow = true;
-    potBody.receiveShadow = true;
-    basinGroup.add(potBody);
+    const potGlass = new THREE.Mesh(potGlassGeo, potGlassMat);
+    basinGroup.add(potGlass);
+
+    // Inner Glowing Nutrient Fluid Reservoir at bottom
+    const liquidGeo = new THREE.CylinderGeometry(0.44, 0.40, 0.08, 32);
+    const liquidMat = new THREE.MeshStandardMaterial({
+      color: 0x059669,
+      roughness: 0.1,
+      transparent: true,
+      opacity: 0.7,
+      emissive: 0x059669,
+      emissiveIntensity: 0.35
+    });
+    const liquid = new THREE.Mesh(liquidGeo, liquidMat);
+    liquid.position.y = -0.11;
+    basinGroup.add(liquid);
+
+    // Cyber Strut Brackets on Pot Exterior
+    const strutMat = new THREE.MeshStandardMaterial({ color: 0x162838, metalness: 0.8, roughness: 0.3 });
+    for (let i = 0; i < 4; i++) {
+      const angle = (i / 4) * Math.PI * 2;
+      const strut = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.34, 0.04), strutMat);
+      strut.position.set(Math.cos(angle) * 0.52, 0, Math.sin(angle) * 0.52);
+      strut.rotation.y = angle;
+      basinGroup.add(strut);
+    }
 
     // Glowing Nutrient Fluid Level Indicator Ring
     const fluidRingGeo = new THREE.TorusGeometry(0.56, 0.018, 16, 48);
@@ -143,6 +170,21 @@ export class ThreePlantChamber {
     collar.position.y = 0.16;
     basinGroup.add(collar);
 
+    // 4 Miniature Aeroponic Misting Nozzles
+    this.mistingNozzles = [];
+    for (let i = 0; i < 4; i++) {
+      const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
+      const noz = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.015, 0.02, 0.04, 12),
+        new THREE.MeshStandardMaterial({ color: 0x00f2fe, metalness: 0.9, roughness: 0.1 })
+      );
+      noz.position.set(Math.cos(angle) * 0.36, 0.12, Math.sin(angle) * 0.36);
+      noz.rotation.z = Math.cos(angle) * 0.7;
+      noz.rotation.x = Math.sin(angle) * 0.7;
+      basinGroup.add(noz);
+      this.mistingNozzles.push(noz);
+    }
+
     this.scene.add(basinGroup);
 
     // 3. Top LED Luminaire Array Fixture
@@ -158,13 +200,17 @@ export class ThreePlantChamber {
     this.ledDiodes = [];
     for (let i = 0; i < 6; i++) {
       const angle = (i / 6) * Math.PI * 2;
-      const diodeGeo = new THREE.BoxGeometry(0.35, 0.02, 0.06);
-      const diodeMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
-      const diode = new THREE.Mesh(diodeGeo, diodeMat);
-      diode.position.set(Math.cos(angle) * 0.6, -0.045, Math.sin(angle) * 0.6);
-      diode.rotation.y = -angle;
-      topCapGroup.add(diode);
-      this.ledDiodes.push(diode);
+      const barGeo = new THREE.BoxGeometry(0.06, 0.02, 0.45);
+      const barMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        emissive: 0xffffff,
+        emissiveIntensity: 0.6
+      });
+      const bar = new THREE.Mesh(barGeo, barMat);
+      bar.position.set(Math.cos(angle) * 0.55, -0.04, Math.sin(angle) * 0.55);
+      bar.rotation.y = angle;
+      topCapGroup.add(bar);
+      this.ledDiodes.push(bar);
     }
     this.scene.add(topCapGroup);
 
@@ -196,7 +242,7 @@ export class ThreePlantChamber {
   }
 
   buildPhysicsParticles() {
-    // 1. Automated Humidity Mist Particles
+    // 1. Canopy Humid Misting Particles
     const mistCount = 90;
     const mistGeo = new THREE.BufferGeometry();
     const mistPos = new Float32Array(mistCount * 3);
@@ -239,6 +285,30 @@ export class ThreePlantChamber {
     });
     this.breezeSystem = new THREE.Points(breezeGeo, breezeMat);
     this.scene.add(this.breezeSystem);
+
+    // 3. Aeroponic Root Zone Misting Spray System
+    const rootMistCount = 120;
+    const rootMistGeo = new THREE.BufferGeometry();
+    const rootMistPos = new Float32Array(rootMistCount * 3);
+
+    for (let i = 0; i < rootMistCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 0.04 + Math.random() * 0.28;
+      rootMistPos[i * 3 + 0] = Math.cos(angle) * radius;
+      rootMistPos[i * 3 + 1] = 0.22 + Math.random() * 0.20; // within basin height (0.20 to 0.42)
+      rootMistPos[i * 3 + 2] = Math.sin(angle) * radius;
+    }
+
+    rootMistGeo.setAttribute('position', new THREE.BufferAttribute(rootMistPos, 3));
+    const rootMistMat = new THREE.PointsMaterial({
+      color: 0x00f2fe,
+      size: 0.016,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending
+    });
+    this.rootMistSystem = new THREE.Points(rootMistGeo, rootMistMat);
+    this.scene.add(this.rootMistSystem);
   }
 
   setCropSpecies(cropProfile) {
@@ -276,7 +346,57 @@ export class ThreePlantChamber {
       this.buildMarigoldPlant(leafColorHex);
     }
 
+    // Build Procedural 3D Aeroponic Root System
+    this.buildRootArchitecture();
+
     this.scene.add(this.plantGroup);
+  }
+
+  buildRootArchitecture() {
+    this.rootGroup = new THREE.Group();
+    this.rootGroup.position.set(0, 0, 0); // Root base at net collar (y=0 in plantGroup)
+
+    const rootMat = new THREE.MeshStandardMaterial({
+      color: 0xf8fafc,
+      roughness: 0.5,
+      metalness: 0.1,
+      emissive: 0x38ef7d,
+      emissiveIntensity: 0.18
+    });
+
+    // 1. Central Taproot
+    this.taprootMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.016, 0.003, 0.26, 12),
+      rootMat
+    );
+    this.taprootMesh.position.y = -0.13;
+    this.taprootMesh.castShadow = true;
+    this.rootGroup.add(this.taprootMesh);
+
+    // 2. 14 Secondary Lateral Roots radiating downward
+    this.lateralRoots = [];
+    const lateralCount = 14;
+    for (let i = 0; i < lateralCount; i++) {
+      const angle = (i / lateralCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+      const depthRatio = 0.2 + (i / lateralCount) * 0.75;
+      const length = 0.14 + Math.random() * 0.08;
+
+      const latMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.007, 0.002, length, 8),
+        rootMat
+      );
+      latMesh.position.set(
+        Math.cos(angle) * 0.035,
+        -depthRatio * 0.20,
+        Math.sin(angle) * 0.035
+      );
+      latMesh.rotation.z = Math.cos(angle) * 0.52;
+      latMesh.rotation.x = Math.sin(angle) * 0.52;
+      this.rootGroup.add(latMesh);
+      this.lateralRoots.push({ mesh: latMesh, baseLength: length, angle });
+    }
+
+    this.plantGroup.add(this.rootGroup);
   }
 
   /**
@@ -644,6 +764,12 @@ export class ThreePlantChamber {
       }
     });
 
+    // Dynamic 3D Root Architecture Elongation & Biomass Expansion
+    if (this.rootGroup) {
+      const rootScale = Math.min(1.35, 0.4 + (dryWeightGrams / 3.0) * 0.65);
+      this.rootGroup.scale.set(rootScale, rootScale * 1.12, rootScale);
+    }
+
     // Flower Blooming
     if (this.flowerGroup) {
       if (dryWeightGrams > 2.0) {
@@ -662,7 +788,7 @@ export class ThreePlantChamber {
 
     if (this.controls) this.controls.update();
 
-    // 1. Mist Vapor Particles
+    // 1. Canopy Mist Vapor Particles
     if (this.mistSystem) {
       const pos = this.mistSystem.geometry.attributes.position.array;
       for (let i = 0; i < pos.length / 3; i++) {
@@ -683,7 +809,21 @@ export class ThreePlantChamber {
       this.breezeSystem.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 3. Plant Mechanical Wind Sway
+    // 3. Aeroponic Root Zone Misting Spray Droplets
+    if (this.rootMistSystem) {
+      const pos = this.rootMistSystem.geometry.attributes.position.array;
+      for (let i = 0; i < pos.length / 3; i++) {
+        pos[i * 3 + 1] -= 0.005; // downward mist velocity into roots
+        pos[i * 3 + 0] += Math.sin(this.time * 2.5 + i) * 0.0012;
+        pos[i * 3 + 2] += Math.cos(this.time * 2.5 + i) * 0.0012;
+        if (pos[i * 3 + 1] < 0.22) {
+          pos[i * 3 + 1] = 0.40; // reset near misting nozzles
+        }
+      }
+      this.rootMistSystem.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // 4. Plant Mechanical Wind Sway
     if (this.plantGroup) {
       const swayZ = Math.sin(this.time * 1.5) * 0.016;
       const swayX = Math.cos(this.time * 1.2) * 0.010;
@@ -737,6 +877,8 @@ export class ThreePlantChamber {
         let nodeType = "엽육 광합성 세포 (Mesophyll Cell)";
         if (hit.object === this.stemMesh) {
           nodeType = "주원경 목질부 도관 (Main Xylem Stalk)";
+        } else if (this.rootGroup && (hit.object === this.taprootMesh || this.lateralRoots.some(l => l.mesh === hit.object))) {
+          nodeType = "근권 에어로포닉 흡수근 (Root Cap & Hair Zone)";
         } else if (this.flowerGroup && this.flowerGroup.children.includes(hit.object)) {
           nodeType = "정단 화경 & 꽃잎 (Apical Floral Petal)";
         } else {

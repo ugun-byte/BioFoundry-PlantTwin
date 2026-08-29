@@ -230,10 +230,17 @@ function initApp() {
     }, crop);
 
     DOM.hudNodeTitle.textContent = data.nodeType;
-    DOM.hudLeafTemp.textContent = `${instantPhoto.stomata.leafTemp} °C`;
-    DOM.hudNetAn.textContent = `${instantPhoto.netAn.toFixed(2)} μmol`;
-    DOM.hudMoleculeConc.textContent = `${plantState.luteinConcentration.toFixed(2)} mg/g DW`;
-    DOM.hudStomatalGs.textContent = `${instantPhoto.stomata.gs.toFixed(3)} mol`;
+    if (data.nodeType.includes("근권") || data.nodeType.includes("흡수근")) {
+      DOM.hudLeafTemp.textContent = `${(instantPhoto.stomata.leafTemp - 2.6).toFixed(1)} °C (근권수온)`;
+      DOM.hudNetAn.textContent = `${(instantPhoto.netAn * 0.45).toFixed(2)} (삼투흡수)`;
+      DOM.hudMoleculeConc.textContent = `${(plantState.luteinConcentration * 0.62).toFixed(2)} mg/g (근계)`;
+      DOM.hudStomatalGs.textContent = `${(envTele.sensors.ec).toFixed(1)} dS/m (EC)`;
+    } else {
+      DOM.hudLeafTemp.textContent = `${instantPhoto.stomata.leafTemp} °C`;
+      DOM.hudNetAn.textContent = `${instantPhoto.netAn.toFixed(2)} μmol`;
+      DOM.hudMoleculeConc.textContent = `${plantState.luteinConcentration.toFixed(2)} mg/g DW`;
+      DOM.hudStomatalGs.textContent = `${instantPhoto.stomata.gs.toFixed(3)} mol`;
+    }
 
     DOM.hologramBioHud.style.left = `${data.screenX}px`;
     DOM.hologramBioHud.style.top = `${data.screenY}px`;
