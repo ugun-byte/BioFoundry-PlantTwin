@@ -252,13 +252,14 @@ export class ThreePlantChamber {
     this.leaves = [];
     this.flowerGroup = null;
 
-    const cropId = cropProfile.id || "marigold_lutein";
-    const morphology = cropProfile.morphologyType || 
+    const prof = (typeof cropProfile === "object" && cropProfile !== null) ? cropProfile : { id: String(cropProfile || "marigold_lutein") };
+    const cropId = prof.id || "marigold_lutein";
+    const morphology = prof.morphologyType || 
       (cropId.includes("spinach") ? "spinach" : 
       (cropId.includes("kale") ? "kale" : 
       (cropId.includes("tobacco") ? "tobacco" : "marigold")));
 
-    const leafColorHex = cropProfile.leafColor || "#22c55e";
+    const leafColorHex = prof.leafColor || "#22c55e";
 
     if (morphology === "spinach") {
       this.buildSpinachPlant(leafColorHex);
@@ -277,7 +278,7 @@ export class ThreePlantChamber {
   /**
    * 1. Marigold: Slender tall stem, golden ratio leaves, full blooming flower head
    */
-  buildMarigoldPlant() {
+  buildMarigoldPlant(leafColorHex = "#22c55e") {
     this.stemHeight = 0.85;
     this.stemMaterial = new THREE.MeshStandardMaterial({
       color: 0x166534,
@@ -296,7 +297,7 @@ export class ThreePlantChamber {
     // Leaves
     const leafGeo = this.createMarigoldLeafGeo();
     const leafMat = new THREE.MeshStandardMaterial({
-      color: 0x22c55e,
+      color: leafColorHex || 0x22c55e,
       roughness: 0.4,
       metalness: 0.05,
       side: THREE.DoubleSide

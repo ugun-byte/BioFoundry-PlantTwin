@@ -7,11 +7,11 @@
  * permutations to mathematically prove and find the Global Optimal Environmental Recipe.
  */
 
-import { BiophysicalModel } from "./biophysical-model.js";
+import { BioPhysicalEngine } from "./biophysical-model.js";
 
 export class AutonomousAiOptimizer {
   constructor() {
-    this.bioModel = new BiophysicalModel();
+    this.bioModel = new BioPhysicalEngine();
   }
 
   /**
