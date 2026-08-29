@@ -729,16 +729,29 @@ export class ThreePlantChamber {
       this.mistSystem.material.opacity = 0.15;
     }
 
-    // 3. Species-Specific Morphological Scaling
-    const maxPlantH = this.currentSpecies === "spinach_carotenoid" ? 22.0 : (this.currentSpecies === "tobacco_recombinant" ? 65.0 : 45.0);
-    const growthProgress = Math.min(1.0, heightCm / maxPlantH);
-    const stemH = (this.currentSpecies === "spinach_carotenoid" ? 0.12 : 0.22) + growthProgress * (this.stemHeight - 0.2);
-    
-    this.stemMesh.scale.set(1.0 + dryWeightGrams * 0.12, stemH / this.stemHeight, 1.0 + dryWeightGrams * 0.12);
+    // 3. Species-Specific Ontogenetic Growth Modeling (Day 1 Sprout -> Day 42 Full Bloom)
+    const simulatedDay = envTelemetry.simulatedDay || 1;
+    const harvestDays = cropProfile.harvestDays || 42;
+    const dayRatio = Math.min(1.0, Math.max(0.01, simulatedDay / harvestDays));
+
+    // Sigmoid height curve (seedling sprout at Day 1 ~ 5, exponential elongation, plateau)
+    const heightProgress = 1.0 / (1.0 + Math.exp(-0.18 * (simulatedDay - 18)));
+    const minStemH = 0.06; // Day 1 sprout height (6 cm)
+    const adultStemH = this.currentSpecies === "spinach_carotenoid" ? 0.35 : (this.currentSpecies === "tobacco_recombinant" ? 1.05 : 0.85);
+    const stemH = minStemH + heightProgress * (adultStemH - minStemH);
+
+    // Stem thickness scaling: Day 1 slender sprout (0.15) -> Adult robust trunk (1.0 + dryWeight)
+    const stemThick = Math.min(1.2, 0.14 + heightProgress * 0.86 + Math.min(0.2, dryWeightGrams * 0.01));
+    this.stemMesh.scale.set(stemThick, stemH / this.stemHeight, stemThick);
     this.stemMesh.position.y = stemH / 2;
 
     const turgorFactor = sensors.vpd > 1.6 ? Math.max(0.35, 1.0 - (sensors.vpd - 1.6) * 0.9) : 1.0;
-    const visibleLeafCount = Math.min(this.leaves.length, Math.floor(2 + dryWeightGrams * 1.8));
+
+    // Leaf Development: Day 1~4 has ONLY 2 tiny cotyledons (떡잎); leaves unfold successively
+    let visibleLeafCount = 2;
+    if (simulatedDay >= 5) {
+      visibleLeafCount = Math.min(this.leaves.length, 2 + Math.floor((simulatedDay - 4) * 0.45));
+    }
 
     // Lutein Color Shift
     const luteinRatio = Math.min(1.0, Math.max(0.0, (luteinConcentration - 2.0) / 3.0));
@@ -750,40 +763,55 @@ export class ThreePlantChamber {
 
     this.leaves.forEach((l, idx) => {
       if (idx < visibleLeafCount) {
-        const leafProgress = Math.min(1.0, (growthProgress * 1.5) - (idx * 0.04));
-        const lScale = Math.max(0.12, leafProgress * 1.15);
-        l.mesh.scale.set(lScale, lScale, lScale);
+        // Individual leaf size scaling: cotyledons (idx 0,1) start small, true leaves expand
+        let lScale = 0.18;
+        if (simulatedDay > 4) {
+          const leafAge = Math.max(0, simulatedDay - 4 - idx * 2.0);
+          const leafGrowth = 1.0 / (1.0 + Math.exp(-0.25 * (leafAge - 6)));
+          lScale = Math.max(0.18, leafGrowth * 1.15);
+        }
 
-        const posY = stemH * l.nodeHeightRatio;
+        // At Day 1~4, cotyledons sit right at the sprout apex
+        const posY = simulatedDay <= 4 ? stemH * 0.95 : stemH * l.nodeHeightRatio;
         l.mesh.position.set(0, posY, 0);
+        l.mesh.scale.set(lScale, lScale, lScale);
 
         // Species-specific drooping angles
         const basePitch = l.type === "spinach" ? 0.65 : (l.type === "tobacco" ? 0.50 : 0.42);
         const droopPitch = (1.0 - turgorFactor) * 0.85;
         l.mesh.rotation.set(basePitch + droopPitch, l.baseAngle, 0.15);
 
-        if (cropProfile.id === "marigold_lutein") {
+        if (cropProfile.id === "marigold_lutein" || !cropProfile.id) {
           l.mesh.material.color.lerp(targetLeafColor, 0.08);
         }
       } else {
-        l.mesh.scale.set(0.001, 0.001, 0.001);
+        l.mesh.scale.set(0.0001, 0.0001, 0.0001);
       }
     });
 
-    // Dynamic 3D Root Architecture Elongation & Biomass Expansion
+    // Dynamic 3D Root Architecture Elongation: Day 1 sprout (0.12) -> Full Root System (1.25)
     if (this.rootGroup) {
-      const rootScale = Math.min(1.35, 0.4 + (dryWeightGrams / 3.0) * 0.65);
-      this.rootGroup.scale.set(rootScale, rootScale * 1.12, rootScale);
+      const rootScale = Math.min(1.30, 0.12 + dayRatio * 1.18);
+      this.rootGroup.scale.set(rootScale, rootScale * 1.15, rootScale);
     }
 
-    // Flower Blooming
+    // Flower Blooming Ontogeny: ONLY appears after Day 26 (Budding) and fully blooms on Day 34~42
     if (this.flowerGroup) {
-      if (dryWeightGrams > 2.0) {
+      if (simulatedDay < 26) {
+        // Day 1 ~ 25: Completely invisible (Vegetative stage)
+        this.flowerGroup.scale.set(0.0001, 0.0001, 0.0001);
+      } else if (simulatedDay < 34) {
+        // Day 26 ~ 33: Emergence of small green/yellow floral bud (봉오리)
         this.flowerGroup.position.y = stemH;
-        const flowerScale = Math.min(1.2, (dryWeightGrams - 2.0) * 0.35);
-        this.flowerGroup.scale.set(flowerScale, flowerScale, flowerScale);
+        const budProgress = (simulatedDay - 26) / 8.0;
+        const budScale = 0.06 + budProgress * 0.30;
+        this.flowerGroup.scale.set(budScale, budScale, budScale);
       } else {
-        this.flowerGroup.scale.set(0.001, 0.001, 0.001);
+        // Day 34 ~ 42: Full blooming mature flower head
+        this.flowerGroup.position.y = stemH;
+        const bloomProgress = Math.min(1.0, (simulatedDay - 34) / 7.0);
+        const flowerScale = 0.36 + bloomProgress * 0.74;
+        this.flowerGroup.scale.set(flowerScale, flowerScale, flowerScale);
       }
     }
   }

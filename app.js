@@ -477,21 +477,9 @@ function bindEventListeners() {
 
 function resetPlantState() {
   const crop = profileManager.getActiveProfile();
-  envEngine.simulatedTotalSeconds = 0;
-  envEngine.simulatedDay = 18;
-  envEngine.simulatedHour = 12.0;
-
-  plantState.dryWeightGrams = 12.8;
-  plantState.freshWeightGrams = 128.6;
-  plantState.heightCm = 18.5;
-  plantState.leafCount = 14;
-  plantState.lai = 1.85;
-  plantState.luteinConcentration = crop.baseLuteinConcentration;
-  plantState.totalLuteinAccumulatedMg = 132.4;
-  plantState.leafDryWeightGrams = 7.1;
-
   DOM.timelineSlider.max = crop.harvestDays;
-  DOM.timelineSlider.value = 18;
+  seekToDay(1);
+  DOM.timelineSlider.value = 1;
   DOM.teleHarvestDay.textContent = crop.harvestDays;
 }
 
