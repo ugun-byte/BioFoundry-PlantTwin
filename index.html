@@ -14,7 +14,13 @@
   <!-- Top Futuristic Cockpit Navigation -->
   <header class="app-header">
     <div class="brand-section">
-      <div class="brand-logo">🌿</div>
+      <div class="brand-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"/>
+          <path d="M11 13c1.5-1.5 3-2 5-2"/>
+          <path d="M11 13l-3 3"/>
+        </svg>
+      </div>
       <div class="brand-text">
         <h1>BioFoundry PlantTwin <span class="badge-4k">4K 3D</span></h1>
         <p>DeepMind Open Stack | 분자농업 디지털 트윈</p>
@@ -25,7 +31,10 @@
       <div class="crop-select-group">
         <span style="font-size: 11px; color: var(--text-dim); flex-shrink: 0;">작물:</span>
         <select id="cropSelect" class="crop-select"></select>
-        <button id="btnOpenNewCropModal" class="btn btn-outline btn-new-crop" title="새 식물 및 분자농업 원료 등록">➕ 신규 등록</button>
+        <button id="btnOpenNewCropModal" class="btn btn-outline btn-new-crop" title="새 식물 및 분자농업 원료 등록">
+          <svg class="hud-svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>신규 등록</span>
+        </button>
       </div>
 
       <div id="targetMoleculeBadge" class="target-molecule-badge">
@@ -36,15 +45,29 @@
 
     <div class="header-actions">
       <!-- Audio FX Toggle -->
-      <button id="btnSoundToggle" class="btn-icon" title="사이버네틱 사운드 온/오프">🔊</button>
+      <button id="btnSoundToggle" class="btn-icon" title="사이버네틱 사운드 온/오프">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+      </button>
       <button id="btnOpenParamEditor" class="btn btn-outline">
-        <span>🧬 생물학 인스펙터</span>
+        <svg class="hud-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M9 22c1.8-2 2.5-4 2.8-6"/><path d="M15 2c-1.8 2-2.5 4-2.8 6"/><path d="M17 6l-2.5 2.5"/><path d="M14 8l-4 4"/><path d="M7 17l2.5-2.5"/>
+        </svg>
+        <span>생물학 인스펙터</span>
       </button>
       <button id="btnExportMenu" class="btn btn-primary">
-        <span>💾 데이터 추출</span>
+        <svg class="hud-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span>데이터 추출</span>
       </button>
       <button id="btnAutoTune" class="btn btn-accent">
-        <span>✨ AI 레시피</span>
+        <svg class="hud-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+        <span>AI 레시피</span>
       </button>
     </div>
   </header>
@@ -56,44 +79,70 @@
     <aside class="control-column panel-card">
       <div class="panel-header">
         <div class="panel-title">
-          <span class="hud-icon">📡</span>
+          <svg class="hud-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1.5" fill="#00f2fe"></circle>
+          </svg>
           <span>실시간 IoT 센서 텔레메트리</span>
         </div>
         <span id="dliBadge" class="panel-badge">DLI: 21.8 mol/m²d</span>
       </div>
 
-      <!-- 8-Channel Live Sensor Strip -->
+      <!-- 8-Channel Live Sensor Strip with Crisp 4K Vector Icons -->
       <div class="telemetry-strip">
         <div class="telemetry-box">
-          <span class="telemetry-tag">🔆 PAR 조도</span>
+          <span class="telemetry-tag">
+            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffd32a" stroke-width="2.2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line></svg>
+            PAR 조도
+          </span>
           <span id="telemetryPpfd" class="telemetry-num">380 μmol</span>
         </div>
         <div class="telemetry-box">
-          <span class="telemetry-tag">🌡️ 대기온도</span>
+          <span class="telemetry-tag">
+            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2.2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
+            대기온도
+          </span>
           <span id="telemetryAirTemp" class="telemetry-num">24.1 °C</span>
         </div>
         <div class="telemetry-box">
-          <span class="telemetry-tag">🍃 엽온 (IR)</span>
+          <span class="telemetry-tag">
+            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#38ef7d" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path></svg>
+            엽온 (IR)
+          </span>
           <span id="telemetryLeafTemp" class="telemetry-num" style="color: var(--accent-emerald);">23.4 °C</span>
         </div>
         <div class="telemetry-box">
-          <span class="telemetry-tag">🌫️ 실시간 VPD</span>
+          <span class="telemetry-tag">
+            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffd32a" stroke-width="2.2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+            실시간 VPD
+          </span>
           <span id="telemetryVpd" class="telemetry-num" style="color: var(--accent-gold);">0.95 kPa</span>
         </div>
         <div class="telemetry-box">
-          <span class="telemetry-tag">💧 습도 (RH)</span>
+          <span class="telemetry-tag">
+            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2.2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+            습도 (RH)
+          </span>
           <span id="telemetryRh" class="telemetry-num">65.2 %</span>
         </div>
         <div class="telemetry-box">
-          <span class="telemetry-tag">🧪 CO₂ 농도</span>
+          <span class="telemetry-tag">
+            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a29bfe" stroke-width="2.2"><path d="M10 2v7.31L4.69 19.5a1 1 0 0 0 .88 1.5h12.86a1 1 0 0 0 .88-1.5L14 9.31V2"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line></svg>
+            CO₂ 농도
+          </span>
           <span id="telemetryCo2" class="telemetry-num">850 ppm</span>
         </div>
         <div class="telemetry-box">
-          <span class="telemetry-tag">⚡ 양액 EC</span>
+          <span class="telemetry-tag">
+            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffd32a" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            양액 EC
+          </span>
           <span id="telemetryEc" class="telemetry-num">2.1 dS/m</span>
         </div>
         <div class="telemetry-box">
-          <span class="telemetry-tag">🔬 양자수율 Fv/Fm</span>
+          <span class="telemetry-tag">
+            <svg class="sensor-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#38ef7d" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><path d="M8 12l3 3 5-5"></path></svg>
+            양자수율 Fv/Fm
+          </span>
           <span id="telemetryFvFm" class="telemetry-num" style="color: var(--accent-emerald);">0.824</span>
         </div>
       </div>
@@ -201,7 +250,10 @@
 
         <div class="switch-row">
           <div>
-            <div class="switch-label">⚡ 펄스형 UV-B 조사 (PSY 효소 활성화)</div>
+            <div class="switch-label">
+              <svg class="sensor-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffd32a" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              펄스형 UV-B 조사 (PSY 효소 활성화)
+            </div>
             <div class="switch-desc">루테인/카로티노이드 2차 대사산물 폭발적 합성</div>
           </div>
           <label class="toggle-switch">
@@ -212,7 +264,10 @@
 
         <div class="switch-row">
           <div>
-            <div class="switch-label">❄️ 수확기 저온 시프트 (Cold Shock)</div>
+            <div class="switch-label">
+              <svg class="sensor-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              수확기 저온 시프트 (Cold Shock)
+            </div>
             <div class="switch-desc">야간 저온으로 항산화 분자 체내 농축</div>
           </div>
           <label class="toggle-switch">
@@ -230,18 +285,22 @@
         <div class="view-mode-bar">
           <button id="btnAiAutoPilot" class="ai-autopilot-btn" title="시뮬레이터 자율 AI 환경 최적화 운전">
             <span class="ai-pulse-dot"></span>
-            <span id="aiAutoPilotLabel">🤖 AI 자율 최적화 운전: OFF</span>
+            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></svg>
+            <span id="aiAutoPilotLabel">AI 자율 최적화: OFF</span>
           </button>
           <div class="diurnal-status-tag">
             <span class="pulse-emerald"></span>
-            <span id="diurnalStatusLabel">🌿 24H 자동 일주기</span>
+            <span id="diurnalStatusLabel">24H 자동 일주기</span>
           </div>
-          <button id="btnResetCamera" class="view-tab-icon" title="3D 카메라 뷰 리셋">🎯 시점 리셋</button>
+          <button id="btnResetCamera" class="view-tab-icon" title="3D 카메라 뷰 리셋">
+            <svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+            <span>시점 리셋</span>
+          </button>
         </div>
 
         <!-- 3D Orbit Tip -->
         <div class="orbit-hint">
-          <span>🌿 스마트 바이오리액터 디지털 트윈 | 🖱️ 360° 마우스 드래그 3D 회전 | 🌿 식물 잎/꽃 클릭 시 생체 정보 핀</span>
+          <span>스마트 바이오리액터 디지털 트윈 | 360° 마우스 드래그 3D 회전 | 잎/꽃 클릭 시 생체 정보 HUD 핀</span>
         </div>
 
         <!-- 3D Holographic Bio-HUD Tooltip Pin -->
@@ -249,7 +308,7 @@
           <div class="hud-pin-header">
             <div class="hud-pin-title">
               <span class="hud-dot"></span>
-              <span id="hudNodeTitle">🍃 제 4엽 상위 엽맥 (Leaf #4)</span>
+              <span id="hudNodeTitle">제 4엽 상위 엽맥 (Leaf #4)</span>
             </div>
             <button id="hudPinClose" class="hud-pin-close" title="닫기">✕</button>
           </div>
@@ -277,8 +336,12 @@
       <!-- Timeline & Playback Controller -->
       <div class="timeline-controller">
         <div class="playback-btns">
-          <button id="btnPlay" class="btn-play" title="실시간 시뮬레이션 일시정지/재생">⏸</button>
-          <button id="btnReset" class="btn-step" title="생육 1일차로 리셋">⏮</button>
+          <button id="btnPlay" class="btn-play" title="실시간 시뮬레이션 일시정지/재생">
+            <svg id="playIconSvg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+          </button>
+          <button id="btnReset" class="btn-step" title="생육 1일차로 리셋">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+          </button>
         </div>
 
         <!-- Time Warp Speed Controller unified in timeline bar -->
@@ -310,7 +373,7 @@
       <!-- 4 Top KPI Scorecards -->
       <div class="kpi-grid">
         <div class="kpi-card gold">
-          <div class="kpi-title">총 루테인 생산량 (Yield)</div>
+          <div class="kpi-title">총 유효성분 수확량 (Yield)</div>
           <div id="kpiTotalLutein" class="kpi-value gold">17.2 mg</div>
           <div id="kpiIncrease" class="kpi-sub">+258% (표준재배 대비)</div>
         </div>
@@ -338,7 +401,7 @@
       <div class="panel-card chart-card">
         <div class="panel-header">
           <div class="panel-title">
-            <span class="hud-icon">📈</span>
+            <svg class="hud-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
             <span>실시간 광합성 속도 스트림 (Net An)</span>
           </div>
           <span class="panel-badge">μmol CO₂/m²s</span>
@@ -350,8 +413,8 @@
       <div class="panel-card chart-card">
         <div class="panel-header">
           <div class="panel-title">
-            <span class="hud-icon">🧬</span>
-            <span>실시간 루테인 생합성 플럭스 (dLutein/dt)</span>
+            <svg class="hud-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31L4.69 19.5a1 1 0 0 0 .88 1.5h12.86a1 1 0 0 0 .88-1.5L14 9.31V2"></path><line x1="8.5" y1="2" x2="15.5" y2="2"></line></svg>
+            <span>실시간 2차 대사물질 플럭스 (dM/dt)</span>
           </div>
           <span class="panel-badge" style="background: rgba(241, 196, 15, 0.15); color: var(--accent-gold);">Flux (μg/hr)</span>
         </div>
@@ -365,7 +428,10 @@
   <div id="paramModal" class="modal-backdrop">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 style="color: var(--accent-cyan); font-size: 16px;">🧬 식물 생물리학 & 유전체 파라미터 인스펙터</h3>
+        <h3 style="color: var(--accent-cyan); font-size: 16px; display: flex; align-items: center; gap: 8px;">
+          <svg class="hud-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2"><path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M9 22c1.8-2 2.5-4 2.8-6"/><path d="M15 2c-1.8 2-2.5 4-2.8 6"/><path d="M17 6l-2.5 2.5"/><path d="M14 8l-4 4"/></svg>
+          식물 생물리학 & 유전체 파라미터 인스펙터
+        </h3>
         <button id="paramClose" class="modal-close">✕</button>
       </div>
       <p style="font-size: 12px; color: var(--text-muted);">
@@ -381,11 +447,14 @@
     </div>
   </div>
 
-  <!-- Modal 2: Data Extraction & Export Hub (NEW!) -->
+  <!-- Modal 2: Data Extraction & Export Hub -->
   <div id="exportModal" class="modal-backdrop">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 style="color: var(--accent-cyan); font-size: 16px;">💾 연구 데이터 추출 & 스마트팜 연동 허브</h3>
+        <h3 style="color: var(--accent-cyan); font-size: 16px; display: flex; align-items: center; gap: 8px;">
+          <svg class="hud-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          연구 데이터 추출 & 스마트팜 연동 허브
+        </h3>
         <button id="exportClose" class="modal-close">✕</button>
       </div>
       <p style="font-size: 12px; color: var(--text-muted);">
@@ -394,25 +463,33 @@
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px;">
         <div class="export-option-card" id="btnExportCSV">
-          <div style="font-size: 24px;">📊</div>
+          <div style="color: var(--accent-cyan);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </div>
           <div style="font-weight: 700; color: #fff; font-size: 13px;">시계열 텔레메트리 CSV</div>
-          <div style="font-size: 11px; color: var(--text-muted);">전체 센서 + 광합성 + 루테인 플럭스 초단위 데이터</div>
+          <div style="font-size: 11px; color: var(--text-muted);">전체 센서 + 광합성 + 유효성분 플럭스 초단위 데이터</div>
         </div>
 
         <div class="export-option-card" id="btnCapture4K">
-          <div style="font-size: 24px;">📸</div>
+          <div style="color: var(--accent-emerald);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+          </div>
           <div style="font-weight: 700; color: #fff; font-size: 13px;">4K 디지털 트윈 스냅샷</div>
-          <div style="font-size: 11px; color: var(--text-muted);">고해상도 투명/배경 PNG 리포트 이미지 저장</div>
+          <div style="font-size: 11px; color: var(--text-muted);">고해상도 PNG 리포트 이미지 저장</div>
         </div>
 
         <div class="export-option-card" id="btnExportPlc">
-          <div style="font-size: 24px;">📜</div>
+          <div style="color: var(--accent-gold);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+          </div>
           <div style="font-weight: 700; color: #fff; font-size: 13px;">스마트팜 PLC 제어 JSON</div>
           <div style="font-size: 11px; color: var(--text-muted);">BACnet / MQTT / Modbus 제어 레시피</div>
         </div>
 
         <div class="export-option-card" id="btnExportP2HModal">
-          <div style="font-size: 24px;">🔗</div>
+          <div style="color: #a29bfe;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          </div>
           <div style="font-weight: 700; color: #fff; font-size: 13px;">Plant2Human AI 페이로드</div>
           <div style="font-size: 11px; color: var(--text-muted);">바이오 파운드리 원료 연동 데이터</div>
         </div>
@@ -425,16 +502,17 @@
     <div class="modal-content" style="width: 740px;">
       <div class="modal-header">
         <h3 id="modalRecipeTitle" style="color: var(--accent-gold); font-size: 16px; display: flex; align-items: center; gap: 8px;">
-          <span>🤖</span> 시뮬레이터 AI 자율 최적 환경 역추적 솔버
+          <svg class="hud-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/></svg>
+          시뮬레이터 AI 자율 최적 환경 역추적 솔버
         </h3>
         <button id="modalClose" class="modal-close">✕</button>
       </div>
 
       <!-- Objective Selection Tabs -->
       <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-        <button type="button" class="opt-tab active" data-obj="yield_max">🥇 분자 수확량 극대화</button>
-        <button type="button" class="opt-tab" data-obj="speed_breeding">⚡ 초고속 생육 가속 (-11일 단축)</button>
-        <button type="button" class="opt-tab" data-obj="energy_eff">🌱 전력당 경제성 극대화</button>
+        <button type="button" class="opt-tab active" data-obj="yield_max">분자 수확량 극대화</button>
+        <button type="button" class="opt-tab" data-obj="speed_breeding">초고속 생육 가속 (-11일 단축)</button>
+        <button type="button" class="opt-tab" data-obj="energy_eff">전력당 경제성 극대화</button>
       </div>
 
       <!-- Quantified Improvement HUD Cards -->
@@ -460,9 +538,10 @@
       <div class="code-block" id="modalRecipeCode" style="max-height: 190px; font-size: 11px; line-height: 1.6;"></div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-        <span style="font-size: 11px; color: var(--text-dim);">💡 적용 시 시뮬레이터가 24시간 환경을 스스로 자율 조정합니다.</span>
+        <span style="font-size: 11px; color: var(--text-dim);">적용 시 시뮬레이터가 24시간 환경을 스스로 자율 조정합니다.</span>
         <button id="btnApplyRecipe" class="btn btn-accent" style="padding: 8px 16px; font-size: 12px; font-weight: 700;">
-          🚀 최적 환경 즉시 적용 & AI 자율 주행 가동
+          <svg class="hud-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          최적 환경 즉시 적용 & AI 자율 주행 가동
         </button>
       </div>
     </div>
@@ -487,12 +566,11 @@
     <div class="modal-content" style="width: 720px;">
       <div class="modal-header">
         <h3 style="color: var(--accent-emerald); font-size: 16px; display: flex; align-items: center; gap: 8px;">
-          <span>🌿</span> 신규 식물 및 분자농업 원료 등록 마법사
+          <svg class="hud-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38ef7d" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"/><path d="M11 13c1.5-1.5 3-2 5-2"/></svg>
+          신규 식물 및 분자농업 원료 등록 마법사
         </h3>
         <button id="newCropClose" class="modal-close">✕</button>
       </div>
-
-      <!-- Quick Preset Auto-Fill Bar -->
       <div style="background: rgba(0, 242, 254, 0.06); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
         <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">⚡ 원클릭 추천 프리셋 (클릭 시 자동 완성):</div>
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">

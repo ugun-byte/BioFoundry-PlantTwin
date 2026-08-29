@@ -244,7 +244,9 @@ function bindEventListeners() {
   // Audio Toggle
   DOM.btnSoundToggle.addEventListener("click", () => {
     audio.enabled = !audio.enabled;
-    DOM.btnSoundToggle.textContent = audio.enabled ? "🔊" : "🔇";
+    DOM.btnSoundToggle.innerHTML = audio.enabled 
+      ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`
+      : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>`;
   });
 
   // Crop Selector
@@ -367,7 +369,9 @@ function bindEventListeners() {
   DOM.btnPlay.addEventListener("click", () => {
     audio.playClick();
     isRunning = !isRunning;
-    DOM.btnPlay.textContent = isRunning ? "⏸" : "▶";
+    DOM.btnPlay.innerHTML = isRunning 
+      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
+      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
   });
 
   DOM.btnReset.addEventListener("click", () => {
@@ -555,9 +559,11 @@ function simulationLoop(now) {
     DOM.timelineSlider.value = envTele.simulatedDay;
 
     const isDay = envTele.simulatedHour >= 6.0 && envTele.simulatedHour < 22.0;
-    DOM.diurnalStatusLabel.textContent = isDay 
-      ? `☀️ 주간 광합성 사이클 (${envTele.timeFormatted})` 
-      : `🌙 야간 암호흡 휴면 (${envTele.timeFormatted})`;
+    const sunSvg = `<svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffd32a" stroke-width="2.2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line></svg>`;
+    const moonSvg = `<svg class="hud-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a29bfe" stroke-width="2.2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+    DOM.diurnalStatusLabel.innerHTML = isDay 
+      ? `${sunSvg} <span>주간 광합성 사이클 (${envTele.timeFormatted})</span>` 
+      : `${moonSvg} <span>야간 암호흡 휴면 (${envTele.timeFormatted})</span>`;
 
     // Update KPI Scorecards
     DOM.kpiTotalLutein.textContent = `${plantState.totalLuteinAccumulatedMg.toFixed(2)} mg`;
@@ -666,7 +672,7 @@ function runOptimizationAndDisplay() {
   const res = aiOptimizer.searchOptimalEnvironment(crop, currentOptimizationObjective);
   pendingOptimizationResult = res;
 
-  DOM.modalRecipeTitle.innerHTML = `<span>🤖</span> AI 역추적 최적화: <b>${crop.name}</b> (${crop.targetMolecule})`;
+  DOM.modalRecipeTitle.innerHTML = `<svg class="hud-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/></svg> AI 역추적 최적화: <b>${crop.name}</b> (${crop.targetMolecule})`;
   DOM.optYieldGain.textContent = `+${res.improvements.yieldGainPercent}%`;
   DOM.optDaysSaved.textContent = `-${res.improvements.daysSaved}일 (${res.improvements.acceleratedDays}일차)`;
   DOM.optNetAn.textContent = `${res.improvements.netPhotosynthesis} μmol`;
@@ -752,11 +758,11 @@ function setAiAutoPilot(active) {
   if (isAiAutoPilotActive) {
     audio.playPulse();
     DOM.btnAiAutoPilot.classList.add("active");
-    DOM.aiAutoPilotLabel.textContent = "🤖 AI 자율 최적화 운전: ON";
+    DOM.aiAutoPilotLabel.textContent = "AI 자율 최적화: ON";
   } else {
     audio.playClick();
     DOM.btnAiAutoPilot.classList.remove("active");
-    DOM.aiAutoPilotLabel.textContent = "🤖 AI 자율 최적화 운전: OFF";
+    DOM.aiAutoPilotLabel.textContent = "AI 자율 최적화: OFF";
   }
 }
 

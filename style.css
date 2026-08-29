@@ -693,6 +693,22 @@ input:checked + .toggle-slider:before {
   padding: 4px 8px;
   border-radius: 6px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hud-svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.sensor-svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  margin-right: 2px;
 }
 
 .view-tab-icon:hover {
