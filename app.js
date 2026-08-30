@@ -3124,18 +3124,20 @@ function simulationLoop(now) {
       ec: envTele.sensors.ec
     }, crop, plantState);
 
-    // 4. Integration
+    // 4. Integration (Capped at maturity harvest days)
     const dtSimSeconds = dtRealSeconds * envEngine.timeWarp;
     const dtSimHours = dtSimSeconds / 3600.0;
-    const dBiomass = Math.max(0, (instantPhoto.netAn * 3600 * 30 / 1e6) * (1 - Math.exp(-crop.k_extinction * plantState.lai)) * 0.04 * dtSimHours);
+    if (envTele.simulatedDay <= crop.harvestDays) {
+      const dBiomass = Math.max(0, (instantPhoto.netAn * 3600 * 30 / 1e6) * (1 - Math.exp(-crop.k_extinction * plantState.lai)) * 0.04 * dtSimHours);
 
-    plantState.dryWeightGrams += dBiomass;
-    plantState.freshWeightGrams = plantState.dryWeightGrams * 10.2;
-    plantState.leafDryWeightGrams = plantState.dryWeightGrams * crop.leafPartitionRatio;
-    plantState.totalLuteinAccumulatedMg += molecularFlux.hourlyPlantFlux * dtSimHours;
-    plantState.luteinConcentration = plantState.leafDryWeightGrams > 0 
-      ? (plantState.totalLuteinAccumulatedMg / plantState.leafDryWeightGrams) 
-      : crop.baseLuteinConcentration;
+      plantState.dryWeightGrams += dBiomass;
+      plantState.freshWeightGrams = plantState.dryWeightGrams * 10.2;
+      plantState.leafDryWeightGrams = plantState.dryWeightGrams * crop.leafPartitionRatio;
+      plantState.totalLuteinAccumulatedMg += molecularFlux.hourlyPlantFlux * dtSimHours;
+      plantState.luteinConcentration = plantState.leafDryWeightGrams > 0 
+        ? (plantState.totalLuteinAccumulatedMg / plantState.leafDryWeightGrams) 
+        : crop.baseLuteinConcentration;
+    }
 
     // 5. Update Context Meta Strip
     const dli = (envEngine.setpoints.ppfdTarget * envEngine.setpoints.photoperiodHours * 3600) / 1e6;

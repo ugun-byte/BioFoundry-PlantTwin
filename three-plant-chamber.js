@@ -600,10 +600,10 @@ export class ThreePlantChamber {
   }
 
   /**
-   * 1. Marigold: Slender elegant stem, golden ratio leaves, full blooming flower head
+   * 1. Marigold: Slender tall stem, golden ratio leaves, full blooming flower head
    */
   buildMarigoldPlant(leafColorHex = "#22c55e") {
-    this.stemHeight = 0.62;
+    this.stemHeight = 0.85;
     this.stemMaterial = new THREE.MeshStandardMaterial({
       color: 0x166534,
       roughness: 0.5,
@@ -611,7 +611,7 @@ export class ThreePlantChamber {
     });
 
     this.stemMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.016, 0.024, this.stemHeight, 18),
+      new THREE.CylinderGeometry(0.018, 0.028, this.stemHeight, 18),
       this.stemMaterial
     );
     this.stemMesh.position.y = this.stemHeight / 2;
@@ -636,7 +636,7 @@ export class ThreePlantChamber {
 
       this.leaves.push({
         mesh: leafMesh,
-        nodeHeightRatio: 0.10 + (i / maxLeaves) * 0.76,
+        nodeHeightRatio: 0.12 + (i / maxLeaves) * 0.78,
         baseAngle: (i * 137.5 * Math.PI) / 180,
         type: "marigold"
       });
@@ -647,15 +647,15 @@ export class ThreePlantChamber {
     this.flowerGroup.position.set(0, this.stemHeight, 0);
 
     const sepal = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.038, 0.016, 0.055, 14),
+      new THREE.CylinderGeometry(0.045, 0.018, 0.07, 14),
       new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.6 })
     );
-    sepal.position.y = 0.028;
+    sepal.position.y = 0.035;
     this.flowerGroup.add(sepal);
 
-    const petalGeo = new THREE.BoxGeometry(0.044, 0.010, 0.10);
+    const petalGeo = new THREE.BoxGeometry(0.055, 0.012, 0.13);
     for (let l = 0; l < 4; l++) {
-      const ringRadius = 0.035 + l * 0.025;
+      const ringRadius = 0.04 + l * 0.032;
       for (let p = 0; p < 12; p++) {
         const theta = (p / 12) * Math.PI * 2 + (l * 0.25);
         const petalMat = new THREE.MeshStandardMaterial({
@@ -663,7 +663,7 @@ export class ThreePlantChamber {
           roughness: 0.35
         });
         const petal = new THREE.Mesh(petalGeo, petalMat);
-        petal.position.set(Math.cos(theta) * ringRadius, 0.05 + l * 0.018, Math.sin(theta) * ringRadius);
+        petal.position.set(Math.cos(theta) * ringRadius, 0.07 + l * 0.022, Math.sin(theta) * ringRadius);
         petal.rotation.y = -theta;
         petal.rotation.x = 0.32 + l * 0.08;
         petal.castShadow = true;
@@ -672,10 +672,10 @@ export class ThreePlantChamber {
     }
 
     const center = new THREE.Mesh(
-      new THREE.SphereGeometry(0.052, 16, 16),
+      new THREE.SphereGeometry(0.065, 16, 16),
       new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.25, emissive: 0xb45309, emissiveIntensity: 0.3 })
     );
-    center.position.y = 0.10;
+    center.position.y = 0.14;
     this.flowerGroup.add(center);
     this.flowerGroup.scale.set(0.01, 0.01, 0.01);
     this.plantGroup.add(this.flowerGroup);
@@ -684,12 +684,12 @@ export class ThreePlantChamber {
   createMarigoldLeafGeo() {
     const shape = new THREE.Shape();
     shape.moveTo(0, 0);
-    shape.quadraticCurveTo(-0.07, 0.09, -0.06, 0.20);
-    shape.quadraticCurveTo(-0.03, 0.28, 0, 0.32);
-    shape.quadraticCurveTo(0.03, 0.28, 0.06, 0.20);
-    shape.quadraticCurveTo(0.07, 0.09, 0, 0);
+    shape.quadraticCurveTo(-0.09, 0.12, -0.08, 0.28);
+    shape.quadraticCurveTo(-0.04, 0.42, 0, 0.48);
+    shape.quadraticCurveTo(0.04, 0.42, 0.08, 0.28);
+    shape.quadraticCurveTo(0.09, 0.12, 0, 0);
 
-    const extrudeSettings = { depth: 0.004, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.002, bevelThickness: 0.002 };
+    const extrudeSettings = { depth: 0.005, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.002, bevelThickness: 0.002 };
     const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
     geom.rotateX(Math.PI / 2);
     geom.computeVertexNormals();
@@ -700,9 +700,9 @@ export class ThreePlantChamber {
    * 2. Organic Spinach: Low compact rosette, broad spade-shaped fleshy leaves
    */
   buildSpinachPlant() {
-    this.stemHeight = 0.32; // Short base stalk
+    this.stemHeight = 0.38; // Short base stalk
     this.stemMaterial = new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.6 });
-    this.stemMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.028, this.stemHeight, 16), this.stemMaterial);
+    this.stemMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.035, this.stemHeight, 16), this.stemMaterial);
     this.stemMesh.position.y = this.stemHeight / 2;
     this.plantGroup.add(this.stemMesh);
 
@@ -734,12 +734,12 @@ export class ThreePlantChamber {
   createSpinachLeafGeo() {
     const shape = new THREE.Shape();
     shape.moveTo(0, 0);
-    shape.quadraticCurveTo(-0.12, 0.10, -0.10, 0.24);
-    shape.quadraticCurveTo(-0.04, 0.32, 0, 0.36);
-    shape.quadraticCurveTo(0.04, 0.32, 0.10, 0.24);
-    shape.quadraticCurveTo(0.12, 0.10, 0, 0);
+    shape.quadraticCurveTo(-0.16, 0.15, -0.14, 0.38);
+    shape.quadraticCurveTo(-0.06, 0.52, 0, 0.58);
+    shape.quadraticCurveTo(0.06, 0.52, 0.14, 0.38);
+    shape.quadraticCurveTo(0.16, 0.15, 0, 0);
 
-    const geom = new THREE.ExtrudeGeometry(shape, { depth: 0.005, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.002, bevelThickness: 0.002 });
+    const geom = new THREE.ExtrudeGeometry(shape, { depth: 0.006, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.002, bevelThickness: 0.002 });
     geom.rotateX(Math.PI / 2);
     geom.computeVertexNormals();
     return geom;
@@ -749,9 +749,9 @@ export class ThreePlantChamber {
    * 3. Molecular Farming Tobacco
    */
   buildTobaccoPlant() {
-    this.stemHeight = 0.72;
+    this.stemHeight = 1.05;
     this.stemMaterial = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.5 });
-    this.stemMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.020, 0.030, this.stemHeight, 18), this.stemMaterial);
+    this.stemMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.038, this.stemHeight, 18), this.stemMaterial);
     this.stemMesh.position.y = this.stemHeight / 2;
     this.plantGroup.add(this.stemMesh);
 
@@ -767,7 +767,7 @@ export class ThreePlantChamber {
 
       this.leaves.push({
         mesh: leafMesh,
-        nodeHeightRatio: 0.08 + (i / leafCount) * 0.78,
+        nodeHeightRatio: 0.10 + (i / leafCount) * 0.80,
         baseAngle: (i * 137.5 * Math.PI) / 180,
         type: "tobacco"
       });
@@ -777,12 +777,12 @@ export class ThreePlantChamber {
   createTobaccoLeafGeo() {
     const shape = new THREE.Shape();
     shape.moveTo(0, 0);
-    shape.quadraticCurveTo(-0.13, 0.12, -0.11, 0.30);
-    shape.quadraticCurveTo(-0.04, 0.40, 0, 0.46);
-    shape.quadraticCurveTo(0.04, 0.40, 0.11, 0.30);
-    shape.quadraticCurveTo(0.13, 0.12, 0, 0);
+    shape.quadraticCurveTo(-0.18, 0.20, -0.15, 0.50);
+    shape.quadraticCurveTo(-0.06, 0.70, 0, 0.78);
+    shape.quadraticCurveTo(0.06, 0.70, 0.15, 0.50);
+    shape.quadraticCurveTo(0.18, 0.20, 0, 0);
 
-    const geom = new THREE.ExtrudeGeometry(shape, { depth: 0.005, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.002, bevelThickness: 0.002 });
+    const geom = new THREE.ExtrudeGeometry(shape, { depth: 0.006, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.002, bevelThickness: 0.002 });
     geom.rotateX(Math.PI / 2);
     geom.computeVertexNormals();
     return geom;
@@ -792,9 +792,9 @@ export class ThreePlantChamber {
    * 4. Medical Kale: Upright thick stalk, dense curly frilly cabbage leaves
    */
   buildKalePlant() {
-    this.stemHeight = 0.52;
+    this.stemHeight = 0.65;
     this.stemMaterial = new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.6 });
-    this.stemMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.020, 0.030, this.stemHeight, 18), this.stemMaterial);
+    this.stemMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.038, this.stemHeight, 18), this.stemMaterial);
     this.stemMesh.position.y = this.stemHeight / 2;
     this.plantGroup.add(this.stemMesh);
 
@@ -810,7 +810,7 @@ export class ThreePlantChamber {
 
       this.leaves.push({
         mesh: leafMesh,
-        nodeHeightRatio: 0.10 + (i / leafCount) * 0.74,
+        nodeHeightRatio: 0.12 + (i / leafCount) * 0.75,
         baseAngle: (i * 137.5 * Math.PI) / 180,
         type: "kale"
       });
@@ -820,12 +820,12 @@ export class ThreePlantChamber {
   createKaleLeafGeo() {
     const shape = new THREE.Shape();
     shape.moveTo(0, 0);
-    shape.quadraticCurveTo(-0.11, 0.10, -0.09, 0.22);
-    shape.quadraticCurveTo(-0.04, 0.30, 0, 0.35);
-    shape.quadraticCurveTo(0.04, 0.30, 0.09, 0.22);
-    shape.quadraticCurveTo(0.11, 0.10, 0, 0);
+    shape.quadraticCurveTo(-0.14, 0.15, -0.12, 0.35);
+    shape.quadraticCurveTo(-0.05, 0.48, 0, 0.54);
+    shape.quadraticCurveTo(0.05, 0.48, 0.12, 0.35);
+    shape.quadraticCurveTo(0.14, 0.15, 0, 0);
 
-    const geom = new THREE.ExtrudeGeometry(shape, { depth: 0.005, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.002, bevelThickness: 0.002 });
+    const geom = new THREE.ExtrudeGeometry(shape, { depth: 0.006, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.002, bevelThickness: 0.002 });
     geom.rotateX(Math.PI / 2);
     geom.computeVertexNormals();
     return geom;
@@ -895,7 +895,7 @@ export class ThreePlantChamber {
   }
 
   /**
-   * Automated Diurnal Simulation Update
+   * Automated Diurnal Simulation Update (Strictly Capped at Maturity Harvest Date)
    */
   updateSimulation(plantState, envTelemetry, cropProfile, ionUptake = null) {
     if (!this.isInitialized || !this.plantGroup) return;
@@ -915,10 +915,13 @@ export class ThreePlantChamber {
       this.mistSystem.material.opacity = 0.15;
     }
 
-    // 3. Species-Specific Ontogenetic Growth Modeling (Day 1 Sprout -> Day 42 Full Bloom)
-    const simulatedDay = envTelemetry.simulatedDay || 1;
+    // 3. Species-Specific Ontogenetic Growth Modeling (Day 1 Sprout -> Day 42 Full Bloom, Strictly Capped at Maturity)
     const harvestDays = cropProfile.harvestDays || 42;
+    const rawSimulatedDay = envTelemetry.simulatedDay || 1;
+    // Strict maturity cap: Growth freezes at maximum harvest maturity (e.g. Day 42)
+    const simulatedDay = Math.min(harvestDays, Math.max(1, rawSimulatedDay));
     const dayRatio = Math.min(1.0, Math.max(0.02, simulatedDay / harvestDays));
+    const dayNorm = Math.min(1.0, Math.max(0.0, (simulatedDay - 1) / Math.max(1, harvestDays - 1))); // Strictly capped at 1.0
 
     // Dynamic 3D Root Architecture Elongation & Michaelis-Menten Root Ion Heatmap
     if (this.rootGroup) {
@@ -953,10 +956,9 @@ export class ThreePlantChamber {
       }
     }
 
-    // Stem height and thickness scaling (Day 1 starts as healthy seedling 0.16m, growing to balanced adult height at Day 42)
-    const minStemH = 0.16;
-    const adultStemH = this.currentSpecies === "spinach_carotenoid" ? 0.32 : (this.currentSpecies === "tobacco_recombinant" ? 0.72 : (this.currentSpecies === "kale_sulforaphane" ? 0.52 : 0.62));
-    const dayNorm = (simulatedDay - 1) / Math.max(1, harvestDays - 1); // 0.0 on Day 1, 1.0 on Day 42
+    // Stem height and thickness scaling (Day 1 starts as healthy seedling 0.22m, growing to 0.85m at Day 42, then capped)
+    const minStemH = 0.22;
+    const adultStemH = this.currentSpecies === "spinach_carotenoid" ? 0.45 : (this.currentSpecies === "tobacco_recombinant" ? 1.05 : 0.85);
     const stemH = minStemH + Math.pow(dayNorm, 0.85) * (adultStemH - minStemH);
     const stemThick = Math.max(0.35, 0.38 + dayNorm * 0.70);
     this.stemMesh.scale.set(stemThick, Math.max(0.25, stemH / this.stemHeight), stemThick);
@@ -964,7 +966,7 @@ export class ThreePlantChamber {
 
     const turgorFactor = sensors.vpd > 1.6 ? Math.max(0.35, 1.0 - (sensors.vpd - 1.6) * 0.9) : 1.0;
 
-    // Foliage leaves count and growth (Day 1: 4 healthy leaves -> Day 42: 16 full broad leaves)
+    // Foliage leaves count and growth (Day 1: 4 healthy leaves -> Day 42: 16 full broad leaves, capped)
     const visibleLeafCount = Math.min(this.leaves.length, Math.max(4, Math.floor(4 + dayNorm * 12)));
 
     // Lutein Color Shift
@@ -979,10 +981,10 @@ export class ThreePlantChamber {
       if (idx < visibleLeafCount) {
         // Individual leaf size scaling
         const leafMaturity = Math.max(0.45, Math.min(1.0, (dayNorm * 16 - idx * 0.5 + 1.0) / 2.0));
-        const lScale = (0.32 + dayNorm * 0.46) * leafMaturity;
+        const lScale = (0.42 + dayNorm * 0.70) * leafMaturity;
 
         // Position along the stem
-        const posY = Math.max(0.05, stemH * (0.12 + (idx / Math.max(1, visibleLeafCount)) * 0.75));
+        const posY = Math.max(0.06, stemH * (0.15 + (idx / Math.max(1, visibleLeafCount)) * 0.78));
         l.mesh.position.set(0, posY, 0);
         l.mesh.scale.set(lScale, lScale, lScale);
 
@@ -999,18 +1001,18 @@ export class ThreePlantChamber {
       }
     });
 
-    // Flower Blooming Ontogeny: Appears as floral bud from Day 20, expands to full bloom by Day 32~42
+    // Flower Blooming Ontogeny: Appears as floral bud from Day 20, expands to full bloom by Day 32~42, capped
     if (this.flowerGroup) {
       this.flowerGroup.position.set(0, stemH, 0);
       if (simulatedDay < 20) {
         this.flowerGroup.scale.set(0.0001, 0.0001, 0.0001);
       } else if (simulatedDay < 32) {
         const budRatio = (simulatedDay - 20) / 12.0;
-        const budScale = 0.10 + budRatio * 0.28;
+        const budScale = 0.12 + budRatio * 0.38;
         this.flowerGroup.scale.set(budScale, budScale, budScale);
       } else {
-        const bloomRatio = Math.min(1.0, (simulatedDay - 32) / 10.0);
-        const flowerScale = 0.38 + bloomRatio * 0.45;
+        const bloomRatio = Math.min(1.0, (simulatedDay - 32) / Math.max(1, harvestDays - 32));
+        const flowerScale = 0.50 + bloomRatio * 0.65;
         this.flowerGroup.scale.set(flowerScale, flowerScale, flowerScale);
       }
     }
