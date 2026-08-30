@@ -549,4 +549,113 @@ export class BioPhysicalEngine {
       thermalStatus: cwsi < 0.25 ? "풍부한 증산 냉각 (Optimal Cooling)" : (cwsi < 0.6 ? "보통 증산 (Moderate Cooling)" : "기공 폐쇄 고온 스트레스 (Thermal Stress)")
     };
   }
+
+  /**
+   * 15. Canopy Hyperspectral Reflectance & Optical Pigment Index Model (400nm ~ 900nm)
+   * Calculates NDVI (Normalized Difference Vegetation Index) & PRI (Photochemical Reflectance Index)
+   * based on chlorophyll concentration, lutein/xanthophyll cycle activation, and canopy LAI.
+   */
+  calculateHyperspectralReflectance(envParams = {}, cropProfile = {}, plantState = {}) {
+    const { ppfd = 450 } = envParams;
+    const lai = plantState.lai || 1.2;
+    const luteinConc = plantState.luteinConcentration || cropProfile.baseLuteinConcentration || 18.0;
+    const chlTotal = 3.2 + Math.min(1.5, lai * 0.4);
+
+    // 1. Red absorption (680nm) & NIR reflection plateau (800nm)
+    const r680 = Math.max(0.02, 0.12 * Math.exp(-0.65 * chlTotal));
+    const r800 = Math.min(0.88, 0.45 + 0.35 * (1.0 - Math.exp(-0.75 * lai)));
+    const ndvi = parseFloat(((r800 - r680) / (r800 + r680)).toFixed(3));
+
+    // 2. Xanthophyll de-epoxidation cycle (531nm vs 570nm reference)
+    // High light excess (PPFD > 600) drives Violaxanthin -> Zeaxanthin (531nm reflectance drops)
+    const lightStressFactor = Math.max(0.0, Math.min(1.0, (ppfd - 350) / 650));
+    const r570 = 0.185;
+    const delta531 = 0.018 * (1.0 - lightStressFactor * 1.6);
+    const r531 = r570 + delta531;
+    const pri = parseFloat(((r531 - r570) / (r531 + r570)).toFixed(4));
+
+    // 3. 21-point Hyperspectral Signature Curve (400nm to 900nm in 25nm steps)
+    const spectralCurve = [];
+    for (let wl = 400; wl <= 900; wl += 25) {
+      let refl = 0.05;
+      if (wl < 500) {
+        // Blue Soret band absorption
+        refl = 0.04 + 0.02 * Math.sin(((wl - 400) / 100) * Math.PI);
+      } else if (wl <= 600) {
+        // Green reflectance peak (550nm)
+        refl = 0.08 + 0.11 * Math.sin(((wl - 500) / 100) * Math.PI) - (lightStressFactor * 0.015);
+      } else if (wl <= 685) {
+        // Red Chlorophyll a/b strong absorption trough
+        refl = 0.04 + 0.03 * (1.0 - Math.sin(((wl - 600) / 85) * Math.PI));
+      } else if (wl <= 750) {
+        // Steep "Red Edge" inflection
+        const t = (wl - 685) / 65.0;
+        refl = 0.05 + (r800 - 0.05) * Math.pow(t, 1.8);
+      } else {
+        // NIR scattering plateau (750nm ~ 900nm)
+        refl = r800 + 0.02 * Math.sin(((wl - 750) / 150) * Math.PI);
+      }
+      spectralCurve.push({
+        wavelength: wl,
+        reflectance: parseFloat(refl.toFixed(4))
+      });
+    }
+
+    return {
+      ndvi,
+      pri,
+      r680: parseFloat(r680.toFixed(3)),
+      r800: parseFloat(r800.toFixed(3)),
+      r531: parseFloat(r531.toFixed(3)),
+      r570: parseFloat(r570.toFixed(3)),
+      chlorophyllIndex: parseFloat((r800 / r680 - 1.0).toFixed(2)),
+      xanthophyllRatio: parseFloat((1.0 - lightStressFactor).toFixed(2)),
+      status: ndvi > 0.75 ? "최우수 활력 (Lush Biomass)" : (ndvi > 0.55 ? "정상 생장 (Normal Canopy)" : "색소 결핍 / 황화 (Chlorosis)"),
+      priStatus: pri > 0.0 ? "최적 광이용효율 (High LUE)" : "비광화학 소광 / 강광 방어 (Active NPQ)",
+      spectralCurve
+    };
+  }
+
+  /**
+   * 16. Stem Xylem Ultrasonic Acoustic Emission (UAE, 20-100kHz) Cavitation Model
+   * Quantifies micro-cavitation air-seeding pop events in xylem tracheids under hydraulic tension.
+   */
+  calculateUltrasonicAcousticEmissions(envParams = {}, cropProfile = {}, plantState = {}, sapDynamics = null) {
+    const psiStem = sapDynamics && typeof sapDynamics.stemWaterPotentialMPa === "number" 
+      ? sapDynamics.stemWaterPotentialMPa 
+      : -0.68;
+
+    // Cavitation vulnerability threshold: Arabidopsis/Herbaceous ~ -1.4 MPa
+    const psiCrit = -1.35;
+    const maxUaeRate = 180.0; // max events / min under catastrophic drought
+
+    // Sigmoidal air-seeding cavitation burst rate
+    const tensionDeficit = Math.max(0.0, -psiStem - 0.5);
+    const uaeEventsPerMin = parseFloat(
+      (maxUaeRate / (1.0 + Math.exp(-4.2 * (-psiStem - Math.abs(psiCrit))))).toFixed(1)
+    );
+
+    // Peak ultrasonic resonance frequency (kHz)
+    const peakFreqKhz = parseFloat((55.0 + Math.random() * 15.0).toFixed(1));
+    // Audible down-shifted acoustic frequency for human ear (Hz)
+    const audiblePitchHz = Math.round(750 + tensionDeficit * 650);
+
+    // Acoustic energy amplitude (dB AE)
+    const amplitudeDb = parseFloat(Math.min(95, 30.0 + (uaeEventsPerMin / 2.0) + Math.random() * 8.0).toFixed(1));
+
+    const cavitationRisk = uaeEventsPerMin < 5.0 
+      ? "안전 (Hydraulic Safe)" 
+      : (uaeEventsPerMin < 35.0 ? "도관 기포 발생 주의 (Mild Cavitation)" : "도관 폐쇄 위험 (Severe Embolism)");
+
+    return {
+      psiStemMPa: psiStem,
+      uaeRateEventsPerMin: uaeEventsPerMin,
+      peakFreqKhz,
+      audiblePitchHz,
+      amplitudeDb,
+      cavitationRisk,
+      isBurstActive: uaeEventsPerMin > 12.0
+    };
+  }
 }
+

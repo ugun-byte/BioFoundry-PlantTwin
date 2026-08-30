@@ -395,27 +395,35 @@
             </div>
             
             <div class="viewport-tools">
-              <button id="btnOpenMicroscope" class="btn btn-outline" style="padding: 2px 8px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #10b981; color: #a7f3d0; background: rgba(6, 78, 59, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="현미경급 세포 구조 & 기공 개폐 인스펙터">
+              <button id="btnOpenMicroscope" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #10b981; color: #a7f3d0; background: rgba(6, 78, 59, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="현미경급 세포 구조 & 기공 개폐 인스펙터">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><path d="M6 18h8M10 22h4M14 6a4 4 0 0 0-8 0v8a4 4 0 0 0 8 0V6zM18 10a4 4 0 0 1-4 4"></path></svg>
                 <span>세포 현미경</span>
               </button>
-              <button id="btnThermalMode" class="btn btn-outline" style="padding: 2px 8px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #f59e0b; color: #fde68a; background: rgba(120, 53, 15, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="FLIR 적외선 엽온 서모그래피 3D 열화상 뷰">
+              <button id="btnThermalMode" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #f59e0b; color: #fde68a; background: rgba(120, 53, 15, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="FLIR 적외선 엽온 서모그래피 3D 열화상 뷰">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
                 <span>FLIR 열화상 IR</span>
               </button>
-              <button id="btnSapFlow" class="btn btn-outline" style="padding: 2px 8px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #38bdf8; color: #bae6fd; background: rgba(8, 51, 68, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="도관부 수액 유량(Sap Flow) & 3D 상승 수류 진단">
+              <button id="btnHyperspectral" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #06b6d4; color: #a5f3fc; background: rgba(8, 51, 68, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="초분광 반사율(NDVI/PRI) 분광 색소 지표 분석">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+                <span>초분광 NDVI/PRI</span>
+              </button>
+              <button id="btnCavitation" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #ec4899; color: #fbcfe8; background: rgba(80, 7, 36, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="도관 기포 파열(Cavitation) 초음파 음향 방출(UAE) 스코프">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2.5"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                <span>도관 초음파(UAE)</span>
+              </button>
+              <button id="btnSapFlow" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #38bdf8; color: #bae6fd; background: rgba(8, 51, 68, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="도관부 수액 유량(Sap Flow) & 3D 상승 수류 진단">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
                 <span>수액 유량(Sap)</span>
               </button>
-              <button id="btnElectrophys" class="btn btn-outline" style="padding: 2px 8px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #00f2fe; color: #a5f3fc; background: rgba(8, 51, 68, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="근권 세포막 전위(Vm) & 이온 채널 진단">
+              <button id="btnElectrophys" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #00f2fe; color: #a5f3fc; background: rgba(8, 51, 68, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="근권 세포막 전위(Vm) & 이온 채널 진단">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 <span>근권 막전위(Vm)</span>
               </button>
-              <button id="btnPamPulse" class="btn btn-outline" style="padding: 2px 8px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #f43f5e; color: #fecdd3; background: rgba(76, 5, 25, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="PAM 엽록소 형광 펄스 조사 & OJIP 진단">
+              <button id="btnPamPulse" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #f43f5e; color: #fecdd3; background: rgba(76, 5, 25, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="PAM 엽록소 형광 펄스 조사 & OJIP 진단">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fb7185" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 <span>PAM 형광 진단</span>
               </button>
-              <button id="btnIotBridge" class="btn btn-outline" style="padding: 2px 8px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #a855f7; color: #e9d5ff; background: rgba(88, 28, 135, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="스마트팜 산업용 PLC/Modbus-TCP/MQTT 브릿지">
+              <button id="btnIotBridge" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #a855f7; color: #e9d5ff; background: rgba(88, 28, 135, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="스마트팜 산업용 PLC/Modbus-TCP/MQTT 브릿지">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
                 <span>IoT/Modbus 브릿지</span>
               </button>
@@ -1267,6 +1275,122 @@
         <div style="display: flex; gap: 8px;">
           <button id="btnCopyMqttJson" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #c084fc; border-color: rgba(168, 85, 247, 0.4);">
             📋 MQTT JSON 페이로드 복사
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 12: Hyperspectral Reflectance (NDVI / PRI) Diagnostics Modal -->
+  <div id="hyperspectralModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 820px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="hyperspectralModalTitle" style="color: #22d3ee; font-size: 15px;">🌈 엽면 초분광 반사율(Hyperspectral) NDVI / PRI 분석</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">400nm~900nm 분광 반사율 곡선 & 잔토필 사이클 광화학 지표(PRI) 비파괴 진단</p>
+        </div>
+        <button id="hyperspectralClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+        <div class="kpi-tile" style="padding: 8px 12px; background: rgba(6, 182, 212, 0.08); border-color: rgba(6, 182, 212, 0.35);">
+          <span style="font-size: 9px; color: var(--text-muted);">정규식생지수 (NDVI)</span>
+          <b id="hsNdviVal" class="kpi-big-val cyan" style="font-size: 20px;">0.842</b>
+          <span id="hsNdviStatus" style="font-size: 9px; color: #34d399; font-weight: 600; margin-top: 2px;">● 최우수 식생 활력</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">광이용효율 지수 (PRI)</span>
+          <b id="hsPriVal" class="kpi-big-val emerald" style="font-size: 16px;">+0.038</b>
+          <span style="font-size: 9px; color: #34d399; margin-top: 2px;">잔토필 사이클 양호</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">적색/근적외 (R680 / R800)</span>
+          <b id="hsReflRatio" class="kpi-big-val gold" style="font-size: 16px;">0.04 / 0.78</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Red Edge 가파름</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">엽록소 지수 (CI_green)</span>
+          <b id="hsChlIndex" class="kpi-big-val" style="color: #a7f3d0; font-size: 16px;">4.85</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">질소 동화 정상</span>
+        </div>
+      </div>
+
+      <!-- Spectral Signature Curve Canvas -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(6, 182, 212, 0.25); border-radius: var(--radius-sm); padding: 12px; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px; color: var(--text-muted);">
+          <span>초분광 연속 반사율 스펙트럼 (400nm ~ 900nm Signature)</span>
+          <span style="font-size: 10px; color: #22d3ee;">● 청색 흡수 | 녹색 반사 피크 | Red-Edge | NIR 고원</span>
+        </div>
+        <canvas id="hyperspectralCanvas" style="width: 100%; height: 200px; display: block;"></canvas>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * 드론 및 위성 원격탐사에 사용되는 비파괴 초분광 지표(NDVI & PRI)를 3D 캐노피와 연동합니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnToggleHs3dMode" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #22d3ee; border-color: rgba(6, 182, 212, 0.4);">
+            🌈 3D 초분광(NDVI) 의사색상 모드 전환
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 13: Stem Xylem Ultrasonic Acoustic Emissions (UAE) Cavitation Scope Modal -->
+  <div id="cavitationModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 820px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="cavitationModalTitle" style="color: #f472b6; font-size: 15px;">🔊 도관 기포 파열(Cavitation) 초음파 음향 방출(UAE) 스코프</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">도관 내 수분 장력에 의한 20~100 kHz 미세 기포 붕괴 펄스(UAE) 음향 생체 센싱</p>
+        </div>
+        <button id="cavitationClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+        <div class="kpi-tile" style="padding: 8px 12px; background: rgba(236, 72, 153, 0.08); border-color: rgba(236, 72, 153, 0.35);">
+          <span style="font-size: 9px; color: var(--text-muted);">초음파 음향 방출률 (UAE Rate)</span>
+          <b id="uaeRateVal" class="kpi-big-val" style="color: #f472b6; font-size: 20px;">4.2 Evt/min</b>
+          <span id="uaeStatusBadge" style="font-size: 9px; color: #34d399; font-weight: 600; margin-top: 2px;">● 수압 통도 안전</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">도관 수분 장력 (Ψ_stem)</span>
+          <b id="uaePsiVal" class="kpi-big-val gold" style="font-size: 16px;">-0.68 MPa</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">임계 장력: -1.35 MPa</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">초음파 공진 주파수</span>
+          <b id="uaeFreqVal" class="kpi-big-val cyan" style="font-size: 16px;">62.5 kHz</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">가청 변조: 880 Hz</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">음향 에너지 진폭</span>
+          <b id="uaeAmpVal" class="kpi-big-val purple" style="font-size: 16px;">38.5 dB_AE</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">센서 감도: 0.1 mV</span>
+        </div>
+      </div>
+
+      <!-- Ultrasonic Acoustic Waveform Canvas -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(236, 72, 153, 0.25); border-radius: var(--radius-sm); padding: 12px; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px; color: var(--text-muted);">
+          <span>실시간 초음파 음향 방출(UAE) 파형 오실로스코프</span>
+          <span style="font-size: 10px; color: #f472b6;">● 기포 파열 순간 고주파 음향 버스트 펄스</span>
+        </div>
+        <canvas id="cavitationScopeCanvas" style="width: 100%; height: 200px; display: block;"></canvas>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * VPD가 높아지거나 양액 EC가 과도해지면 물기둥이 끊어지며 초음파 펄스(UAE)가 급증합니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnListenPlantThirst" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #f472b6; border-color: rgba(236, 72, 153, 0.4);">
+            🔊 식물 갈증 소리 듣기 (Audio Synth)
           </button>
         </div>
       </div>

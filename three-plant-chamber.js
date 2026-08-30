@@ -1538,4 +1538,67 @@ export class ThreePlantChamber {
 
     return this.isThermalMode;
   }
+
+  getNdviColor(ndviVal) {
+    const norm = Math.max(0.0, Math.min(1.0, (ndviVal - 0.3) / 0.6));
+    // Ochre (0.0) -> Gold (0.3) -> Lime/Emerald (0.7) -> Vibrant Cyan-Green (1.0)
+    const c1 = new THREE.Color(0xd97706);
+    const c2 = new THREE.Color(0xfbbf24);
+    const c3 = new THREE.Color(0x10b981);
+    const c4 = new THREE.Color(0x00f2fe);
+    if (norm < 0.33) return c1.clone().lerp(c2, norm / 0.33);
+    if (norm < 0.66) return c2.clone().lerp(c3, (norm - 0.33) / 0.33);
+    return c3.clone().lerp(c4, (norm - 0.66) / 0.34);
+  }
+
+  toggleHyperspectralCameraMode(ndvi = 0.82) {
+    this.isHyperspectralMode = !this.isHyperspectralMode;
+
+    if (this.isHyperspectralMode) {
+      this.leaves.forEach((l, idx) => {
+        if (l.mesh && l.mesh.material) {
+          if (!l.originalColor) l.originalColor = l.mesh.material.color.clone();
+          const localNdvi = Math.max(0.35, Math.min(0.95, ndvi + (idx % 2 === 0 ? 0.04 : -0.05)));
+          const ndviCol = this.getNdviColor(localNdvi);
+          l.mesh.material.color.copy(ndviCol);
+          l.mesh.material.emissive.copy(ndviCol).multiplyScalar(0.4);
+          l.mesh.material.roughness = 0.15;
+        }
+      });
+      if (this.ambientLight) this.ambientLight.color.setHex(0x10b981);
+    } else {
+      this.leaves.forEach(l => {
+        if (l.mesh && l.mesh.material && l.originalColor) {
+          l.mesh.material.color.copy(l.originalColor);
+          l.mesh.material.emissive.setHex(0x000000);
+          l.mesh.material.roughness = l.originalRoughness || 0.4;
+        }
+      });
+      if (this.ambientLight) this.ambientLight.color.setHex(0xffffff);
+    }
+
+    return this.isHyperspectralMode;
+  }
+
+  triggerCavitationAcousticPulse() {
+    if (!this.stemMesh || !this.stemMesh.material) return;
+    const mat = this.stemMesh.material;
+    const origEmissive = mat.emissive ? mat.emissive.clone() : new THREE.Color(0x000000);
+
+    mat.emissive.setHex(0x00f2fe);
+    mat.emissiveIntensity = 0.8;
+
+    if (this.xylemStreamlineSystem && this.xylemStreamlineSystem.material) {
+      this.xylemStreamlineSystem.material.size = 0.022;
+    }
+
+    setTimeout(() => {
+      mat.emissive.copy(origEmissive);
+      mat.emissiveIntensity = 0.0;
+      if (this.xylemStreamlineSystem && this.xylemStreamlineSystem.material) {
+        this.xylemStreamlineSystem.material.size = 0.009;
+      }
+    }, 200);
+  }
 }
+

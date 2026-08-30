@@ -277,7 +277,33 @@ const DOM = {
   modbusHexDump: document.getElementById("modbusHexDump"),
   mqttTopicLabel: document.getElementById("mqttTopicLabel"),
   mqttPayloadPre: document.getElementById("mqttPayloadPre"),
-  btnCopyMqttJson: document.getElementById("btnCopyMqttJson")
+  btnCopyMqttJson: document.getElementById("btnCopyMqttJson"),
+
+  // Hyperspectral NDVI/PRI Modal
+  btnHyperspectral: document.getElementById("btnHyperspectral"),
+  hyperspectralModal: document.getElementById("hyperspectralModal"),
+  hyperspectralClose: document.getElementById("hyperspectralClose"),
+  hyperspectralModalTitle: document.getElementById("hyperspectralModalTitle"),
+  hsNdviVal: document.getElementById("hsNdviVal"),
+  hsNdviStatus: document.getElementById("hsNdviStatus"),
+  hsPriVal: document.getElementById("hsPriVal"),
+  hsReflRatio: document.getElementById("hsReflRatio"),
+  hsChlIndex: document.getElementById("hsChlIndex"),
+  hyperspectralCanvas: document.getElementById("hyperspectralCanvas"),
+  btnToggleHs3dMode: document.getElementById("btnToggleHs3dMode"),
+
+  // Stem Cavitation Ultrasonic Acoustic Emission (UAE) Modal
+  btnCavitation: document.getElementById("btnCavitation"),
+  cavitationModal: document.getElementById("cavitationModal"),
+  cavitationClose: document.getElementById("cavitationClose"),
+  cavitationModalTitle: document.getElementById("cavitationModalTitle"),
+  uaeRateVal: document.getElementById("uaeRateVal"),
+  uaeStatusBadge: document.getElementById("uaeStatusBadge"),
+  uaePsiVal: document.getElementById("uaePsiVal"),
+  uaeFreqVal: document.getElementById("uaeFreqVal"),
+  uaeAmpVal: document.getElementById("uaeAmpVal"),
+  cavitationScopeCanvas: document.getElementById("cavitationScopeCanvas"),
+  btnListenPlantThirst: document.getElementById("btnListenPlantThirst")
 };
 
 function populateCropDropdown(selectedId = null) {
@@ -782,6 +808,32 @@ function bindEventListeners() {
     DOM.btnCopyMqttJson.addEventListener("click", copyMqttJsonPayload);
   }
 
+  // Hyperspectral NDVI / PRI Diagnostics Modal
+  if (DOM.btnHyperspectral) {
+    DOM.btnHyperspectral.addEventListener("click", openHyperspectralModal);
+  }
+  if (DOM.hyperspectralClose) {
+    DOM.hyperspectralClose.addEventListener("click", () => {
+      if (DOM.hyperspectralModal) DOM.hyperspectralModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnToggleHs3dMode) {
+    DOM.btnToggleHs3dMode.addEventListener("click", toggleHyperspectral3DMode);
+  }
+
+  // Stem Xylem Ultrasonic Acoustic Emission (UAE) Cavitation Modal
+  if (DOM.btnCavitation) {
+    DOM.btnCavitation.addEventListener("click", openCavitationModal);
+  }
+  if (DOM.cavitationClose) {
+    DOM.cavitationClose.addEventListener("click", () => {
+      if (DOM.cavitationModal) DOM.cavitationModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnListenPlantThirst) {
+    DOM.btnListenPlantThirst.addEventListener("click", triggerListenPlantThirst);
+  }
+
   // Timeline Controls
   DOM.btnPlay.addEventListener("click", () => {
     audio.playClick();
@@ -1230,6 +1282,100 @@ function copyMqttJsonPayload() {
         DOM.btnCopyMqttJson.textContent = "📋 MQTT JSON 페이로드 복사";
       }, 1200);
     });
+  }
+}
+
+function openHyperspectralModal() {
+  audio.playHyperspectralScan();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const hsData = bioEngine.calculateHyperspectralReflectance(envTele.sensors, crop, plantState);
+
+  if (DOM.hyperspectralModalTitle) {
+    DOM.hyperspectralModalTitle.textContent = `🌈 ${crop.name}: 엽면 초분광 반사율(Hyperspectral) NDVI / PRI 분석`;
+  }
+  if (DOM.hsNdviVal) DOM.hsNdviVal.textContent = hsData.ndvi.toFixed(3);
+  if (DOM.hsNdviStatus) DOM.hsNdviStatus.textContent = `● ${hsData.status}`;
+  if (DOM.hsPriVal) {
+    DOM.hsPriVal.textContent = `${hsData.pri > 0 ? '+' : ''}${hsData.pri.toFixed(4)}`;
+    DOM.hsPriVal.style.color = hsData.pri > 0 ? "#10b981" : "#f43f5e";
+  }
+  if (DOM.hsReflRatio) DOM.hsReflRatio.textContent = `${hsData.r680} / ${hsData.r800}`;
+  if (DOM.hsChlIndex) DOM.hsChlIndex.textContent = hsData.chlorophyllIndex.toFixed(2);
+
+  if (DOM.hyperspectralModal) {
+    DOM.hyperspectralModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (telemetryCharts && DOM.hyperspectralCanvas) {
+      telemetryCharts.renderHyperspectralScope(DOM.hyperspectralCanvas, hsData);
+    }
+  }, 60);
+}
+
+function toggleHyperspectral3DMode() {
+  audio.playPulse();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const hsData = bioEngine.calculateHyperspectralReflectance(envTele.sensors, crop, plantState);
+
+  if (plantChamber3d) {
+    const isHs = plantChamber3d.toggleHyperspectralCameraMode(hsData.ndvi);
+    if (DOM.btnToggleHs3dMode) {
+      DOM.btnToggleHs3dMode.textContent = isHs ? "✅ 3D 초분광(NDVI) 의사색상 활성화 중 (클릭 시 원복)" : "🌈 3D 초분광(NDVI) 의사색상 모드 전환";
+    }
+  }
+}
+
+function openCavitationModal() {
+  audio.playCavitationPop(1100);
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const sapDynamics = bioEngine.calculateSapFlowDynamics(envTele.sensors, crop, plantState);
+  const uaeData = bioEngine.calculateUltrasonicAcousticEmissions(envTele.sensors, crop, plantState, sapDynamics);
+
+  if (DOM.cavitationModalTitle) {
+    DOM.cavitationModalTitle.textContent = `🔊 ${crop.name}: 도관 기포 파열(Cavitation) 초음파 음향 방출(UAE) 스코프`;
+  }
+  if (DOM.uaeRateVal) DOM.uaeRateVal.textContent = `${uaeData.uaeRateEventsPerMin} Evt/min`;
+  if (DOM.uaeStatusBadge) {
+    DOM.uaeStatusBadge.textContent = `● ${uaeData.cavitationRisk}`;
+    DOM.uaeStatusBadge.style.color = uaeData.uaeRateEventsPerMin < 10.0 ? "#34d399" : (uaeData.uaeRateEventsPerMin < 40.0 ? "#fbbf24" : "#f43f5e");
+  }
+  if (DOM.uaePsiVal) DOM.uaePsiVal.textContent = `${uaeData.psiStemMPa} MPa`;
+  if (DOM.uaeFreqVal) DOM.uaeFreqVal.textContent = `${uaeData.peakFreqKhz} kHz`;
+  if (DOM.uaeAmpVal) DOM.uaeAmpVal.textContent = `${uaeData.amplitudeDb} dB_AE`;
+
+  if (DOM.cavitationModal) {
+    DOM.cavitationModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (telemetryCharts && DOM.cavitationScopeCanvas) {
+      telemetryCharts.renderCavitationScope(DOM.cavitationScopeCanvas, uaeData);
+    }
+  }, 60);
+}
+
+function triggerListenPlantThirst() {
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const sapDynamics = bioEngine.calculateSapFlowDynamics(envTele.sensors, crop, plantState);
+  const uaeData = bioEngine.calculateUltrasonicAcousticEmissions(envTele.sensors, crop, plantState, sapDynamics);
+
+  audio.playCavitationPop(uaeData.audiblePitchHz || 1200);
+  if (plantChamber3d) {
+    plantChamber3d.triggerCavitationAcousticPulse();
+  }
+
+  if (DOM.btnListenPlantThirst) {
+    DOM.btnListenPlantThirst.style.borderColor = "#f472b6";
+    DOM.btnListenPlantThirst.style.boxShadow = "0 0 14px rgba(244, 114, 182, 0.7)";
+    setTimeout(() => {
+      DOM.btnListenPlantThirst.style.borderColor = "rgba(236, 72, 153, 0.4)";
+      DOM.btnListenPlantThirst.style.boxShadow = "none";
+    }, 400);
   }
 }
 

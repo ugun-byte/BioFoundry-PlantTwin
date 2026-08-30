@@ -96,4 +96,58 @@ export class CyberAudioEngine {
       osc2.stop(this.ctx.currentTime + 0.15);
     } catch (e) {}
   }
+
+  /**
+   * Synthesizes ultrasonic micro-cavitation bubble burst pop
+   */
+  playCavitationPop(pitchHz = 1200) {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(pitchHz, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(pitchHz * 0.35, this.ctx.currentTime + 0.025);
+
+      gain.gain.setValueAtTime(0.07, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.025);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.025);
+    } catch (e) {}
+  }
+
+  /**
+   * Synthesizes futuristic hyperspectral laser sweep tone
+   */
+  playHyperspectralScan() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(1600, this.ctx.currentTime + 0.12);
+
+      gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.12);
+    } catch (e) {}
+  }
 }

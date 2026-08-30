@@ -867,4 +867,208 @@ export class LiveTelemetryCharts {
       ctx.stroke();
     }
   }
+
+  /**
+   * Real-Time Hyperspectral Signature Reflectance (400nm ~ 900nm) Curve Canvas
+   */
+  renderHyperspectralScope(canvas, hsData) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = (rect.width > 0 ? rect.width : 780) * dpr;
+    const h = (rect.height > 0 ? rect.height : 200) * dpr;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+
+    ctx.clearRect(0, 0, w, h);
+
+    // 1. Sci-Fi Grid Background
+    ctx.fillStyle = "rgba(4, 11, 20, 0.95)";
+    ctx.fillRect(0, 0, w, h);
+
+    const padL = 50 * dpr;
+    const padR = 25 * dpr;
+    const padT = 30 * dpr;
+    const padB = 35 * dpr;
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+
+    // Grid lines
+    ctx.strokeStyle = "rgba(6, 182, 212, 0.1)";
+    ctx.lineWidth = 1 * dpr;
+    for (let wl = 400; wl <= 900; wl += 100) {
+      const x = padL + ((wl - 400) / 500) * plotW;
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + plotH);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.font = `${9 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${wl}nm`, x - 12 * dpr, padT + plotH + 16 * dpr);
+    }
+
+    // Reflectance Y-axis
+    for (let r = 0.0; r <= 1.0; r += 0.25) {
+      const y = padT + (1.0 - r) * plotH;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + plotW, y);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.font = `${9 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${(r * 100).toFixed(0)}%`, 12 * dpr, y + 3 * dpr);
+    }
+
+    // Visible Spectrum Color Gradient Bar along X-axis
+    const specGrad = ctx.createLinearGradient(padL, 0, padL + (300 / 500) * plotW, 0);
+    specGrad.addColorStop(0.0, "rgba(59, 130, 246, 0.35)");  // Blue 400nm
+    specGrad.addColorStop(0.35, "rgba(16, 185, 129, 0.35)"); // Green 550nm
+    specGrad.addColorStop(0.7, "rgba(239, 68, 68, 0.35)");   // Red 680nm
+    specGrad.addColorStop(1.0, "rgba(168, 85, 247, 0.35)");  // NIR 750nm+
+    ctx.fillStyle = specGrad;
+    ctx.fillRect(padL, padT + plotH + 3 * dpr, plotW, 4 * dpr);
+
+    // 2. Plot Hyperspectral Curve
+    const curve = hsData.spectralCurve || [];
+    if (curve.length > 0) {
+      const curveGrad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+      curveGrad.addColorStop(0, "rgba(6, 182, 212, 0.4)");
+      curveGrad.addColorStop(1, "rgba(6, 182, 212, 0.0)");
+
+      ctx.beginPath();
+      curve.forEach((pt, i) => {
+        const x = padL + ((pt.wavelength - 400) / 500) * plotW;
+        const y = padT + (1.0 - Math.min(1.0, Math.max(0.0, pt.reflectance))) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.lineTo(padL + plotW, padT + plotH);
+      ctx.lineTo(padL, padT + plotH);
+      ctx.closePath();
+      ctx.fillStyle = curveGrad;
+      ctx.fill();
+
+      // Stroke Spectral Signature Line
+      ctx.save();
+      ctx.shadowColor = "#06b6d4";
+      ctx.shadowBlur = 10 * dpr;
+      ctx.strokeStyle = "#22d3ee";
+      ctx.lineWidth = 2.5 * dpr;
+      ctx.beginPath();
+      curve.forEach((pt, i) => {
+        const x = padL + ((pt.wavelength - 400) / 500) * plotW;
+        const y = padT + (1.0 - Math.min(1.0, Math.max(0.0, pt.reflectance))) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // Red Edge Inflection Label
+      const redEdgeX = padL + ((705 - 400) / 500) * plotW;
+      const redEdgeY = padT + (1.0 - 0.42) * plotH;
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText("⚡ Red Edge Transition", redEdgeX + 8 * dpr, redEdgeY - 6 * dpr);
+    }
+  }
+
+  /**
+   * Real-Time Stem Ultrasonic Acoustic Emissions (UAE) Cavitation Oscilloscope Canvas
+   */
+  renderCavitationScope(canvas, uaeData) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = (rect.width > 0 ? rect.width : 780) * dpr;
+    const h = (rect.height > 0 ? rect.height : 200) * dpr;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+
+    ctx.clearRect(0, 0, w, h);
+
+    // 1. Futuristic Acoustic Grid
+    ctx.fillStyle = "rgba(4, 11, 20, 0.95)";
+    ctx.fillRect(0, 0, w, h);
+
+    const padL = 50 * dpr;
+    const padR = 25 * dpr;
+    const padT = 25 * dpr;
+    const padB = 30 * dpr;
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+    const centerY = padT + plotH / 2;
+
+    ctx.strokeStyle = "rgba(236, 72, 153, 0.1)";
+    ctx.lineWidth = 1 * dpr;
+    for (let x = padL; x <= padL + plotW; x += 55 * dpr) {
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + plotH);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.moveTo(padL, centerY);
+    ctx.lineTo(padL + plotW, centerY);
+    ctx.strokeStyle = "rgba(236, 72, 153, 0.25)";
+    ctx.stroke();
+
+    // Time Axis Labels
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.font = `${9 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("0 ms (Trigger)", padL, padT + plotH + 16 * dpr);
+    ctx.fillText("25 ms", padL + plotW * 0.25, padT + plotH + 16 * dpr);
+    ctx.fillText("50 ms", padL + plotW * 0.5, padT + plotH + 16 * dpr);
+    ctx.fillText("75 ms", padL + plotW * 0.75, padT + plotH + 16 * dpr);
+    ctx.fillText("100 ms (Sampling Window)", padL + plotW - 90 * dpr, padT + plotH + 16 * dpr);
+
+    ctx.fillText("+1.0 V", 12 * dpr, padT + 8 * dpr);
+    ctx.fillText("0.0 V", 15 * dpr, centerY + 3 * dpr);
+    ctx.fillText("-1.0 V", 15 * dpr, padT + plotH - 2 * dpr);
+
+    // 2. Synthesize High-Frequency Ultrasonic Waveform
+    const numPoints = 280;
+    const freq = (uaeData.peakFreqKhz || 60.0) / 10.0;
+    const maxAmp = (plotH * 0.42) * Math.min(1.0, Math.max(0.15, (uaeData.amplitudeDb || 35.0) / 75.0));
+
+    ctx.save();
+    ctx.shadowColor = "#ec4899";
+    ctx.shadowBlur = 10 * dpr;
+    ctx.strokeStyle = "#f472b6";
+    ctx.lineWidth = 2.2 * dpr;
+    ctx.beginPath();
+
+    for (let i = 0; i < numPoints; i++) {
+      const t = i / (numPoints - 1);
+      const x = padL + t * plotW;
+      
+      // Damped harmonic cavitation pulse packet
+      const envelope = Math.exp(-4.5 * t) * Math.sin(t * Math.PI);
+      const wave = Math.sin(t * Math.PI * 2 * freq * 8.0) * envelope;
+      const noise = (Math.random() - 0.5) * 0.04;
+      const y = centerY - (wave + noise) * maxAmp;
+
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    // Amplitude Peak Marker
+    ctx.fillStyle = "#ec4899";
+    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`⚡ Cavitation Burst Peak: ${uaeData.peakFreqKhz || 62.5} kHz (${uaeData.amplitudeDb || 38} dB_AE)`, padL + 15 * dpr, padT + 18 * dpr);
+  }
 }
