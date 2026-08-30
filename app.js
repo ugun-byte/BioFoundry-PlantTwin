@@ -661,6 +661,9 @@ function initApp() {
   // Initialize Interactive Resizable Panel Layout Gutters
   initResizablePanels();
 
+  // Initialize Viewport Tools Single-Row Accordion & Drag-and-Drop
+  initDraggableTools();
+
   bindEventListeners();
   buildParamEditor();
   resetPlantState();
@@ -862,6 +865,122 @@ function makeElementDraggable(cardEl, containerEl) {
   };
 
   cardEl.addEventListener("pointerdown", onPointerDown);
+}
+
+/**
+ * ------------------------------------------------------------------------
+ * Viewport Diagnostic Tools Toolbar: Single-Row Accordion & Drag-and-Drop
+ * ------------------------------------------------------------------------
+ */
+function initDraggableTools() {
+  const wrapper = document.querySelector(".viewport-tools-wrapper");
+  const list = document.getElementById("viewportToolsList");
+  const toggleBtn = document.getElementById("btnToggleToolsExpand");
+  const toggleText = document.getElementById("toolsExpandText");
+
+  if (!list) return;
+
+  // 1. Restore Custom Button Order from localStorage
+  const savedOrder = localStorage.getItem("planttwin_viewport_tools_order");
+  if (savedOrder) {
+    try {
+      const orderIds = JSON.parse(savedOrder);
+      if (Array.isArray(orderIds)) {
+        orderIds.forEach(id => {
+          const btn = document.getElementById(id);
+          if (btn && btn.parentElement === list) {
+            list.appendChild(btn);
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("Failed to load saved tools order", e);
+    }
+  }
+
+  // 2. Expand / Collapse Toggle Handler
+  if (toggleBtn && wrapper) {
+    toggleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      audio.playClick();
+      const isExpanded = wrapper.classList.toggle("is-expanded");
+      if (toggleText) {
+        toggleText.textContent = isExpanded ? "접기 ▴" : "펼치기 ▾";
+      }
+      const icon = toggleBtn.querySelector("svg");
+      if (icon) {
+        icon.innerHTML = isExpanded 
+          ? '<path d="M18 15l-6-6-6 6"/>' 
+          : '<path d="M6 9l6 6 6-6"/>';
+      }
+    });
+  }
+
+  // 3. Drag and Drop Reordering Handlers
+  let draggedItem = null;
+  const buttons = list.querySelectorAll(".btn");
+
+  buttons.forEach(btn => {
+    btn.setAttribute("draggable", "true");
+
+    btn.addEventListener("dragstart", (e) => {
+      draggedItem = btn;
+      btn.classList.add("is-dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", btn.id);
+    });
+
+    btn.addEventListener("dragend", () => {
+      btn.classList.remove("is-dragging");
+      buttons.forEach(b => b.classList.remove("drag-over-left", "drag-over-right"));
+      draggedItem = null;
+
+      // Save order to localStorage
+      const currentOrder = Array.from(list.querySelectorAll(".btn")).map(b => b.id);
+      localStorage.setItem("planttwin_viewport_tools_order", JSON.stringify(currentOrder));
+    });
+
+    btn.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      if (!draggedItem || draggedItem === btn) return;
+
+      const rect = btn.getBoundingClientRect();
+      const midpoint = rect.left + rect.width / 2;
+      
+      if (e.clientX < midpoint) {
+        btn.classList.add("drag-over-left");
+        btn.classList.remove("drag-over-right");
+      } else {
+        btn.classList.add("drag-over-right");
+        btn.classList.remove("drag-over-left");
+      }
+    });
+
+    btn.addEventListener("dragleave", () => {
+      btn.classList.remove("drag-over-left", "drag-over-right");
+    });
+
+    btn.addEventListener("drop", (e) => {
+      e.preventDefault();
+      if (!draggedItem || draggedItem === btn) return;
+
+      const rect = btn.getBoundingClientRect();
+      const midpoint = rect.left + rect.width / 2;
+
+      if (e.clientX < midpoint) {
+        list.insertBefore(draggedItem, btn);
+      } else {
+        list.insertBefore(draggedItem, btn.nextSibling);
+      }
+
+      btn.classList.remove("drag-over-left", "drag-over-right");
+      audio.playPulse();
+
+      // Save order to localStorage
+      const currentOrder = Array.from(list.querySelectorAll(".btn")).map(b => b.id);
+      localStorage.setItem("planttwin_viewport_tools_order", JSON.stringify(currentOrder));
+    });
+  });
 }
 
 function bindEventListeners() {
