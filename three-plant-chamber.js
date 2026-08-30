@@ -53,9 +53,9 @@ export class ThreePlantChamber {
       this.scene.environment = tex;
     });
 
-    // 2. Camera centered precisely on the entire glass bioreactor capsule
+    // 2. Camera centered precisely at straight horizontal eye-level
     this.camera = new THREE.PerspectiveCamera(38, w / h, 0.1, 50);
-    this.camera.position.set(0, 1.15, 3.15);
+    this.camera.position.set(0, 0.88, 3.25);
 
     // 3. High-End WebGL Renderer with Alpha transparency & ACES Tone Mapping
     this.renderer = new THREE.WebGLRenderer({
@@ -78,15 +78,16 @@ export class ThreePlantChamber {
     this.container.style.background = "transparent";
     this.container.appendChild(this.renderer.domElement);
 
-    // 4. Smooth Orbit Controls centered at capsule midpoint (y = 1.05)
+    // 4. Smooth Orbit Controls with full horizontal and below-horizon rotation
     if (typeof THREE.OrbitControls !== "undefined") {
       this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
       this.controls.dampingFactor = 0.06;
-      this.controls.target.set(0, 1.05, 0);
-      this.controls.maxPolarAngle = Math.PI / 2 - 0.02;
-      this.controls.minDistance = 1.2;
-      this.controls.maxDistance = 5.0;
+      this.controls.target.set(0, 0.82, 0);
+      this.controls.minPolarAngle = 0.05; // allows full top-down aerial view
+      this.controls.maxPolarAngle = Math.PI * 0.62; // allows ~112° below horizon tilt to clearly view roots!
+      this.controls.minDistance = 0.8;
+      this.controls.maxDistance = 5.5;
     }
 
     window.addEventListener("resize", () => this.onResize());
@@ -451,40 +452,41 @@ export class ThreePlantChamber {
 
     const rootMat = new THREE.MeshStandardMaterial({
       color: 0xf8fafc,
-      roughness: 0.5,
+      roughness: 0.4,
       metalness: 0.1,
-      emissive: 0x38ef7d,
-      emissiveIntensity: 0.18
+      emissive: 0x00f2fe,
+      emissiveIntensity: 0.45
     });
 
-    // 1. Central Taproot
+    // 1. Central Taproot (Extended down into misting basin)
     this.taprootMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.016, 0.003, 0.26, 12),
+      new THREE.CylinderGeometry(0.018, 0.003, 0.36, 14),
       rootMat
     );
-    this.taprootMesh.position.y = -0.13;
+    this.taprootMesh.position.y = -0.18;
     this.taprootMesh.castShadow = true;
     this.rootGroup.add(this.taprootMesh);
 
-    // 2. 14 Secondary Lateral Roots radiating downward
+    // 2. 24 Secondary & Tertiary Lateral Roots radiating in realistic 3D bell shape
     this.lateralRoots = [];
-    const lateralCount = 14;
+    const lateralCount = 24;
     for (let i = 0; i < lateralCount; i++) {
-      const angle = (i / lateralCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
-      const depthRatio = 0.2 + (i / lateralCount) * 0.75;
-      const length = 0.14 + Math.random() * 0.08;
+      const angle = (i / lateralCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.25;
+      const depthRatio = 0.15 + (i / lateralCount) * 0.80;
+      const length = 0.16 + Math.random() * 0.12;
 
       const latMesh = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.007, 0.002, length, 8),
+        new THREE.CylinderGeometry(0.008, 0.002, length, 8),
         rootMat
       );
       latMesh.position.set(
-        Math.cos(angle) * 0.035,
-        -depthRatio * 0.20,
-        Math.sin(angle) * 0.035
+        Math.cos(angle) * (0.02 + depthRatio * 0.06),
+        -depthRatio * 0.28,
+        Math.sin(angle) * (0.02 + depthRatio * 0.06)
       );
-      latMesh.rotation.z = Math.cos(angle) * 0.52;
-      latMesh.rotation.x = Math.sin(angle) * 0.52;
+      latMesh.rotation.z = Math.cos(angle) * (0.35 + depthRatio * 0.25);
+      latMesh.rotation.x = Math.sin(angle) * (0.35 + depthRatio * 0.25);
+      latMesh.castShadow = true;
       this.rootGroup.add(latMesh);
       this.lateralRoots.push({ mesh: latMesh, baseLength: length, angle });
     }
@@ -1062,8 +1064,8 @@ export class ThreePlantChamber {
 
   resetCamera() {
     if (this.camera && this.controls) {
-      this.camera.position.set(0, 1.15, 3.15);
-      this.controls.target.set(0, 1.05, 0);
+      this.camera.position.set(0, 0.88, 3.25);
+      this.controls.target.set(0, 0.82, 0);
       this.controls.update();
     }
   }
