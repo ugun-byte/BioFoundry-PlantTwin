@@ -1765,5 +1765,170 @@ export class LiveTelemetryCharts {
       ctx.fillText(`● SLAC1 전류 (${abaData.slac1AnionCurrentPicoA} pA)`, rightL + 250 * dpr, plotT + 14 * dpr);
     }
   }
+
+  /**
+   * 16. Closed-Loop Hydroponic Nutrient Recycling & 6-ISE Calibration Dual-Pane Scope
+   * Left: Closed-loop schematic fluid circuit (Mixing -> Roots -> Drain -> ISE Cell -> UV/RO -> Dosing Pumps)
+   * Right: 6-Ion Comparative Supply vs Drain Bar Chart & ISE Electrode Potentials (mV)
+   */
+  renderClosedLoopHydroponicScope(canvas, iseData = {}) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width || 800;
+    const h = rect.height || 220;
+
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Dark Background Grid
+    ctx.fillStyle = "rgba(4, 8, 15, 0.95)";
+    ctx.fillRect(0, 0, w, h);
+
+    const midX = w * 0.44;
+
+    // Divider Line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(midX, 10);
+    ctx.lineTo(midX, h - 10);
+    ctx.stroke();
+
+    // ==========================================
+    // LEFT PANE: Closed-Loop Fluid Circuit Flow
+    // ==========================================
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① 스마트 양액 100% 폐쇄 재순환 루프 (Closed-Loop)", 14 * dpr, 18 * dpr);
+
+    const leftW = midX;
+    const cx = leftW * 0.5;
+    const cy = h * 0.52;
+
+    // Outer Recirculation Fluid Circuit Track
+    ctx.save();
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+    ctx.lineWidth = 3 * dpr;
+    ctx.setLineDash([6 * dpr, 4 * dpr]);
+    ctx.strokeRect(30, 36, leftW - 60, h - 72);
+    ctx.restore();
+
+    // Circuit Nodes (4 Key Stations)
+    const nodes = [
+      { name: "혼합 탱크 (Mixing Tank)", sub: `EC ${iseData.targetEc || 2.2} / pH ${iseData.targetPh || 5.85}`, x: 30, y: 36, color: "#38bdf8" },
+      { name: "식물 근권 배지 (Rhizosphere)", sub: "6대 이온 차등 흡수", x: leftW - 30, y: 36, color: "#10b981" },
+      { name: "배액 집수정 (Drain Tank)", sub: `EC ${iseData.drainageEc || 1.8} / pH ${iseData.drainagePh || 6.1}`, x: leftW - 30, y: h - 36, color: "#fbbf24" },
+      { name: "6-ISE 센서 & UV 살균기", sub: `회수율 ${iseData.waterRecoveryRatePct || 94.8}%`, x: 30, y: h - 36, color: "#a855f7" }
+    ];
+
+    nodes.forEach(n => {
+      ctx.fillStyle = n.color;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 6 * dpr, 0, 2 * Math.PI);
+      ctx.fill();
+
+      ctx.fillStyle = "#fff";
+      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.textAlign = n.x < cx ? "left" : "right";
+      ctx.fillText(n.name, n.x + (n.x < cx ? 10 * dpr : -10 * dpr), n.y - 2 * dpr);
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
+      ctx.font = `${7.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(n.sub, n.x + (n.x < cx ? 10 * dpr : -10 * dpr), n.y + 9 * dpr);
+    });
+
+    // Center Badge: Dosing & Water Savings
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+    ctx.lineWidth = 1 * dpr;
+    ctx.beginPath();
+    ctx.roundRect(cx - 65, cy - 24, 130, 48, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = `bold ${9 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("💧 94.8% 순환 회수", cx, cy - 8 * dpr);
+
+    ctx.fillStyle = "#34d399";
+    ctx.font = `bold ${8 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`일일 절수: ${iseData.dailyWaterSavedLiters || 1.42}L | 비료: -38.5%`, cx, cy + 5 * dpr);
+
+    ctx.fillStyle = iseData.isAutoDosed ? "#10b981" : "#fbbf24";
+    ctx.font = `${7.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(iseData.isAutoDosed ? "● 정밀 자동 보정 완료 (Dosed)" : "● ISE 피드백 보정 대기 중", cx, cy + 16 * dpr);
+
+    // ==========================================
+    // RIGHT PANE: 6-Ion Comparative Supply vs Drain Chart
+    // ==========================================
+    const rightL = midX + 18;
+    const rightW = w - rightL - 18;
+    const plotT = 36;
+    const plotH = h - 65;
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② 6대 이온 공급 목표 vs 배액 농도 & ISE 전위(mV)", rightL, 18 * dpr);
+
+    const sensors = iseData.sensors || [];
+    const barGroupW = rightW / Math.max(1, sensors.length);
+    const maxVal = 16.0;
+
+    sensors.forEach((s, idx) => {
+      const gx = rightL + idx * barGroupW;
+      const colW = Math.min(18, barGroupW * 0.35);
+
+      // Target Supply Bar (Translucent Background)
+      const targetH = (s.target_mm / maxVal) * plotH;
+      const targetY = plotT + plotH - targetH;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+      ctx.fillRect(gx + 4, targetY, colW, targetH);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.strokeRect(gx + 4, targetY, colW, targetH);
+
+      // Drainage Actual Bar (Color Gradient)
+      const drainH = (s.drain_mm / maxVal) * plotH;
+      const drainY = plotT + plotH - drainH;
+      const grad = ctx.createLinearGradient(0, drainY, 0, plotT + plotH);
+      grad.addColorStop(0, s.color);
+      grad.addColorStop(1, "rgba(0,0,0,0.3)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(gx + 4 + colW + 2, drainY, colW, drainH);
+      ctx.strokeStyle = s.color;
+      ctx.strokeRect(gx + 4 + colW + 2, drainY, colW, drainH);
+
+      // Value text above bars
+      ctx.fillStyle = s.color;
+      ctx.font = `bold ${7.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${s.drain_mm}`, gx + 4 + colW + 2, drainY - 3 * dpr);
+
+      // Ion Symbol Label
+      ctx.fillStyle = "#fff";
+      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText(s.symbol, gx + colW + 5, plotT + plotH + 12 * dpr);
+
+      // ISE Potential readout below
+      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+      ctx.font = `${7.5 * dpr}px monospace`;
+      ctx.fillText(`${s.electrodePotentialMv}mV`, gx + colW + 5, plotT + plotH + 22 * dpr);
+      ctx.textAlign = "left";
+    });
+
+    // Chart Legend
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.font = `${8 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("■ 공급 목표 (Target) | ■ 배액 실측 (Drain ISE)", rightL, plotT - 6 * dpr);
+  }
 }
+
 

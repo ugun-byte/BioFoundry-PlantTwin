@@ -272,5 +272,35 @@ export class CyberAudioEngine {
       osc.stop(this.ctx.currentTime + 0.35);
     } catch (e) {}
   }
+
+  /**
+   * Synthesizes micro-stepping peristaltic nutrient dosing pump sound & fluid flow chime
+   */
+  playHydroponicPumpDosingSound() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      [0.0, 0.08, 0.16].forEach((offset, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(620 + idx * 180, this.ctx.currentTime + offset);
+        osc.frequency.exponentialRampToValueAtTime(1200 + idx * 240, this.ctx.currentTime + offset + 0.06);
+
+        gain.gain.setValueAtTime(0.04, this.ctx.currentTime + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + offset + 0.06);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(this.ctx.currentTime + offset);
+        osc.stop(this.ctx.currentTime + offset + 0.06);
+      });
+    } catch (e) {}
+  }
 }
+
 

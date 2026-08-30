@@ -365,6 +365,21 @@ const DOM = {
   btnInjectAbaPulse: document.getElementById("btnInjectAbaPulse"),
   btnExportAbaCSV: document.getElementById("btnExportAbaCSV"),
 
+  // Closed-Loop Hydroponic ISE Modal Elements
+  btnHydroponicIseScope: document.getElementById("btnHydroponicIseScope"),
+  hydroponicIseModal: document.getElementById("hydroponicIseModal"),
+  hydroponicIseClose: document.getElementById("hydroponicIseClose"),
+  hydroponicIseModalTitle: document.getElementById("hydroponicIseModalTitle"),
+  iseRecoveryRateVal: document.getElementById("iseRecoveryRateVal"),
+  iseSavingBadge: document.getElementById("iseSavingBadge"),
+  iseDrainEcPhVal: document.getElementById("iseDrainEcPhVal"),
+  iseDosingFlowVal: document.getElementById("iseDosingFlowVal"),
+  iseSnrVal: document.getElementById("iseSnrVal"),
+  hydroponicIseCanvas: document.getElementById("hydroponicIseCanvas"),
+  hydroponicIseTableBody: document.getElementById("hydroponicIseTableBody"),
+  btnAutoDoseIse: document.getElementById("btnAutoDoseIse"),
+  btnExportIseCSV: document.getElementById("btnExportIseCSV"),
+
   // Sub-Views
   viewOverview: document.getElementById("viewOverview"),
   viewTelemetry: document.getElementById("viewTelemetry"),
@@ -1088,6 +1103,22 @@ function bindEventListeners() {
   }
   if (DOM.btnExportAbaCSV) {
     DOM.btnExportAbaCSV.addEventListener("click", exportAbaDataCSV);
+  }
+
+  // Closed-Loop Hydroponic ISE Modal
+  if (DOM.btnHydroponicIseScope) {
+    DOM.btnHydroponicIseScope.addEventListener("click", openHydroponicIseModal);
+  }
+  if (DOM.hydroponicIseClose) {
+    DOM.hydroponicIseClose.addEventListener("click", () => {
+      if (DOM.hydroponicIseModal) DOM.hydroponicIseModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnAutoDoseIse) {
+    DOM.btnAutoDoseIse.addEventListener("click", triggerAutoDosingTest);
+  }
+  if (DOM.btnExportIseCSV) {
+    DOM.btnExportIseCSV.addEventListener("click", exportIseDataCSV);
   }
 
   // Timeline Controls
@@ -1956,6 +1987,104 @@ function exportAbaDataCSV() {
   document.body.removeChild(link);
 }
 
+let isAutoDosingActive = false;
+
+function openHydroponicIseModal() {
+  audio.playHydroponicPumpDosingSound();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const iseData = bioEngine.calculateClosedLoopHydroponicIseDynamics(envTele.sensors, crop, plantState, { autoDosed: isAutoDosingActive });
+
+  if (DOM.hydroponicIseModalTitle) {
+    DOM.hydroponicIseModalTitle.textContent = `💧 ${crop.name}: 스마트 양액 100% 폐쇄 재순환 & 6-ISE 이온 전극 자동 보정기`;
+  }
+  if (DOM.iseRecoveryRateVal) DOM.iseRecoveryRateVal.textContent = `${iseData.waterRecoveryRatePct} %`;
+  if (DOM.iseSavingBadge) {
+    DOM.iseSavingBadge.textContent = `● 일일 절수: ${iseData.dailyWaterSavedLiters} L (비료 -${iseData.fertilizerSavedPercent}%)`;
+  }
+  if (DOM.iseDrainEcPhVal) {
+    DOM.iseDrainEcPhVal.textContent = `${iseData.drainageEc} dS/m / ${iseData.drainagePh} pH`;
+  }
+  if (DOM.iseDosingFlowVal) {
+    DOM.iseDosingFlowVal.textContent = `${iseData.totalDosingFlowRateMlHr} mL/hr`;
+  }
+  if (DOM.iseSnrVal) {
+    DOM.iseSnrVal.textContent = iseData.isAutoDosed ? "58.6 dB (정밀 보정 완료)" : "54.2 dB (보정 대기)";
+  }
+
+  // Populate 6-Ion Dosing Table
+  if (DOM.hydroponicIseTableBody && iseData.sensors) {
+    DOM.hydroponicIseTableBody.innerHTML = iseData.sensors.map(s => `
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <td style="padding: 5px 8px; font-family: monospace; font-weight: 700; color: ${s.color}; font-size: 11px;">${s.symbol}</td>
+        <td style="padding: 5px 8px; color: #e2e8f0;">${s.name}</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: #fff;">${s.target_mm} mM</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: ${s.drain_mm < s.target_mm ? '#fbbf24' : '#34d399'}; font-weight: 600;">${s.drain_mm} mM (${s.recoveryPct}%)</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: #38bdf8;">${s.electrodePotentialMv} mV</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: #10b981; font-weight: 700;">+${s.dosingRateMlHr} mL/h</td>
+        <td style="padding: 5px 8px; color: var(--text-muted); font-size: 9.5px;">${s.stockTank}</td>
+      </tr>
+    `).join("");
+  }
+
+  if (DOM.hydroponicIseModal) {
+    DOM.hydroponicIseModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (telemetryCharts && DOM.hydroponicIseCanvas) {
+      telemetryCharts.renderClosedLoopHydroponicScope(DOM.hydroponicIseCanvas, iseData);
+    }
+  }, 60);
+}
+
+function triggerAutoDosingTest() {
+  audio.playHydroponicPumpDosingSound();
+  isAutoDosingActive = true;
+  if (DOM.btnAutoDoseIse) {
+    DOM.btnAutoDoseIse.textContent = "⚡ 정밀 마이크로 도징 주입 중! (A/B Stock + Acid)";
+    DOM.btnAutoDoseIse.style.color = "#34d399";
+    DOM.btnAutoDoseIse.style.borderColor = "#34d399";
+  }
+
+  openHydroponicIseModal();
+
+  setTimeout(() => {
+    isAutoDosingActive = false;
+    if (DOM.btnAutoDoseIse) {
+      DOM.btnAutoDoseIse.textContent = "⚡ 6대 이온 실시간 자동 보정 주입 (Auto Dosing)";
+      DOM.btnAutoDoseIse.style.color = "#38bdf8";
+      DOM.btnAutoDoseIse.style.borderColor = "rgba(56, 189, 248, 0.4)";
+    }
+    if (DOM.hydroponicIseModal && DOM.hydroponicIseModal.classList.contains("active")) {
+      openHydroponicIseModal();
+    }
+  }, 8000);
+}
+
+function exportIseDataCSV() {
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const iseData = bioEngine.calculateClosedLoopHydroponicIseDynamics(envTele.sensors, crop, plantState, { autoDosed: isAutoDosingActive });
+
+  const header = `# BioFoundry PlantTwin - Closed-Loop Hydroponic 6-ISE Nutrient Recycling Dataset\n` +
+    `# Crop: ${crop.name} (${crop.scientificName})\n` +
+    `# Water Recovery Rate: ${iseData.waterRecoveryRatePct}% | Daily Water Saved: ${iseData.dailyWaterSavedLiters} L\n` +
+    `# Fertilizer Saved: ${iseData.fertilizerSavedPercent}% | Total Dosing Rate: ${iseData.totalDosingFlowRateMlHr} mL/hr\n` +
+    `# Target EC/pH: ${iseData.targetEc} dS/m / ${iseData.targetPh} pH | Drainage EC/pH: ${iseData.drainageEc} dS/m / ${iseData.drainagePh} pH\n\n` +
+    `Ion_Symbol,Ion_Name,Target_mM,Drain_Actual_mM,Deficit_mM,ISE_Potential_mV,Dosing_Rate_mL_hr,Stock_Tank\n` +
+    iseData.sensors.map(s => `${s.symbol},"${s.name}",${s.target_mm},${s.drain_mm},${s.deficitMm},${s.electrodePotentialMv},${s.dosingRateMlHr},"${s.stockTank}"`).join("\n");
+
+  const blob = new Blob(["\uFEFF" + header], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `BioFoundry_Hydroponic_ISE_${crop.id}_Day${DOM.teleDay ? DOM.teleDay.textContent : '01'}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 function openElectrophysDiagnostics() {
   audio.playPulse();
   const crop = profileManager.getActiveProfile();
@@ -2439,6 +2568,27 @@ function updateActiveDiagnosticsModals(envTele, crop, plantState, instantPhoto, 
     if (DOM.abaSlac1Val) DOM.abaSlac1Val.textContent = `${abaData.slac1AnionCurrentPicoA} pA / ${abaData.currentVmMv} mV`;
     if (shouldRenderCanvas && DOM.abaCalciumCanvas && telemetryCharts) {
       telemetryCharts.renderAbaCaWaveScope(DOM.abaCalciumCanvas, abaData);
+    }
+  }
+
+  // 11. Closed-Loop Hydroponic ISE Modal
+  if (DOM.hydroponicIseModal && DOM.hydroponicIseModal.classList.contains("active")) {
+    const iseData = bioEngine.calculateClosedLoopHydroponicIseDynamics(envTele.sensors, crop, plantState, { autoDosed: isAutoDosingActive });
+    if (DOM.iseRecoveryRateVal) DOM.iseRecoveryRateVal.textContent = `${iseData.waterRecoveryRatePct} %`;
+    if (DOM.iseSavingBadge) {
+      DOM.iseSavingBadge.textContent = `● 일일 절수: ${iseData.dailyWaterSavedLiters} L (비료 -${iseData.fertilizerSavedPercent}%)`;
+    }
+    if (DOM.iseDrainEcPhVal) {
+      DOM.iseDrainEcPhVal.textContent = `${iseData.drainageEc} dS/m / ${iseData.drainagePh} pH`;
+    }
+    if (DOM.iseDosingFlowVal) {
+      DOM.iseDosingFlowVal.textContent = `${iseData.totalDosingFlowRateMlHr} mL/hr`;
+    }
+    if (DOM.iseSnrVal) {
+      DOM.iseSnrVal.textContent = iseData.isAutoDosed ? "58.6 dB (정밀 보정 완료)" : "54.2 dB (보정 대기)";
+    }
+    if (shouldRenderCanvas && DOM.hydroponicIseCanvas && telemetryCharts) {
+      telemetryCharts.renderClosedLoopHydroponicScope(DOM.hydroponicIseCanvas, iseData);
     }
   }
 }

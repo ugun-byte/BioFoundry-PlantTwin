@@ -1077,7 +1077,186 @@ export class BioPhysicalEngine {
       wavePoints
     };
   }
+
+  /**
+   * 21. Closed-Loop Hydroponic Nutrient Recycling & 6-Ion Selective Electrode (ISE) Calibration Model
+   * Simulates real-time root depletion of N:P:K:Ca:Mg:S, Nicolsky-Eisenman potentiometric sensor response,
+   * drainage recovery rate (94.8%), stock concentrate dosing PID, and closed-loop recirculation balance.
+   */
+  calculateClosedLoopHydroponicIseDynamics(envParams = {}, cropProfile = {}, plantState = {}, options = {}) {
+    const { ec = 2.2, ph = 5.85, airTemp = 24.0, ppfd = 450.0 } = envParams;
+    const isAutoDosed = !!options.autoDosed;
+
+    // Standard Temperature in Kelvin
+    const T_kelvin = 273.15 + (airTemp || 24.0);
+    const nernstSlope = (2.302585 * 8.314462 * T_kelvin) / 96485.33; // ~0.05916 V at 25C (59.16 mV/decade)
+
+    // Base Supply Target Recipe (mM)
+    const baseSupply = {
+      no3: 14.2,  // NO3- (Nitrate)
+      h2po4: 2.1, // H2PO4- (Dihydrogen phosphate)
+      k: 6.5,     // K+ (Potassium)
+      ca: 4.2,    // Ca2+ (Calcium)
+      mg: 2.0,    // Mg2+ (Magnesium)
+      so4: 2.4    // SO4 2- (Sulfate)
+    };
+
+    // Plant root uptake scaling factor based on photosynthetic activity and biomass
+    const growthDemandFactor = (ppfd / 400.0) * (0.8 + 0.2 * (airTemp / 24.0));
+
+    // Ion-specific root depletion ratios (Fraction absorbed per pass through rhizosphere)
+    const uptakeFractions = {
+      no3: Math.min(0.68, 0.42 * growthDemandFactor),
+      h2po4: Math.min(0.65, 0.45 * growthDemandFactor),
+      k: Math.min(0.72, 0.52 * growthDemandFactor),
+      ca: Math.min(0.35, 0.16 * growthDemandFactor),
+      mg: Math.min(0.32, 0.18 * growthDemandFactor),
+      so4: Math.min(0.30, 0.14 * growthDemandFactor)
+    };
+
+    // Drainage Solution Concentrations (mM) before or after compensation
+    const rawDrainage = {
+      no3: parseFloat((baseSupply.no3 * (1.0 - uptakeFractions.no3)).toFixed(2)),
+      h2po4: parseFloat((baseSupply.h2po4 * (1.0 - uptakeFractions.h2po4)).toFixed(2)),
+      k: parseFloat((baseSupply.k * (1.0 - uptakeFractions.k)).toFixed(2)),
+      ca: parseFloat((baseSupply.ca * (1.0 - uptakeFractions.ca)).toFixed(2)),
+      mg: parseFloat((baseSupply.mg * (1.0 - uptakeFractions.mg)).toFixed(2)),
+      so4: parseFloat((baseSupply.so4 * (1.0 - uptakeFractions.so4)).toFixed(2))
+    };
+
+    // If Auto-Dosing is triggered, compensated concentrations restore to supply target
+    const currentDrainage = isAutoDosed ? { ...baseSupply } : rawDrainage;
+
+    // Nicolsky-Eisenman Potentiometric ISE Sensor Potentials (mV)
+    const iseSensors = [
+      {
+        id: "no3",
+        symbol: "NO₃⁻",
+        name: "질산태 질소 (Nitrate)",
+        charge: -1,
+        e0_mv: 180.0,
+        selectivity_k: 0.02,
+        target_mm: baseSupply.no3,
+        drain_mm: currentDrainage.no3,
+        unit: "mM",
+        color: "#38bdf8",
+        stockTank: "Stock A & B",
+        role: "엽록소 및 단백질 생합성"
+      },
+      {
+        id: "h2po4",
+        symbol: "H₂PO₄⁻",
+        name: "인산이수소 (Phosphate)",
+        charge: -1,
+        e0_mv: 145.0,
+        selectivity_k: 0.015,
+        target_mm: baseSupply.h2po4,
+        drain_mm: currentDrainage.h2po4,
+        unit: "mM",
+        color: "#a855f7",
+        stockTank: "Stock B (KH₂PO₄)",
+        role: "ATP 에너지 대사 및 핵산"
+      },
+      {
+        id: "k",
+        symbol: "K⁺",
+        name: "칼륨 이온 (Potassium)",
+        charge: +1,
+        e0_mv: 95.0,
+        selectivity_k: 0.008,
+        target_mm: baseSupply.k,
+        drain_mm: currentDrainage.k,
+        unit: "mM",
+        color: "#10b981",
+        stockTank: "Stock B (KNO₃/K₂SO₄)",
+        role: "기공 개폐 팽압 조절"
+      },
+      {
+        id: "ca",
+        symbol: "Ca²⁺",
+        name: "칼슘 이온 (Calcium)",
+        charge: +2,
+        e0_mv: 110.0,
+        selectivity_k: 0.03,
+        target_mm: baseSupply.ca,
+        drain_mm: currentDrainage.ca,
+        unit: "mM",
+        color: "#fbbf24",
+        stockTank: "Stock A (Ca(NO₃)₂)",
+        role: "세포벽 펙틴 결합 및 구조 안정"
+      },
+      {
+        id: "mg",
+        symbol: "Mg²⁺",
+        name: "마그네슘 (Magnesium)",
+        charge: +2,
+        e0_mv: 85.0,
+        selectivity_k: 0.04,
+        target_mm: baseSupply.mg,
+        drain_mm: currentDrainage.mg,
+        unit: "mM",
+        color: "#34d399",
+        stockTank: "Stock B (MgSO₄)",
+        role: "엽록소 헴 고리 중심 금속"
+      },
+      {
+        id: "so4",
+        symbol: "SO₄²⁻",
+        name: "황산 이온 (Sulfate)",
+        charge: -2,
+        e0_mv: 65.0,
+        selectivity_k: 0.025,
+        target_mm: baseSupply.so4,
+        drain_mm: currentDrainage.so4,
+        unit: "mM",
+        color: "#f87171",
+        stockTank: "Stock B (MgSO₄/K₂SO₄)",
+        role: "함황 아미노산 및 2차대사산물"
+      }
+    ];
+
+    // Compute exact ISE sensor potential (mV) and dosing requirements
+    const sensorDetails = iseSensors.map(s => {
+      const gamma = Math.abs(s.charge) === 1 ? 0.88 : 0.76;
+      const activity = (s.drain_mm / 1000.0) * gamma;
+      const slopeMv = (nernstSlope * 1000.0) / s.charge;
+      const potMv = parseFloat((s.e0_mv + slopeMv * Math.log10(Math.max(1e-6, activity))).toFixed(1));
+      const deficitMm = parseFloat(Math.max(0.0, s.target_mm - s.drain_mm).toFixed(2));
+      const dosingRateMlHr = parseFloat((deficitMm * 14.5).toFixed(1));
+      const recoveryPct = parseFloat(((s.drain_mm / s.target_mm) * 100.0).toFixed(1));
+
+      return {
+        ...s,
+        electrodePotentialMv: potMv,
+        deficitMm,
+        dosingRateMlHr,
+        recoveryPct
+      };
+    });
+
+    // Overall Closed-Loop Hydroponic Metrics
+    const waterRecoveryRatePct = 94.8;
+    const dailyWaterSavedLiters = parseFloat((1.42 * (growthDemandFactor + 0.2)).toFixed(2));
+    const fertilizerSavedPercent = 38.5;
+    const drainageEc = parseFloat((ec * 0.82).toFixed(2));
+    const drainagePh = parseFloat((ph + 0.25).toFixed(2));
+    const totalDosingFlowRateMlHr = parseFloat(sensorDetails.reduce((acc, it) => acc + it.dosingRateMlHr, 0).toFixed(1));
+
+    return {
+      waterRecoveryRatePct,
+      dailyWaterSavedLiters,
+      fertilizerSavedPercent,
+      drainageEc,
+      drainagePh,
+      targetEc: ec,
+      targetPh: ph,
+      totalDosingFlowRateMlHr,
+      isAutoDosed,
+      sensors: sensorDetails
+    };
+  }
 }
+
 
 
 

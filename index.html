@@ -441,6 +441,10 @@
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
                 <span>ABA 칼슘 파동(Ca²⁺)</span>
               </button>
+              <button id="btnHydroponicIseScope" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #0284c7; color: #bae6fd; background: rgba(12, 74, 110, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="스마트 양액 100% 폐쇄 재순환 & 6-ISE 이온 전극 실시간 자동 보정기">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                <span>스마트 양액 폐쇄 루프(ISE)</span>
+              </button>
               <button id="btnIotBridge" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #a855f7; color: #e9d5ff; background: rgba(88, 28, 135, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="스마트팜 산업용 PLC/Modbus-TCP/MQTT 브릿지">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
                 <span>IoT/Modbus 브릿지</span>
@@ -2079,6 +2083,83 @@
           </button>
           <button id="btnExportAbaCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
             📋 [Ca²⁺] 파동 시계열 CSV 내보내기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 18: Smart Hydroponic Closed-Loop Nutrient Recycling & 6-ISE Calibration Modal -->
+  <div id="hydroponicIseModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 880px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="hydroponicIseModalTitle" style="color: #38bdf8; font-size: 15px;">💧 스마트 양액 100% 폐쇄 재순환 & 6-ISE 이온 전극 실시간 자동 보정기</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Nicolsky-Eisenman 전위 모델 • N:P:K:Ca:Mg:S 근권 차등 흡수 배액 검출 • 94.8% 순환 회수 및 마이크로 도징</p>
+        </div>
+        <button id="hydroponicIseClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr 1.1fr; gap: 8px; margin-bottom: 12px;">
+        <div class="kpi-tile" style="padding: 8px 12px; background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.35);">
+          <span style="font-size: 9px; color: var(--text-muted);">양액 순환 회수율 (Recovery)</span>
+          <b id="iseRecoveryRateVal" class="kpi-big-val cyan" style="font-size: 20px;">94.8 %</b>
+          <span id="iseSavingBadge" style="font-size: 9px; color: #34d399; font-weight: 600; margin-top: 2px;">● 일일 절수: 1.42 L (비료 -38.5%)</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">배액 EC / pH 드리프트</span>
+          <b id="iseDrainEcPhVal" class="kpi-big-val gold" style="font-size: 16px;">1.80 dS/m / 6.10 pH</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">목표: 2.2 dS/m / 5.85 pH</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">총 정밀 주입 유량 (Dosing)</span>
+          <b id="iseDosingFlowVal" class="kpi-big-val emerald" style="font-size: 16px;">82.4 mL/hr</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Stock A/B & 산 투입</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">ISE 전극 평균 신호 잡음비</span>
+          <b id="iseSnrVal" class="kpi-big-val purple" style="font-size: 16px;">54.2 dB (정밀)</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Nicolsky-Eisenman 보정</span>
+        </div>
+      </div>
+
+      <!-- Dual Canvas (Left: Closed Loop Flow Schematic | Right: 6-Ion Supply vs Drain Bar Chart) -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); padding: 12px; position: relative; margin-bottom: 12px;">
+        <canvas id="hydroponicIseCanvas" style="width: 100%; height: 220px; display: block;"></canvas>
+      </div>
+
+      <!-- 6-Ion Potentiometric & Dosing Breakdown Table -->
+      <div style="max-height: 130px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); margin-bottom: 10px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+          <thead style="background: rgba(15, 23, 42, 0.9); color: #38bdf8; position: sticky; top: 0;">
+            <tr>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">이온 심볼</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">이온 명칭 & 역할</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">공급 목표 (Target)</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">배액 실측 (Drain)</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">ISE 전위 (Ei)</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">도징 펌프 주입량</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">보정 탱크</th>
+            </tr>
+          </thead>
+          <tbody id="hydroponicIseTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * 폐쇄형 수경재배는 배액을 전량 회수하여 정밀 보정 후 재공급함으로써 수자원과 비료를 최대 40% 절감합니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnAutoDoseIse" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">
+            ⚡ 6대 이온 실시간 자동 보정 주입 (Auto Dosing)
+          </button>
+          <button id="btnExportIseCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
+            📋 배액 ISE 계측 데이터 CSV 내보내기
           </button>
         </div>
       </div>
