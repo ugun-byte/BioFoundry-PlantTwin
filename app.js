@@ -1407,6 +1407,8 @@ function simulationLoop(now) {
         DOM.pumpBaseBadge.style.color = "var(--text-muted)";
         DOM.pumpBaseBadge.textContent = "알칼리(KOH) 펌프: 대기";
       }
+    }
+
     // 9c. Update Thermal IR HUD Legend if Active
     if (plantChamber3d && plantChamber3d.isThermalMode) {
       const thermalLive = bioEngine.calculateThermalLeafInfrared(envTele.sensors, crop, plantState);

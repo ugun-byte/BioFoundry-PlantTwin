@@ -952,20 +952,19 @@ export class ThreePlantChamber {
       }
     }
 
-    // Stem height and thickness scaling (Day 1 starts as small sprout 0.08m, growing to 0.85m at Day 42)
-    const minStemH = 0.08;
-    const adultStemH = this.currentSpecies === "spinach_carotenoid" ? 0.35 : (this.currentSpecies === "tobacco_recombinant" ? 1.05 : 0.85);
+    // Stem height and thickness scaling (Day 1 starts as healthy seedling 0.22m, growing to 0.85m at Day 42)
+    const minStemH = 0.22;
+    const adultStemH = this.currentSpecies === "spinach_carotenoid" ? 0.45 : (this.currentSpecies === "tobacco_recombinant" ? 1.05 : 0.85);
     const dayNorm = (simulatedDay - 1) / Math.max(1, harvestDays - 1); // 0.0 on Day 1, 1.0 on Day 42
-    const stemH = minStemH + Math.pow(dayNorm, 0.9) * (adultStemH - minStemH);
-    const stemThick = Math.max(0.18, 0.20 + dayNorm * 0.90);
-    this.stemMesh.scale.set(stemThick, Math.max(0.08, stemH / this.stemHeight), stemThick);
+    const stemH = minStemH + Math.pow(dayNorm, 0.85) * (adultStemH - minStemH);
+    const stemThick = Math.max(0.35, 0.38 + dayNorm * 0.70);
+    this.stemMesh.scale.set(stemThick, Math.max(0.25, stemH / this.stemHeight), stemThick);
     this.stemMesh.position.y = stemH / 2;
 
     const turgorFactor = sensors.vpd > 1.6 ? Math.max(0.35, 1.0 - (sensors.vpd - 1.6) * 0.9) : 1.0;
 
-    // Foliage leaves count and growth
-    // Day 1: 2 small cotyledons -> Day 42: 16 full broad leaves
-    const visibleLeafCount = Math.min(this.leaves.length, Math.max(2, Math.floor(2 + dayNorm * 14)));
+    // Foliage leaves count and growth (Day 1: 4 healthy leaves -> Day 42: 16 full broad leaves)
+    const visibleLeafCount = Math.min(this.leaves.length, Math.max(4, Math.floor(4 + dayNorm * 12)));
 
     // Lutein Color Shift
     const luteinRatio = Math.min(1.0, Math.max(0.0, (luteinConcentration - 2.0) / 3.0));
@@ -977,12 +976,12 @@ export class ThreePlantChamber {
 
     this.leaves.forEach((l, idx) => {
       if (idx < visibleLeafCount) {
-        // Individual leaf size scaling: starts small at seedling, grows to full broad leaf
-        const leafMaturity = Math.max(0.25, Math.min(1.0, (dayNorm * 16 - idx * 0.7) / 2.0));
-        const lScale = (0.28 + dayNorm * 0.85) * leafMaturity;
+        // Individual leaf size scaling
+        const leafMaturity = Math.max(0.45, Math.min(1.0, (dayNorm * 16 - idx * 0.5 + 1.0) / 2.0));
+        const lScale = (0.42 + dayNorm * 0.70) * leafMaturity;
 
         // Position along the stem
-        const posY = Math.max(0.04, stemH * (0.15 + (idx / Math.max(1, visibleLeafCount)) * 0.78));
+        const posY = Math.max(0.06, stemH * (0.15 + (idx / Math.max(1, visibleLeafCount)) * 0.78));
         l.mesh.position.set(0, posY, 0);
         l.mesh.scale.set(lScale, lScale, lScale);
 
@@ -991,7 +990,7 @@ export class ThreePlantChamber {
         const droopPitch = (1.0 - turgorFactor) * 0.55;
         l.mesh.rotation.set(basePitch + droopPitch, l.baseAngle, 0.12);
 
-        if (l.mesh.material) {
+        if (l.mesh.material && !this.isThermalMode) {
           l.mesh.material.color.lerp(targetLeafColor, 0.08);
         }
       } else {
