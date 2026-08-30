@@ -831,6 +831,20 @@ input:checked + .switch-slider:before {
   background: transparent !important;
 }
 
+.viewport-card:fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+  background: #030712 !important;
+  padding: 0 !important;
+}
+
+.viewport-card:fullscreen #plant3dContainer {
+  height: 100vh !important;
+}
+
 /* 3D Viewport Title Bar (Floating Top Inside Viewport) */
 .viewport-floating-header {
   position: absolute;

@@ -61,6 +61,7 @@ export class ThreePlantChamber {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
+      preserveDrawingBuffer: true,
       premultipliedAlpha: false,
       powerPreference: "high-performance"
     });

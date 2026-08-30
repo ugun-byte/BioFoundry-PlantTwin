@@ -97,8 +97,11 @@ const DOM = {
   inputColdShift: document.getElementById("inputColdShift"),
 
   // 3D Simulation Chamber & HUD
+  viewportCard: document.querySelector(".viewport-card"),
   plant3dContainer: document.getElementById("plant3dContainer"),
   btnCapture4K: document.getElementById("btnCapture4K"),
+  btnTargetFocus: document.getElementById("btnTargetFocus"),
+  btnFullscreen: document.getElementById("btnFullscreen"),
   btnResetCamera: document.getElementById("btnResetCamera"),
   hudChlAb: document.getElementById("hudChlAb"),
   hudStomatalGs: document.getElementById("hudStomatalGs"),
@@ -815,16 +818,67 @@ function bindEventListeners() {
     });
   });
 
-  // 3D Viewport Controls
-  DOM.btnResetCamera.addEventListener("click", () => {
-    audio.playClick();
-    if (plantChamber3d) plantChamber3d.resetCamera();
-  });
+  // 3D Viewport Utility Controls (4K Snapshot, Target Focus, Fullscreen, Reset Camera)
+  if (DOM.btnResetCamera) {
+    DOM.btnResetCamera.addEventListener("click", () => {
+      audio.playClick();
+      if (plantChamber3d) plantChamber3d.resetCamera();
+    });
+  }
 
-  DOM.btnCapture4K.addEventListener("click", () => {
-    audio.playPulse();
-    const canvas = DOM.plant3dContainer.querySelector("canvas");
-    DataExporter.captureCanvasSnapshot(canvas, `BioFoundry_PlantTwin_${profileManager.getActiveProfile().id}.png`);
+  if (DOM.btnTargetFocus) {
+    DOM.btnTargetFocus.addEventListener("click", () => {
+      audio.playClick();
+      if (plantChamber3d) {
+        plantChamber3d.smoothFocusCamera(new THREE.Vector3(0, 0.48, 0), 3.2, 500);
+      }
+    });
+  }
+
+  if (DOM.btnCapture4K) {
+    DOM.btnCapture4K.addEventListener("click", () => {
+      audio.playPulse();
+      const canvas = DOM.plant3dContainer.querySelector("canvas");
+      if (canvas) {
+        const crop = profileManager.getActiveProfile();
+        const curDay = DOM.teleDay ? DOM.teleDay.textContent : "01";
+        const success = DataExporter.captureCanvasSnapshot(canvas, `BioFoundry_${crop.id}_Day${curDay}.png`);
+        if (success) {
+          DOM.btnCapture4K.style.borderColor = "var(--emerald-primary)";
+          DOM.btnCapture4K.style.color = "var(--emerald-glow)";
+          setTimeout(() => {
+            DOM.btnCapture4K.style.borderColor = "";
+            DOM.btnCapture4K.style.color = "";
+          }, 1200);
+        }
+      }
+    });
+  }
+
+  if (DOM.btnFullscreen) {
+    DOM.btnFullscreen.addEventListener("click", () => {
+      audio.playClick();
+      const targetElem = DOM.viewportCard || DOM.plant3dContainer;
+      if (!document.fullscreenElement) {
+        if (targetElem.requestFullscreen) {
+          targetElem.requestFullscreen();
+        } else if (targetElem.webkitRequestFullscreen) {
+          targetElem.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    });
+  }
+
+  document.addEventListener("fullscreenchange", () => {
+    setTimeout(() => {
+      if (plantChamber3d) plantChamber3d.onResize();
+    }, 80);
   });
 
   // AI Auto-Pilot Switch
