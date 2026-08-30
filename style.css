@@ -834,21 +834,37 @@ input:checked + .switch-slider:before {
 /* 3D Viewport Title Bar (Floating Top Inside Viewport) */
 .viewport-floating-header {
   position: absolute;
-  top: 10px;
+  top: 8px;
   left: 12px;
   right: 12px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
   pointer-events: none;
   z-index: 10;
 }
 
+.viewport-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .viewport-title {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #fff;
+  white-space: nowrap;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.2px;
+}
+
+.viewport-utility-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: auto;
 }
 
 .viewport-tools {
@@ -856,7 +872,7 @@ input:checked + .switch-slider:before {
   align-items: center;
   gap: 5px;
   pointer-events: auto;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .viewport-tools .btn {
