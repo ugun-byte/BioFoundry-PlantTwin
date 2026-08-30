@@ -1067,7 +1067,7 @@ function bindEventListeners() {
     DOM.btnFocusZoomTissue.addEventListener("click", () => {
       audio.playPulse();
       if (plantChamber3d) {
-        plantChamber3d.smoothFocusCamera(new THREE.Vector3(0, 0.45, 0), 1.2, 700);
+        plantChamber3d.smoothFocusCamera(new THREE.Vector3(0, 0.85, 0), 1.2, 700);
       }
     });
   }
@@ -1479,7 +1479,7 @@ function bindEventListeners() {
     DOM.btnTargetFocus.addEventListener("click", () => {
       audio.playClick();
       if (plantChamber3d) {
-        plantChamber3d.smoothFocusCamera(new THREE.Vector3(0, 0.48, 0), 3.2, 500);
+        plantChamber3d.smoothFocusCamera(new THREE.Vector3(0, 1.02, 0), 3.65, 500);
       }
     });
   }
