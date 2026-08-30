@@ -357,6 +357,60 @@ export class CyberAudioEngine {
       osc.stop(this.ctx.currentTime + 0.35);
     } catch (e) {}
   }
+
+  /**
+   * Synthesizes DeepMind AlphaZero/MuZero-style RL policy convergence chime
+   */
+  playRlConvergenceChime() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const chords = [440, 554.37, 659.25, 880, 1108.73]; // A Major 9th cosmic arpeggio
+      chords.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.06);
+
+        gain.gain.setValueAtTime(0.05, this.ctx.currentTime + idx * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.0005, this.ctx.currentTime + idx * 0.06 + 0.4);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(this.ctx.currentTime + idx * 0.06);
+        osc.stop(this.ctx.currentTime + idx * 0.06 + 0.4);
+      });
+    } catch (e) {}
+  }
+
+  /**
+   * Synthesizes 3D Pareto multi-objective strategy switch tone
+   */
+  playParetoSwitchSound() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(587.33, this.ctx.currentTime); // D5
+      osc.frequency.exponentialRampToValueAtTime(880.0, this.ctx.currentTime + 0.08); // A5
+
+      gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.12);
+    } catch (e) {}
+  }
 }
 
 

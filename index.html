@@ -453,6 +453,14 @@
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 <span>틸라코이드 ETC / ATP</span>
               </button>
+              <button id="btnParetoTradeoff" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #f59e0b; color: #fde68a; background: rgba(180, 83, 9, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="3차원 파레토 다목적 상충관계(Trade-Off) 최적화 스튜디오">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                <span>3D 파레토 다목적</span>
+              </button>
+              <button id="btnDeepmindRlAgent" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #0284c7; color: #bae6fd; background: rgba(3, 105, 161, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="Google DeepMind DQN / PPO 분자농업 강화학습 자율 최적화 에이전트">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"></path></svg>
+                <span>DeepMind AI 강화학습</span>
+              </button>
               <button id="btnPlant2Human" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #ec4899; color: #fbcfe8; background: rgba(80, 7, 36, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="식물-인간 인터페이스(Plant2Human) 신경 신호 가시화">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"></path></svg>
                 <span>Plant2Human</span>
@@ -2328,6 +2336,115 @@
           </button>
           <button id="btnExportThylakoidCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
             📋 틸라코이드 ETC 데이터 CSV 내보내기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 21: 3D Multi-Objective Pareto Frontier Trade-Off Studio Modal -->
+  <div id="paretoTradeoffModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 880px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="paretoModalTitle" style="color: #fbbf24; font-size: 15px;">🎯 3차원 파레토 다목적 상충관계(Trade-Off) 최적화 스튜디오</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">루테인 유효성분 농도(mg/g) vs 생체 바이오매스 건물중(g) vs 전력 에너지 효율(mg/kWh) 3각 파레토 프론티어</p>
+        </div>
+        <button id="paretoTradeoffClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- 3 Mode Selection Pills -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+        <button id="btnParetoModeQuality" class="btn btn-outline" style="padding: 8px 12px; border-color: #38bdf8; background: rgba(14, 165, 233, 0.18); text-align: left;">
+          <div style="font-size: 12px; font-weight: 700; color: #38bdf8;">🥇 [품질 중심] 최고순도 의약품 모드</div>
+          <div style="font-size: 9.5px; color: rgba(255,255,255,0.7); margin-top: 2px;">고광량/UV-B 유도 • 루테인 수율 극대화 (w1=0.7)</div>
+        </button>
+        <button id="btnParetoModeBiomass" class="btn btn-outline" style="padding: 8px 12px; border-color: rgba(52, 211, 153, 0.4); background: rgba(5, 150, 105, 0.08); text-align: left;">
+          <div style="font-size: 12px; font-weight: 700; color: #34d399;">🥈 [생산량 중심] 최대 바이오매스 모드</div>
+          <div style="font-size: 9.5px; color: rgba(255,255,255,0.7); margin-top: 2px;">광포화 최적점 • 생체 건물중 수확량 극대화 (w2=0.7)</div>
+        </button>
+        <button id="btnParetoModeEsg" class="btn btn-outline" style="padding: 8px 12px; border-color: rgba(168, 85, 247, 0.4); background: rgba(124, 58, 237, 0.08); text-align: left;">
+          <div style="font-size: 12px; font-weight: 700; color: #c084fc;">🥉 [친환경 ESG] 최소 에너지 절약 모드</div>
+          <div style="font-size: 9.5px; color: rgba(255,255,255,0.7); margin-top: 2px;">광효율 2.8μmol/J • 전력 kWh당 생산성 극대화 (w3=0.6)</div>
+        </button>
+      </div>
+
+      <!-- 3D Canvas Container -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(251, 191, 36, 0.25); border-radius: var(--radius-sm); padding: 12px; position: relative; margin-bottom: 12px;">
+        <canvas id="paretoTradeoffCanvas" style="width: 100%; height: 220px; display: block;"></canvas>
+      </div>
+
+      <!-- Footer Action Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * 파레토 프론티어(Non-dominated Frontier) 위의 점들은 한 목표를 개선하려면 다른 목표를 희생해야 하는 절대 최적해 집합입니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnApplyParetoRecipe" class="btn btn-primary" style="padding: 6px 14px; font-size: 11px; background: #f59e0b; border: none; font-weight: 700; color: #000;">
+            🚀 선택된 파레토 최적 레시피 즉시 적용 (Apply)
+          </button>
+          <button id="btnExportParetoCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
+            📋 3D 파레토 데이터셋 CSV 내보내기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 22: Google DeepMind DQN/PPO Autonomous Cultivation RL Agent Modal -->
+  <div id="deepmindRlModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 880px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="rlModalTitle" style="color: #38bdf8; font-size: 15px;">🧠 Google DeepMind DQN / PPO 분자농업 강화학습(RL) 자율 최적화 에이전트</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">6차원 상태 공간(S) • 8차원 행동 공간(A) • 실시간 보상 함수(R) 역전파 • Q-Network 자율 제어 정책</p>
+        </div>
+        <button id="deepmindRlClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+        <div class="kpi-tile" style="padding: 8px 12px; background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.35);">
+          <span style="font-size: 9px; color: var(--text-muted);">최대 누적 보상 (Best R)</span>
+          <b id="rlBestRewardVal" class="kpi-big-val cyan" style="font-size: 20px;">+2,842.5</b>
+          <span id="rlEpisodeBadge" style="font-size: 9px; color: #34d399; font-weight: 600; margin-top: 2px;">● 200 Epochs 훈련 완료</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">AI 최적화 수율 달성</span>
+          <b id="rlYieldGainVal" class="kpi-big-val gold" style="font-size: 16px;">+34.8% 증대</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Lutein 16.2 mg/g DW</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">전력 소비량 절감률</span>
+          <b id="rlEnergySavedVal" class="kpi-big-val emerald" style="font-size: 16px;">-22.4% 절감</b>
+          <span style="font-size: 9px; color: #34d399; margin-top: 2px;">동적 주야간 DIF 제어</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">신경망 탐색 탐험율 (ε)</span>
+          <b id="rlEpsilonVal" class="kpi-big-val purple" style="font-size: 16px;">ε = 0.050</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">최적 정책(Greedy) 수렴</span>
+        </div>
+      </div>
+
+      <!-- RL Dashboard Canvas -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); padding: 12px; position: relative; margin-bottom: 12px;">
+        <canvas id="deepmindRlCanvas" style="width: 100%; height: 220px; display: block;"></canvas>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * DeepMind Q-Network가 200회 가상 에피소드 반복 롤아웃을 통해 최적 환경 제어 정책 Q(s,a)를 도출했습니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnTrainRlAgent" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">
+            ⚡ 200 에피소드 고속 재학습 (Retrain RL)
+          </button>
+          <button id="btnDeployRlPolicy" class="btn btn-primary" style="padding: 6px 14px; font-size: 11px; background: #38bdf8; border: none; font-weight: 700; color: #000;">
+            🚀 학습된 AI 정책 자율 운전 배포 (Deploy)
+          </button>
+          <button id="btnExportRlCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
+            📋 RL 훈련 로그 CSV 내보내기
           </button>
         </div>
       </div>

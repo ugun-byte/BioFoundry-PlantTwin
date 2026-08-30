@@ -369,4 +369,236 @@ export class AutonomousAiOptimizer {
       `4. [고농도 CO₂ ${recipe.co2} ppm 포화]: 광호흡(Photorespiration)을 원천 차단하여 순광합성 속도를 ${recipe.netAn.toFixed(2)} μmol CO₂/m²s 수준으로 끌어올렸습니다.`
     ];
   }
+
+  /**
+   * Multi-Objective 3D Pareto Frontier Trade-Off Solver
+   * Analyzes the 3-Way Trade-off: [Lutein Purity mg/g] vs [Biomass g/plant] vs [Energy Efficiency mg/kWh]
+   */
+  searchMultiObjectiveParetoFrontier(cropProfile) {
+    const candidates = [];
+    const ppfdVals = [250, 400, 550, 700, 850];
+    const tempVals = [18, 21, 24, 27, 30];
+    const co2Vals = [400, 700, 1000, 1300];
+
+    for (const ppfd of ppfdVals) {
+      for (const temp of tempVals) {
+        for (const co2 of co2Vals) {
+          const photo = this.bioModel.calculateInstantaneousPhotosynthesis({
+            ppfd,
+            airTemp: temp,
+            humidity: 68.0,
+            co2Air: co2,
+            vpdAir: 1.05,
+            spectrum: { red: 65, green: 10, blue: 20, farRed: 5 }
+          }, cropProfile);
+
+          const flux = this.bioModel.calculateSecondaryMetaboliteFlux(photo, {
+            ppfd,
+            spectrum: { red: 65, green: 10, blue: 20, farRed: 5 },
+            uvbActive: true,
+            coldShockActive: false,
+            ec: 2.2
+          }, cropProfile, {
+            dryWeightGrams: 4.5,
+            leafDryWeightGrams: 3.2,
+            luteinConcentration: cropProfile.baseLuteinConcentration
+          });
+
+          const ledWatts = (ppfd / 2.8) * 0.8;
+          const hvacWatts = Math.abs(temp - 20.0) * 12.0 + 35.0;
+          const totalPowerKw = (ledWatts + hvacWatts) / 1000.0;
+
+          // 3 Objectives
+          const luteinMgG = parseFloat((cropProfile.baseLuteinConcentration + (flux.luteinFluxRateMgPerHour * 2.8)).toFixed(2));
+          const biomassG = parseFloat((3.0 + photo.netPhotosynthesis * 0.45).toFixed(2));
+          const energyEff = parseFloat(((flux.luteinFluxRateMgPerHour * 16.0) / (totalPowerKw * 16.0 + 0.1)).toFixed(2));
+
+          candidates.push({
+            ppfd,
+            temp,
+            co2,
+            luteinMgG,
+            biomassG,
+            energyEff,
+            netAn: photo.netPhotosynthesis,
+            isPareto: false
+          });
+        }
+      }
+    }
+
+    // Identify Non-Dominated Pareto Frontier Points
+    const paretoPoints = [];
+    candidates.forEach(c1 => {
+      let isDominated = false;
+      for (const c2 of candidates) {
+        if (c2.luteinMgG >= c1.luteinMgG && c2.biomassG >= c1.biomassG && c2.energyEff >= c1.energyEff) {
+          if (c2.luteinMgG > c1.luteinMgG || c2.biomassG > c1.biomassG || c2.energyEff > c1.energyEff) {
+            isDominated = true;
+            break;
+          }
+        }
+      }
+      if (!isDominated) {
+        c1.isPareto = true;
+        paretoPoints.push(c1);
+      }
+    });
+
+    // 3 Optimal Modes
+    const qualityMode = [...candidates].sort((a, b) => (b.luteinMgG * 0.7 + b.biomassG * 0.15 + b.energyEff * 0.15) - (a.luteinMgG * 0.7 + a.biomassG * 0.15 + a.energyEff * 0.15))[0];
+    const biomassMode = [...candidates].sort((a, b) => (b.luteinMgG * 0.15 + b.biomassG * 0.7 + b.energyEff * 0.15) - (a.luteinMgG * 0.15 + a.biomassG * 0.7 + a.energyEff * 0.15))[0];
+    const esgMode = [...candidates].sort((a, b) => (b.luteinMgG * 0.2 + b.biomassG * 0.2 + b.energyEff * 0.6) - (a.luteinMgG * 0.2 + a.biomassG * 0.2 + a.energyEff * 0.6))[0];
+
+    return {
+      totalCandidates: candidates.length,
+      paretoPointsCount: paretoPoints.length,
+      allPoints: candidates,
+      paretoPoints,
+      modes: {
+        quality: qualityMode,
+        biomass: biomassMode,
+        esg: esgMode
+      }
+    };
+  }
+
+  /**
+   * Draws 3D Isometric Scatter Landscape of the 3-Way Pareto Frontier
+   */
+  draw3dParetoTradeoffCanvas(canvas, paretoData, selectedMode = 'quality') {
+    if (!canvas || !paretoData) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width || 800;
+    const h = rect.height || 220;
+
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+
+    // Dark Background
+    ctx.fillStyle = "rgba(4, 8, 15, 0.95)";
+    ctx.fillRect(0, 0, w, h);
+
+    const midX = w * 0.45;
+
+    // Divider Line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(midX, 10);
+    ctx.lineTo(midX, h - 10);
+    ctx.stroke();
+
+    // ==========================================
+    // LEFT PANE: 3D Isometric Pareto Frontier
+    // ==========================================
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① 3차원 파레토 프론티어 곡면 (Lutein × Biomass × Energy)", 14 * dpr, 18 * dpr);
+
+    const ox = 175;
+    const oy = 160;
+
+    // 3 Isometric Axes: X (Lutein), Y (Biomass), Z (Energy)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 1.2 * dpr;
+
+    // X-Axis (Lutein, down-right)
+    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + 120, oy + 40); ctx.stroke();
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = `bold ${7.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("▶ 루테인 농도 (mg/g)", ox + 65, oy + 52);
+
+    // Y-Axis (Biomass, up-right)
+    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + 100, oy - 90); ctx.stroke();
+    ctx.fillStyle = "#34d399";
+    ctx.fillText("▲ 바이오매스 건물중 (g)", ox + 50, oy - 95);
+
+    // Z-Axis (Energy Eff, down-left)
+    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox - 130, oy + 35); ctx.stroke();
+    ctx.fillStyle = "#c084fc";
+    ctx.fillText("◀ 에너지 효율 (mg/kWh)", ox - 145, oy + 48);
+
+    // Project points into 3D isometric space
+    const project3D = (p) => {
+      const uLutein = (p.luteinMgG - 2.0) / 10.0;
+      const uBiomass = (p.biomassG - 2.5) / 9.0;
+      const uEnergy = (p.energyEff - 2.0) / 16.0;
+
+      const px = ox + (uLutein * 120) + (uBiomass * 100) - (uEnergy * 130);
+      const py = oy + (uLutein * 40) - (uBiomass * 90) + (uEnergy * 35);
+      return { px, py };
+    };
+
+    // Draw candidate dots
+    paretoData.allPoints.forEach(pt => {
+      const { px, py } = project3D(pt);
+      ctx.fillStyle = pt.isPareto ? "#fbbf24" : "rgba(255, 255, 255, 0.15)";
+      ctx.beginPath();
+      ctx.arc(px, py, pt.isPareto ? 3.5 : 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Highlight Selected Mode Point
+    const activePoint = paretoData.modes[selectedMode] || paretoData.modes.quality;
+    if (activePoint) {
+      const { px, py } = project3D(activePoint);
+      ctx.save();
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2 * dpr;
+      ctx.beginPath();
+      ctx.arc(px, py, 9, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = "#fff";
+      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`★ 최적점 (${activePoint.luteinMgG}mg/g, ${activePoint.biomassG}g, ${activePoint.energyEff}mg/kWh)`, px + 12, py - 4);
+      ctx.restore();
+    }
+
+    // ==========================================
+    // RIGHT PANE: Mode Comparison Bar Breakdown
+    // ==========================================
+    const rightL = midX + 18;
+    const rightW = w - rightL - 18;
+
+    ctx.fillStyle = "#34d399";
+    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② 3대 전략별 파레토 최적 솔루션 비교 분석", rightL, 18 * dpr);
+
+    const modeList = [
+      { key: "quality", name: "🥇 [품질 중심] 최고순도 의약품 모드", data: paretoData.modes.quality, color: "#38bdf8" },
+      { key: "biomass", name: "🥈 [생산량 중심] 최대 바이오매스 상업 모드", data: paretoData.modes.biomass, color: "#34d399" },
+      { key: "esg", name: "🥉 [친환경 ESG] 최소 에너지 절약 모드", data: paretoData.modes.esg, color: "#c084fc" }
+    ];
+
+    modeList.forEach((m, idx) => {
+      const cardY = 36 + idx * 56;
+      const isSel = m.key === selectedMode;
+
+      ctx.fillStyle = isSel ? "rgba(56, 189, 248, 0.15)" : "rgba(255, 255, 255, 0.03)";
+      ctx.strokeStyle = isSel ? m.color : "rgba(255, 255, 255, 0.1)";
+      ctx.lineWidth = isSel ? 1.5 : 1;
+      ctx.beginPath();
+      ctx.roundRect(rightL, cardY, rightW, 50, 4);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = m.color;
+      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(m.name, rightL + 8, cardY + 14);
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.font = `${7.5 * dpr}px monospace`;
+      ctx.fillText(`PPFD: ${m.data.ppfd} μmol | Temp: ${m.data.temp}°C | CO₂: ${m.data.co2} ppm`, rightL + 8, cardY + 28);
+      ctx.fillText(`유효분자: ${m.data.luteinMgG} mg/g | 건물중: ${m.data.biomassG} g | 에너지효율: ${m.data.energyEff} mg/kWh`, rightL + 8, cardY + 41);
+    });
+  }
 }
+
