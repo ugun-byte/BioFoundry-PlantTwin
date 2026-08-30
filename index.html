@@ -423,6 +423,10 @@
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fb7185" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 <span>PAM 형광 진단</span>
               </button>
+              <button id="btnHplcAnalyzer" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #eab308; color: #fef08a; background: rgba(113, 63, 18, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="분자농업 유효 대사체 HPLC 역상 크로마토그래피 가상 분석기">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6 9l4 4 4-8 4 6"></path></svg>
+                <span>HPLC 크로마토</span>
+              </button>
               <button id="btnIotBridge" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #a855f7; color: #e9d5ff; background: rgba(88, 28, 135, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="스마트팜 산업용 PLC/Modbus-TCP/MQTT 브릿지">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
                 <span>IoT/Modbus 브릿지</span>
@@ -1391,6 +1395,87 @@
         <div style="display: flex; gap: 8px;">
           <button id="btnListenPlantThirst" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #f472b6; border-color: rgba(236, 72, 153, 0.4);">
             🔊 식물 갈증 소리 듣기 (Audio Synth)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 14: High-Performance Liquid Chromatography (HPLC) Virtual Analyzer Modal -->
+  <div id="hplcModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 860px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="hplcModalTitle" style="color: #facc15; font-size: 15px;">🧪 분자농업 2차 대사산물(Lutein) 고성능 액체 크로마토그래피(HPLC) 분석</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">C18 역상 컬럼 (250x4.6mm, 5μm) • UV/Vis 450nm 흡광 검출기 • 화학적 분리 정량</p>
+        </div>
+        <button id="hplcClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+        <div class="kpi-tile" style="padding: 8px 12px; background: rgba(234, 179, 8, 0.08); border-color: rgba(234, 179, 8, 0.35);">
+          <span style="font-size: 9px; color: var(--text-muted);">타깃 분자 체류시간 (Rt)</span>
+          <b id="hplcRtVal" class="kpi-big-val gold" style="font-size: 20px;">6.82 min</b>
+          <span id="hplcRtStatus" style="font-size: 9px; color: #fbbf24; font-weight: 600; margin-top: 2px;">● 루테인 피크 분리 완료</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">크로마토그램 피크 순도</span>
+          <b id="hplcPurityVal" class="kpi-big-val emerald" style="font-size: 16px;">94.2 %</b>
+          <span style="font-size: 9px; color: #34d399; margin-top: 2px;">의약품 등급 순도</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">정량 농도 (Quant Content)</span>
+          <b id="hplcQuantVal" class="kpi-big-val cyan" style="font-size: 16px;">18.5 mg/g DW</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">생물전환 수율 양호</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">컬럼 이론단수 (Plates N)</span>
+          <b id="hplcPlatesVal" class="kpi-big-val purple" style="font-size: 16px;">14,850</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">분리능 Rs > 2.4</span>
+        </div>
+      </div>
+
+      <!-- HPLC Chromatogram Scope Canvas -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: var(--radius-sm); padding: 12px; position: relative; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px; color: var(--text-muted);">
+          <span>C18 역상 크로마토그램 흡광 프로파일 (0.0 ~ 22.0 min)</span>
+          <span style="font-size: 10px; color: #facc15;">● 피크 1: 네오잔틴 | 피크 2: 바이올라잔틴 | ★ 피크 3: 루테인(타깃) | 피크 6: 베타카로틴</span>
+        </div>
+        <canvas id="hplcScopeCanvas" style="width: 100%; height: 210px; display: block;"></canvas>
+      </div>
+
+      <!-- Peak Integration Breakdown Table -->
+      <div style="max-height: 140px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); margin-bottom: 10px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+          <thead style="background: rgba(15, 23, 42, 0.9); color: #facc15; position: sticky; top: 0;">
+            <tr>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">피크 #</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">체류시간 (Rt)</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">화합물 명칭</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">피크 면적 (mAU·s)</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">피크 높이 (mAU)</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">면적 백분율 (%)</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">정량 함량 (mg/g)</th>
+            </tr>
+          </thead>
+          <tbody id="hplcPeakTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * 식약처 및 US Pharmacopeia(USP) 표준 시험법에 부합하는 C18 역상 크로마토그래피 정량 모델입니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnReinjectHplc" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #facc15; border-color: rgba(234, 179, 8, 0.4);">
+            💉 시료 재주입 & 크로마토그래피 재분석
+          </button>
+          <button id="btnExportHplcCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
+            📋 크로마토그램 CSV 내보내기
           </button>
         </div>
       </div>

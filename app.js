@@ -303,7 +303,22 @@ const DOM = {
   uaeFreqVal: document.getElementById("uaeFreqVal"),
   uaeAmpVal: document.getElementById("uaeAmpVal"),
   cavitationScopeCanvas: document.getElementById("cavitationScopeCanvas"),
-  btnListenPlantThirst: document.getElementById("btnListenPlantThirst")
+  btnListenPlantThirst: document.getElementById("btnListenPlantThirst"),
+
+  // HPLC Virtual Chromatography Analyzer Modal
+  btnHplcAnalyzer: document.getElementById("btnHplcAnalyzer"),
+  hplcModal: document.getElementById("hplcModal"),
+  hplcClose: document.getElementById("hplcClose"),
+  hplcModalTitle: document.getElementById("hplcModalTitle"),
+  hplcRtVal: document.getElementById("hplcRtVal"),
+  hplcRtStatus: document.getElementById("hplcRtStatus"),
+  hplcPurityVal: document.getElementById("hplcPurityVal"),
+  hplcQuantVal: document.getElementById("hplcQuantVal"),
+  hplcPlatesVal: document.getElementById("hplcPlatesVal"),
+  hplcScopeCanvas: document.getElementById("hplcScopeCanvas"),
+  hplcPeakTableBody: document.getElementById("hplcPeakTableBody"),
+  btnReinjectHplc: document.getElementById("btnReinjectHplc"),
+  btnExportHplcCSV: document.getElementById("btnExportHplcCSV")
 };
 
 function populateCropDropdown(selectedId = null) {
@@ -832,6 +847,22 @@ function bindEventListeners() {
   }
   if (DOM.btnListenPlantThirst) {
     DOM.btnListenPlantThirst.addEventListener("click", triggerListenPlantThirst);
+  }
+
+  // HPLC Virtual Chromatography Analyzer Modal
+  if (DOM.btnHplcAnalyzer) {
+    DOM.btnHplcAnalyzer.addEventListener("click", openHplcChromatogramModal);
+  }
+  if (DOM.hplcClose) {
+    DOM.hplcClose.addEventListener("click", () => {
+      if (DOM.hplcModal) DOM.hplcModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnReinjectHplc) {
+    DOM.btnReinjectHplc.addEventListener("click", openHplcChromatogramModal);
+  }
+  if (DOM.btnExportHplcCSV) {
+    DOM.btnExportHplcCSV.addEventListener("click", exportHplcDataCSV);
   }
 
   // Timeline Controls
@@ -1377,6 +1408,74 @@ function triggerListenPlantThirst() {
       DOM.btnListenPlantThirst.style.boxShadow = "none";
     }, 400);
   }
+}
+
+function openHplcChromatogramModal() {
+  audio.playHplcInjectionSound();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const hplcData = bioEngine.calculateHplcChromatogram(envTele.sensors, crop, plantState);
+
+  if (DOM.hplcModalTitle) {
+    DOM.hplcModalTitle.textContent = `🧪 ${crop.name}: 2차 대사산물(${hplcData.targetMolecule}) HPLC 역상 크로마토그래피 정량 분석`;
+  }
+  if (DOM.hplcRtVal) DOM.hplcRtVal.textContent = `${hplcData.targetRtMin} min`;
+  if (DOM.hplcPurityVal) DOM.hplcPurityVal.textContent = `${hplcData.targetPurityPercent} %`;
+  if (DOM.hplcQuantVal) DOM.hplcQuantVal.textContent = `${hplcData.targetQuantMgG} mg/g DW`;
+  if (DOM.hplcPlatesVal) DOM.hplcPlatesVal.textContent = `${hplcData.columnTheoreticalPlates.toLocaleString()}`;
+
+  if (DOM.hplcPeakTableBody) {
+    DOM.hplcPeakTableBody.innerHTML = (hplcData.peakTable || []).map(p => `
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); ${p.isTarget ? 'background: rgba(234, 179, 8, 0.12); font-weight: 700;' : ''}">
+        <td style="padding: 5px 8px; color: ${p.isTarget ? '#fbbf24' : 'var(--text-muted)'};">${p.peakNo}</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: #38bdf8;">${p.rt.toFixed(2)} min</td>
+        <td style="padding: 5px 8px; color: ${p.isTarget ? '#facc15' : '#e2e8f0'};">${p.isTarget ? '★ ' + p.name : p.name}</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: #34d399;">${p.area.toLocaleString()}</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: var(--text-muted);">${p.height}</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: ${p.isTarget ? '#fbbf24' : '#a78bfa'}; font-weight: 700;">${p.areaPercent}%</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: #38bdf8; font-weight: 600;">${p.quantContentMgG} mg/g</td>
+      </tr>
+    `).join("");
+  }
+
+  if (DOM.hplcModal) {
+    DOM.hplcModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (telemetryCharts && DOM.hplcScopeCanvas) {
+      telemetryCharts.renderHplcChromatogramScope(DOM.hplcScopeCanvas, hplcData);
+    }
+  }, 60);
+}
+
+function exportHplcDataCSV() {
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const hplcData = bioEngine.calculateHplcChromatogram(envTele.sensors, crop, plantState);
+
+  const header = `# BioFoundry PlantTwin - HPLC Chromatogram Dataset\n` +
+    `# Crop: ${crop.name} (${crop.scientificName})\n` +
+    `# Target Molecule: ${hplcData.targetMolecule}\n` +
+    `# Column: ${hplcData.stationaryPhase}\n` +
+    `# Mobile Phase: ${hplcData.mobilePhase}\n` +
+    `# Flow Rate: ${hplcData.flowRateMlMin} mL/min | Detection: ${hplcData.detectionWavelengthNm} nm\n` +
+    `# Target Retention Time: ${hplcData.targetRtMin} min | Purity: ${hplcData.targetPurityPercent}%\n\n` +
+    `[PEAK INTEGRATION TABLE]\n` +
+    `Peak_No,Retention_Time_min,Compound_Name,Peak_Area_mAUs,Height_mAU,Area_Percent,Quant_Content_mg_g\n` +
+    hplcData.peakTable.map(p => `${p.peakNo},${p.rt},"${p.name}",${p.area},${p.height},${p.areaPercent},${p.quantContentMgG}`).join("\n") +
+    `\n\n[CHROMATOGRAM RAW TIMESERIES]\n` +
+    `Time_min,Absorbance_mAU\n` +
+    hplcData.chromatogramCurve.map(c => `${c.timeMin},${c.absorbanceMau}`).join("\n");
+
+  const blob = new Blob(["\uFEFF" + header], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `BioFoundry_HPLC_${crop.id}_Day${DOM.teleDay ? DOM.teleDay.textContent : '01'}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function openElectrophysDiagnostics() {

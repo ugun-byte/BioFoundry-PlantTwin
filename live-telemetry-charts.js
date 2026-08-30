@@ -1071,4 +1071,131 @@ export class LiveTelemetryCharts {
     ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
     ctx.fillText(`⚡ Cavitation Burst Peak: ${uaeData.peakFreqKhz || 62.5} kHz (${uaeData.amplitudeDb || 38} dB_AE)`, padL + 15 * dpr, padT + 18 * dpr);
   }
+
+  /**
+   * Real-Time C18 Reverse-Phase HPLC Chromatogram (450nm) Separation Canvas
+   */
+  renderHplcChromatogramScope(canvas, hplcData) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = (rect.width > 0 ? rect.width : 780) * dpr;
+    const h = (rect.height > 0 ? rect.height : 230) * dpr;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+
+    ctx.clearRect(0, 0, w, h);
+
+    // 1. Sci-Fi Chromatography Grid Background
+    ctx.fillStyle = "rgba(4, 11, 20, 0.96)";
+    ctx.fillRect(0, 0, w, h);
+
+    const padL = 55 * dpr;
+    const padR = 25 * dpr;
+    const padT = 32 * dpr;
+    const padB = 35 * dpr;
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+    const maxMau = 950.0;
+    const maxTimeMin = 22.0;
+
+    // Time X-Axis Grid Lines (every 2.0 min)
+    ctx.strokeStyle = "rgba(234, 179, 8, 0.08)";
+    ctx.lineWidth = 1 * dpr;
+    for (let t = 0; t <= maxTimeMin; t += 2.0) {
+      const x = padL + (t / maxTimeMin) * plotW;
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + plotH);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.font = `${9 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${t.toFixed(0)} min`, x - 10 * dpr, padT + plotH + 16 * dpr);
+    }
+
+    // Absorbance Y-Axis (0 to 800 mAU)
+    for (let m = 0; m <= 800; m += 200) {
+      const y = padT + ((maxMau - m) / maxMau) * plotH;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + plotW, y);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.font = `${9 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${m} mAU`, 10 * dpr, y + 3 * dpr);
+    }
+
+    // 2. Render Shaded Peak Areas
+    const peaks = hplcData.peakTable || [];
+    peaks.forEach(p => {
+      const peakX = padL + (p.rt / maxTimeMin) * plotW;
+      const peakY = padT + ((maxMau - Math.min(maxMau, p.height + 16.0)) / maxMau) * plotH;
+
+      // Peak Drop Line
+      ctx.save();
+      ctx.setLineDash([2 * dpr, 2 * dpr]);
+      ctx.strokeStyle = p.isTarget ? "rgba(251, 191, 36, 0.6)" : "rgba(255, 255, 255, 0.2)";
+      ctx.lineWidth = 1 * dpr;
+      ctx.beginPath();
+      ctx.moveTo(peakX, peakY);
+      ctx.lineTo(peakX, padT + plotH);
+      ctx.stroke();
+      ctx.restore();
+
+      // Peak Tag Badge
+      ctx.fillStyle = p.isTarget ? "#fbbf24" : (p.color || "#38bdf8");
+      ctx.font = `bold ${(p.isTarget ? 10.5 : 9) * dpr}px 'Inter', sans-serif`;
+      const badgeText = p.isTarget ? `★ ${p.name.split(' ')[0]} (${p.rt}m)` : `${p.name.split(' ')[0]} (${p.rt}m)`;
+      ctx.fillText(badgeText, peakX - 20 * dpr, Math.max(padT - 6 * dpr, peakY - 8 * dpr));
+    });
+
+    // 3. Draw Continuous Chromatogram Baseline & Absorbance Curve
+    const curve = hplcData.chromatogramCurve || [];
+    if (curve.length > 0) {
+      const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+      grad.addColorStop(0, "rgba(234, 179, 8, 0.35)");
+      grad.addColorStop(1, "rgba(234, 179, 8, 0.0)");
+
+      ctx.beginPath();
+      curve.forEach((pt, i) => {
+        const x = padL + (pt.timeMin / maxTimeMin) * plotW;
+        const y = padT + ((maxMau - Math.min(maxMau, pt.absorbanceMau)) / maxMau) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.lineTo(padL + plotW, padT + plotH);
+      ctx.lineTo(padL, padT + plotH);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Stroke Chromatogram Trace
+      ctx.save();
+      ctx.shadowColor = "#eab308";
+      ctx.shadowBlur = 8 * dpr;
+      ctx.strokeStyle = "#facc15";
+      ctx.lineWidth = 2.2 * dpr;
+      ctx.beginPath();
+      curve.forEach((pt, i) => {
+        const x = padL + (pt.timeMin / maxTimeMin) * plotW;
+        const y = padT + ((maxMau - Math.min(maxMau, pt.absorbanceMau)) / maxMau) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Detector & Method Info Header
+    ctx.fillStyle = "#fef08a";
+    ctx.font = `bold ${9.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`UV/Vis λ=450nm | Flow: 1.0 mL/min | Column: C18 (250x4.6mm)`, padL + 10 * dpr, padT + 12 * dpr);
+  }
 }

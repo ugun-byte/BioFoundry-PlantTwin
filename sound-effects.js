@@ -150,4 +150,41 @@ export class CyberAudioEngine {
       osc.stop(this.ctx.currentTime + 0.12);
     } catch (e) {}
   }
+
+  /**
+   * Synthesizes HPLC high-pressure autosampler valve click & solvent pump tone
+   */
+  playHplcInjectionSound() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      // 1. Valve injection mechanical click
+      const osc1 = this.ctx.createOscillator();
+      const gain1 = this.ctx.createGain();
+      osc1.type = "square";
+      osc1.frequency.setValueAtTime(1800, this.ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.03);
+      gain1.gain.setValueAtTime(0.08, this.ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
+      osc1.connect(gain1);
+      gain1.connect(this.ctx.destination);
+      osc1.start();
+      osc1.stop(this.ctx.currentTime + 0.03);
+
+      // 2. High-pressure pump harmonic hum
+      const osc2 = this.ctx.createOscillator();
+      const gain2 = this.ctx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(220, this.ctx.currentTime + 0.03);
+      osc2.frequency.linearRampToValueAtTime(440, this.ctx.currentTime + 0.18);
+      gain2.gain.setValueAtTime(0.05, this.ctx.currentTime + 0.03);
+      gain2.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.18);
+      osc2.connect(gain2);
+      gain2.connect(this.ctx.destination);
+      osc2.start(this.ctx.currentTime + 0.03);
+      osc2.stop(this.ctx.currentTime + 0.18);
+    } catch (e) {}
+  }
 }

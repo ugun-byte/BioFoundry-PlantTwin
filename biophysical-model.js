@@ -661,5 +661,151 @@ export class BioPhysicalEngine {
       isBurstActive: uaeEventsPerMin > 12.0
     };
   }
+
+  /**
+   * 17. High-Performance Liquid Chromatography (HPLC) Chemical Separation Model
+   * Simulates C18 Reverse-Phase separation (450nm UV/Vis) of lutein, xanthophylls, beta-carotene,
+   * calculating retention times, peak areas (mAU*s), and purity percentages.
+   */
+  calculateHplcChromatogram(envParams = {}, cropProfile = {}, plantState = {}) {
+    const luteinConc = plantState.luteinConcentration || cropProfile.baseLuteinConcentration || 18.2;
+    const { ppfd = 450 } = envParams;
+    const lightStressFactor = Math.max(0.0, Math.min(1.0, (ppfd - 350) / 650));
+
+    // Peak components definitions for C18 HPLC column
+    // Rt in minutes, width sigma in minutes, base relative abundance
+    const peaks = [
+      {
+        id: "neoxanthin",
+        name: "Neoxanthin (네오잔틴)",
+        rt: 3.15,
+        sigma: 0.18,
+        height: 65.0 + Math.random() * 8.0,
+        color: "#38bdf8",
+        concRatio: 0.08
+      },
+      {
+        id: "violaxanthin",
+        name: "Violaxanthin (바이올라잔틴)",
+        rt: 4.45,
+        sigma: 0.22,
+        height: 110.0 * (1.0 - lightStressFactor * 0.6) + Math.random() * 10.0,
+        color: "#22d3ee",
+        concRatio: 0.12
+      },
+      {
+        id: "lutein",
+        name: `${cropProfile.targetMolecule || "Lutein"} (루테인 타깃)`,
+        rt: 6.82,
+        sigma: 0.26,
+        height: Math.max(250.0, (luteinConc / 20.0) * 820.0),
+        color: "#fbbf24",
+        concRatio: 1.0,
+        isTarget: true
+      },
+      {
+        id: "zeaxanthin",
+        name: "Zeaxanthin (지아잔틴 NPQ)",
+        rt: 7.95,
+        sigma: 0.24,
+        height: 40.0 + (lightStressFactor * 220.0) + Math.random() * 12.0,
+        color: "#f97316",
+        concRatio: 0.15 * (1.0 + lightStressFactor)
+      },
+      {
+        id: "chlorophyll_b",
+        name: "Chlorophyll b (엽록소 b)",
+        rt: 11.35,
+        sigma: 0.32,
+        height: 190.0 + Math.random() * 15.0,
+        color: "#10b981",
+        concRatio: 0.28
+      },
+      {
+        id: "chlorophyll_a",
+        name: "Chlorophyll a (엽록소 a)",
+        rt: 13.78,
+        sigma: 0.35,
+        height: 480.0 + Math.random() * 20.0,
+        color: "#059669",
+        concRatio: 0.65
+      },
+      {
+        id: "beta_carotene",
+        name: "β-Carotene (베타카로틴)",
+        rt: 18.45,
+        sigma: 0.42,
+        height: 240.0 + (luteinConc * 4.5) + Math.random() * 15.0,
+        color: "#ef4444",
+        concRatio: 0.32
+      }
+    ];
+
+    // Compute peak areas (Area = Height * sigma * sqrt(2*PI) * 60 for mAU*s)
+    let totalArea = 0;
+    const peakTable = peaks.map((p, idx) => {
+      const area = Math.round(p.height * p.sigma * Math.sqrt(2 * Math.PI) * 60);
+      totalArea += area;
+      return {
+        peakNo: idx + 1,
+        id: p.id,
+        name: p.name,
+        rt: p.rt,
+        height: parseFloat(p.height.toFixed(1)),
+        area,
+        color: p.color,
+        isTarget: !!p.isTarget
+      };
+    });
+
+    // Compute purity percentage and quantified content (mg/g DW)
+    peakTable.forEach(p => {
+      p.areaPercent = parseFloat(((p.area / totalArea) * 100).toFixed(2));
+      if (p.isTarget) {
+        p.quantContentMgG = parseFloat(luteinConc.toFixed(2));
+      } else {
+        p.quantContentMgG = parseFloat(((p.area / (peakTable[2].area || 1)) * luteinConc).toFixed(2));
+      }
+    });
+
+    // Generate 0.0 to 22.0 min Continuous Chromatogram Profile (0.05 min step = 441 points)
+    const chromatogramCurve = [];
+    for (let t = 0.0; t <= 22.0; t += 0.05) {
+      let absorbanceMau = 0.0;
+
+      // Sum Gaussian peaks
+      peaks.forEach(p => {
+        const delta = (t - p.rt) / p.sigma;
+        absorbanceMau += p.height * Math.exp(-0.5 * delta * delta);
+      });
+
+      // Baseline drift + detector noise (0.5 mAU rms)
+      const baselineDrift = 12.0 + 8.0 * (t / 22.0);
+      const detectorNoise = (Math.random() - 0.5) * 1.8;
+      const totalMau = parseFloat((absorbanceMau + baselineDrift + detectorNoise).toFixed(2));
+
+      chromatogramCurve.push({
+        timeMin: parseFloat(t.toFixed(2)),
+        absorbanceMau: Math.max(0.0, totalMau)
+      });
+    }
+
+    const targetPeak = peakTable.find(p => p.isTarget) || peakTable[2];
+
+    return {
+      stationaryPhase: "C18 Reverse Phase (250 x 4.6 mm, 5 μm)",
+      mobilePhase: "Acetonitrile : Methanol : Ethyl Acetate (Grad)",
+      detectionWavelengthNm: 450,
+      flowRateMlMin: 1.0,
+      targetMolecule: cropProfile.targetMolecule || "Lutein",
+      targetRtMin: targetPeak.rt,
+      targetPurityPercent: targetPeak.areaPercent,
+      targetQuantMgG: targetPeak.quantContentMgG,
+      columnTheoreticalPlates: 14850,
+      peakTable,
+      chromatogramCurve
+    };
+  }
 }
+
 
