@@ -120,29 +120,42 @@ export class LiveTelemetryCharts {
     const ctx = this.contexts.photoScope;
     if (!canvas || !ctx) return;
 
-    const w = canvas.dispW || canvas.clientWidth || 340;
-    const h = canvas.dispH || canvas.clientHeight || 140;
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const w = rect.width > 0 ? rect.width : (canvas.dispW || 340);
+    const h = rect.height > 0 ? rect.height : (canvas.dispH || 140);
+
+    if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.dispW = w;
+      canvas.dispH = h;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
-    const padL = 28, padR = 34, padT = 12, padB = 18;
+    const padL = 36, padR = 44, padT = 14, padB = 22;
     const plotW = Math.max(10, w - padL - padR);
     const plotH = Math.max(10, h - padT - padB);
 
     this.drawScopeGrid(ctx, padL, padT, plotW, plotH);
 
-    // Y Axis 1 (Left: An 0 ~ 40)
-    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.font = "8.5px JetBrains Mono, monospace";
+    // Y Axis 1 (Left: An 0 ~ 40) - Crisp High-Contrast Bright White
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 11px 'JetBrains Mono', 'Inter', monospace";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
     [40, 30, 20, 10, 0].forEach((v, idx) => {
       const y = padT + (idx / 4) * plotH;
-      ctx.fillText(String(v), 8, y + 3);
+      ctx.fillText(String(v), padL - 8, y);
     });
 
-    // Y Axis 2 (Right: Ci 0 ~ 1000 ppm)
-    ctx.fillStyle = "rgba(168, 85, 247, 0.6)";
+    // Y Axis 2 (Right: Ci 0 ~ 1000 ppm) - Crisp High-Contrast Neon Purple
+    ctx.fillStyle = "#e879f9";
+    ctx.textAlign = "left";
     [1000, 750, 500, 250, 0].forEach((v, idx) => {
       const y = padT + (idx / 4) * plotH;
-      ctx.fillText(String(v), padL + plotW + 6, y + 3);
+      ctx.fillText(String(v), padL + plotW + 8, y);
     });
 
     // Time Axis Ticks
@@ -154,13 +167,13 @@ export class LiveTelemetryCharts {
     const seriesCi = this.getScaledSeries(this.history.ci, 520, 1000.0);
 
     // Draw Channel 3: Ci (Purple)
-    this.drawLineSeries(ctx, seriesCi, 1000.0, padL, padT, plotW, plotH, "#a855f7", "rgba(168, 85, 247, 0.12)");
+    this.drawLineSeries(ctx, seriesCi, 1000.0, padL, padT, plotW, plotH, "#c084fc", "rgba(192, 132, 252, 0.20)");
 
     // Draw Channel 2: gs (Cyan)
     this.drawLineSeries(ctx, seriesGs, 0.60, padL, padT, plotW, plotH, "#00f2fe", null);
 
     // Draw Channel 1: An (Emerald)
-    this.drawLineSeries(ctx, seriesAn, 40.0, padL, padT, plotW, plotH, "#34d399", "rgba(52, 211, 153, 0.18)");
+    this.drawLineSeries(ctx, seriesAn, 40.0, padL, padT, plotW, plotH, "#34d399", "rgba(52, 211, 153, 0.26)");
   }
 
   /**
@@ -171,29 +184,42 @@ export class LiveTelemetryCharts {
     const ctx = this.contexts.luteinScope;
     if (!canvas || !ctx) return;
 
-    const w = canvas.dispW || canvas.clientWidth || 340;
-    const h = canvas.dispH || canvas.clientHeight || 140;
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const w = rect.width > 0 ? rect.width : (canvas.dispW || 340);
+    const h = rect.height > 0 ? rect.height : (canvas.dispH || 140);
+
+    if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.dispW = w;
+      canvas.dispH = h;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
-    const padL = 28, padR = 34, padT = 12, padB = 18;
+    const padL = 36, padR = 44, padT = 14, padB = 22;
     const plotW = Math.max(10, w - padL - padR);
     const plotH = Math.max(10, h - padT - padB);
 
     this.drawScopeGrid(ctx, padL, padT, plotW, plotH);
 
-    // Y Axis 1 (Left: Flux 0 ~ 25)
-    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.font = "8.5px JetBrains Mono, monospace";
+    // Y Axis 1 (Left: Flux 0 ~ 25) - Crisp High-Contrast Bright White
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 11px 'JetBrains Mono', 'Inter', monospace";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
     [25, 20, 15, 10, 5, 0].forEach((v, idx) => {
       const y = padT + (idx / 5) * plotH;
-      ctx.fillText(String(v), 8, y + 3);
+      ctx.fillText(String(v), padL - 8, y);
     });
 
-    // Y Axis 2 (Right: Conc 0 ~ 40 mg/g)
-    ctx.fillStyle = "rgba(168, 85, 247, 0.6)";
+    // Y Axis 2 (Right: Conc 0 ~ 40 mg/g) - Crisp High-Contrast Neon Purple
+    ctx.fillStyle = "#e879f9";
+    ctx.textAlign = "left";
     [40, 30, 20, 10, 0].forEach((v, idx) => {
       const y = padT + (idx / 4) * plotH;
-      ctx.fillText(String(v), padL + plotW + 6, y + 3);
+      ctx.fillText(String(v), padL + plotW + 8, y);
     });
 
     // Time Axis Ticks
@@ -204,10 +230,10 @@ export class LiveTelemetryCharts {
     const seriesConc = this.getScaledSeries(this.history.luteinConc, 18.2, 40.0);
 
     // Draw Channel 2: Concentration (Purple)
-    this.drawLineSeries(ctx, seriesConc, 40.0, padL, padT, plotW, plotH, "#a855f7", "rgba(168, 85, 247, 0.12)");
+    this.drawLineSeries(ctx, seriesConc, 40.0, padL, padT, plotW, plotH, "#c084fc", "rgba(192, 132, 252, 0.20)");
 
     // Draw Channel 1: Flux (Emerald)
-    this.drawLineSeries(ctx, seriesFlux, 25.0, padL, padT, plotW, plotH, "#34d399", "rgba(52, 211, 153, 0.20)");
+    this.drawLineSeries(ctx, seriesFlux, 25.0, padL, padT, plotW, plotH, "#34d399", "rgba(52, 211, 153, 0.26)");
   }
 
   getScaledSeries(historyArr, baselineVal, maxVal) {
@@ -266,14 +292,14 @@ export class LiveTelemetryCharts {
       else ctx.lineTo(x, y);
     });
     ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = 1.8;
+    ctx.lineWidth = 2.2;
     ctx.stroke();
 
     ctx.restore();
   }
 
   drawScopeGrid(ctx, padL, padT, plotW, plotH) {
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
     ctx.lineWidth = 1;
 
     // Horizontal grid lines (5 rows)
@@ -296,8 +322,10 @@ export class LiveTelemetryCharts {
   }
 
   drawTimeTicks(ctx, padL, padT, plotW, plotH) {
-    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.font = "8px Inter, sans-serif";
+    ctx.fillStyle = "#f1f5f9";
+    ctx.font = "bold 10px 'Inter', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
 
     let labels = ["-24 h", "-20 h", "-16 h", "-12 h", "-8 h", "-4 h", "Now"];
     if (this.timeScale === '1m') {
@@ -308,7 +336,7 @@ export class LiveTelemetryCharts {
 
     labels.forEach((lbl, i) => {
       const x = padL + (i / (labels.length - 1)) * plotW;
-      ctx.fillText(lbl, x - 10, padT + plotH + 12);
+      ctx.fillText(lbl, x, padT + plotH + 5);
     });
   }
 
@@ -594,8 +622,9 @@ export class LiveTelemetryCharts {
     // 2. Y Grid Lines & Labels
     ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
     ctx.lineWidth = 1;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-    ctx.font = "9px Inter, sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 10px 'JetBrains Mono', 'Inter', monospace";
+    ctx.textAlign = "right";
 
     const vTicks = [-200, -170, -140, -110, -80];
     vTicks.forEach(v => {
@@ -604,19 +633,21 @@ export class LiveTelemetryCharts {
       ctx.moveTo(padL, y);
       ctx.lineTo(padL + plotW, y);
       ctx.stroke();
-      ctx.fillText(`${v} mV`, 6, y + 3);
+      ctx.fillText(`${v} mV`, padL - 6, y + 3);
     });
 
     // 3. Time Ticks
     const pts = electroData.wavePoints;
     const len = pts.length;
+    ctx.fillStyle = "#f1f5f9";
+    ctx.textAlign = "center";
     for (let i = 0; i <= 4; i++) {
       const x = padL + (i / 4) * plotW;
       ctx.beginPath();
       ctx.moveTo(x, padT);
       ctx.lineTo(x, padT + plotH);
       ctx.stroke();
-      ctx.fillText(`${(i * 5)}s`, x - 6, padT + plotH + 15);
+      ctx.fillText(`${(i * 5)}s`, x, padT + plotH + 15);
     }
 
     // 4. Draw Glowing Action Potential Waveform
@@ -799,14 +830,15 @@ export class LiveTelemetryCharts {
     }
 
     // 2. Axis Labels
-    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-    ctx.font = "9px 'Inter', sans-serif";
+    ctx.fillStyle = "#f8fafc";
+    ctx.font = "bold 10px 'JetBrains Mono', 'Inter', sans-serif";
     ctx.fillText("00:00", 40, h - 14);
     ctx.fillText("06:00 (일출)", 120, h - 14);
     ctx.fillText("12:00 (정오)", 220, h - 14);
     ctx.fillText("18:00 (일몰)", 320, h - 14);
     ctx.fillText("24:00", w - 45, h - 14);
 
+    ctx.fillStyle = "#38bdf8";
     ctx.fillText("30 cm/h", 5, 35);
     ctx.fillText("15 cm/h", 5, 85);
     ctx.fillText("0 cm/h", 10, h - 35);

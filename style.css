@@ -1516,14 +1516,16 @@ input:checked + .switch-slider:before {
 }
 
 .scope-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-card);
+  background: rgba(6, 13, 24, 0.88);
+  border: 1.2px solid rgba(56, 189, 248, 0.28);
   border-radius: var(--radius-md);
   padding: 8px 12px;
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(14px);
   transition: all 0.2s ease;
 }
 
@@ -1568,28 +1570,31 @@ input:checked + .switch-slider:before {
 }
 
 .scope-heading {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.85);
+  letter-spacing: -0.2px;
 }
 
 .scope-legends {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 9.5px;
-  color: var(--text-secondary);
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e2e8f0;
 }
 
 .legend-item {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .legend-line {
-  width: 10px;
-  height: 2px;
+  width: 12px;
+  height: 2.5px;
   border-radius: 1px;
 }
 .legend-line.emerald { background: var(--emerald-glow); }
@@ -1616,12 +1621,13 @@ input:checked + .switch-slider:before {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 3px;
   cursor: pointer;
   font-family: var(--font-mono);
+  transition: all 0.15s ease;
 }
 
 .range-btn:hover {
