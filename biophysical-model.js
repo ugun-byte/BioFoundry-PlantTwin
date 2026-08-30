@@ -75,6 +75,10 @@ export class BioPhysicalEngine {
     };
   }
 
+  calculateStomatalConductance(params, cropProfile) {
+    return this.calculateStomataAndEnergyBalance(params, cropProfile);
+  }
+
   /**
    * Full Farquhar-von Caemmerer-Berry (FvCB) Photosynthesis Kinetics
    */
@@ -512,8 +516,8 @@ export class BioPhysicalEngine {
    */
   calculateThermalLeafInfrared(envParams = {}, cropProfile = {}, plantState = {}) {
     const { ppfd = 450, airTemp = 24.0, vpd = 1.05 } = envParams;
-    const stomata = this.calculateStomatalConductance(envParams, cropProfile, plantState);
-    const gs = stomata.gs; // mol m-2 s-1
+    const stomata = this.calculateStomataAndEnergyBalance(envParams, cropProfile);
+    const gs = stomata.gs || 0.38; // mol m-2 s-1
 
     // 1. Net solar radiation absorbed by canopy (W/m2)
     const rNet = (ppfd * 0.219) * 0.85;
