@@ -64,7 +64,8 @@ export class EnvironmentalEngine {
       prevError: 0,
       acidPumpActive: false,
       basePumpActive: false,
-      dosingRateMlMin: 0
+      dosingRateMlMin: 0,
+      minRunTimer: 0
     };
   }
 
@@ -130,14 +131,14 @@ export class EnvironmentalEngine {
     const targetCo2 = isDaylightPeriod ? this.setpoints.co2Target : 450; // Night respiration venting
     this.currentPhysics.co2Actual += (targetCo2 - this.currentPhysics.co2Actual) * Math.min(1.0, dtSimSeconds / 350.0);
 
-    // 5. Fertigation EC & Dynamic Chemical pH with PID Neutralization Pump
+    // 5. Fertigation EC & Dynamic Chemical pH with Anti-Chattering PID Neutralization
     this.currentPhysics.ecActual += (this.setpoints.ecTarget - this.currentPhysics.ecActual) * Math.min(1.0, dtSimSeconds / 1200.0);
 
     // Biological chemical pH drift based on Nitrate vs Ammonium ratio
     const bioPhDriftRate = (this.ionBalance.no3Ratio * 0.003 - this.ionBalance.nh4Ratio * 0.004) * (dtSimSeconds / 60.0);
     this.currentPhysics.phActual += bioPhDriftRate;
 
-    // Closed-Loop PID Controller calculation for Acid/Base Auto-Dosing
+    // Closed-Loop PID Controller calculation for Acid/Base Auto-Dosing with Deadband & Hysteresis
     const phError = this.currentPhysics.phActual - this.setpoints.phTarget;
     this.phPid.integral = Math.max(-3.0, Math.min(3.0, this.phPid.integral + phError * dtRealSeconds));
     const phDerivative = (phError - this.phPid.prevError) / Math.max(0.01, dtRealSeconds);
@@ -145,25 +146,43 @@ export class EnvironmentalEngine {
 
     const pidControlOut = this.phPid.kp * phError + this.phPid.ki * this.phPid.integral + this.phPid.kd * phDerivative;
 
-    // Pump actuation threshold
-    if (phError > 0.03) {
-      // pH too high (Alkaline) -> Acid Dosing Pump Active!
-      this.phPid.acidPumpActive = true;
-      this.phPid.basePumpActive = false;
-      this.phPid.dosingRateMlMin = parseFloat(Math.min(12.0, Math.max(0.5, pidControlOut * 3.2)).toFixed(1));
-      const neutralCorrection = (this.phPid.dosingRateMlMin / 60.0) * 0.018 * dtSimSeconds;
+    // Minimum run timer countdown
+    if (this.phPid.minRunTimer > 0) {
+      this.phPid.minRunTimer -= dtRealSeconds;
+    }
+
+    // Schmitt Trigger Hysteresis (Turn on at |error| > 0.08, turn off at |error| < 0.02 after minRunTimer expires)
+    if (!this.phPid.acidPumpActive && !this.phPid.basePumpActive) {
+      if (phError > 0.08) {
+        this.phPid.acidPumpActive = true;
+        this.phPid.basePumpActive = false;
+        this.phPid.minRunTimer = 2.5; // Run for at least 2.5s to prevent chattering
+      } else if (phError < -0.08) {
+        this.phPid.acidPumpActive = false;
+        this.phPid.basePumpActive = true;
+        this.phPid.minRunTimer = 2.5;
+      }
+    } else if (this.phPid.acidPumpActive) {
+      if (phError <= 0.02 && this.phPid.minRunTimer <= 0) {
+        this.phPid.acidPumpActive = false;
+        this.phPid.dosingRateMlMin = 0;
+      }
+    } else if (this.phPid.basePumpActive) {
+      if (phError >= -0.02 && this.phPid.minRunTimer <= 0) {
+        this.phPid.basePumpActive = false;
+        this.phPid.dosingRateMlMin = 0;
+      }
+    }
+
+    // Apply dosing neutral correction smoothly
+    if (this.phPid.acidPumpActive) {
+      this.phPid.dosingRateMlMin = parseFloat(Math.min(10.0, Math.max(1.0, Math.abs(pidControlOut) * 2.8)).toFixed(1));
+      const neutralCorrection = (this.phPid.dosingRateMlMin / 60.0) * 0.012 * dtSimSeconds;
       this.currentPhysics.phActual -= neutralCorrection;
-    } else if (phError < -0.03) {
-      // pH too low (Acidic) -> Base Dosing Pump Active!
-      this.phPid.acidPumpActive = false;
-      this.phPid.basePumpActive = true;
-      this.phPid.dosingRateMlMin = parseFloat(Math.min(12.0, Math.max(0.5, Math.abs(pidControlOut) * 3.2)).toFixed(1));
-      const neutralCorrection = (this.phPid.dosingRateMlMin / 60.0) * 0.018 * dtSimSeconds;
+    } else if (this.phPid.basePumpActive) {
+      this.phPid.dosingRateMlMin = parseFloat(Math.min(10.0, Math.max(1.0, Math.abs(pidControlOut) * 2.8)).toFixed(1));
+      const neutralCorrection = (this.phPid.dosingRateMlMin / 60.0) * 0.012 * dtSimSeconds;
       this.currentPhysics.phActual += neutralCorrection;
-    } else {
-      this.phPid.acidPumpActive = false;
-      this.phPid.basePumpActive = false;
-      this.phPid.dosingRateMlMin = 0;
     }
 
     // 6. Calculate VPD based on actual physical values
