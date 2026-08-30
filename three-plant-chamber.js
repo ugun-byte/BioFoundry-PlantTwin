@@ -42,17 +42,33 @@ export class ThreePlantChamber {
     const w = this.container.clientWidth || 800;
     const h = this.container.clientHeight || 480;
 
-    // 1. Scene with pristine dark studio slate background matching mockup
+    // 1. Scene with cleanroom laboratory atmosphere
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x090e15);
-    this.scene.fog = new THREE.FogExp2(0x090e15, 0.035);
+    
+    // Load laboratory backdrop texture into scene environment & subtle depth plane
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load("assets/biofoundry_lab_background.jpg", (tex) => {
+      tex.mapping = THREE.EquirectangularReflectionMapping;
+      this.scene.environment = tex;
+
+      const bgPlaneGeo = new THREE.PlaneGeometry(7.5, 4.2);
+      const bgPlaneMat = new THREE.MeshBasicMaterial({
+        map: tex,
+        transparent: true,
+        opacity: 0.28
+      });
+      const bgPlane = new THREE.Mesh(bgPlaneGeo, bgPlaneMat);
+      bgPlane.position.set(0, 1.25, -2.4);
+      this.scene.add(bgPlane);
+    });
 
     // 2. Camera
     this.camera = new THREE.PerspectiveCamera(36, w / h, 0.1, 50);
     this.camera.position.set(0, 1.25, 3.4);
 
-    // 3. High-End WebGL Renderer with ACES Tone Mapping
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    // 3. High-End WebGL Renderer with Alpha transparency & ACES Tone Mapping
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    this.renderer.setClearColor(0x000000, 0.0);
     this.renderer.setSize(w, h);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
