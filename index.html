@@ -1056,6 +1056,55 @@
         </div>
       </div>
 
+      <!-- Smart Grid VPP Integrator Console -->
+      <div style="background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 14px; font-weight: 800; color: #10b981; display:flex; align-items:center; gap:6px;">
+              ⚡ 가상 발전소(VPP) 스마트 그리드 전력 피크 연동 관리자
+            </span>
+            <span id="vppBadgeStatus" style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">정상 급전 대기 (Standby)</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 11px; color: var(--text-muted);">VPP 자동 피크 제어 모드</span>
+            <label class="switch-toggle" style="position: relative; display: inline-block; width: 36px; height: 20px;">
+              <input type="checkbox" id="chkEnableVpp" style="opacity: 0; width: 0; height: 0;">
+              <span class="slider-toggle-round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.15); transition: .3s; border-radius: 20px;"></span>
+            </label>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 16px;">
+          <!-- Current SMP Price -->
+          <div class="kpi-tile" style="background: rgba(255,255,255,0.01); border-color: rgba(255,255,255,0.05); padding: 10px 12px;">
+            <span style="font-size: 10.5px; color: var(--text-muted); display: block;">실시간 전력 단가 (SMP)</span>
+            <div style="display:flex; align-items:baseline; gap:4px; margin-top: 4px;">
+              <b id="lblVppSmpPrice" style="font-size: 20px; color: #fff; font-family: monospace;">145.2</b>
+              <span style="font-size: 10.5px; color: var(--text-muted);">원/kWh</span>
+            </div>
+            <span id="lblVppSmpTrend" style="font-size: 10px; color: #38bdf8; display: block; margin-top: 2px;">정상 부하 범위 (SMP &lt; 200원)</span>
+          </div>
+
+          <!-- Cumulative Savings -->
+          <div class="kpi-tile" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); padding: 10px 12px;">
+            <span style="font-size: 10.5px; color: var(--text-muted); display: block;">VPP 피크 감축 절감 요금</span>
+            <div style="display:flex; align-items:baseline; gap:4px; margin-top: 4px;">
+              <b id="lblVppSavings" style="font-size: 20px; color: #34d399; font-family: monospace;">+0</b>
+              <span style="font-size: 10.5px; color: #34d399; font-weight:700;">원</span>
+            </div>
+            <span style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px;">수율 패널티 대비 순이익 양호</span>
+          </div>
+
+          <!-- Live Price Chart Canvas -->
+          <div style="position: relative; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 6px; overflow: hidden; display: flex; flex-direction: column;">
+            <span style="font-size: 9.5px; color: var(--text-muted); margin-bottom: 2px;">⚡ 실시간 SMP 단가 변동 그래프 (최근 1시간)</span>
+            <div style="position: relative; width: 100%; height: 50px;">
+              <canvas id="vppSmpCanvas" style="width: 100%; height: 100%; display: block; position: absolute; top:0; left:0;"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 6-Ion Nutrient Concentration & Absorption Progress Bars -->
       <div style="background: rgba(10, 18, 28, 0.6); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px 18px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -1341,6 +1390,24 @@
                 <b id="lblWeightStress" style="color: #fb7185;">4.0</b>
               </div>
               <input type="range" id="sliderWeightStress" min="0" max="10" step="0.5" value="4.0" style="width: 100%;">
+            </div>
+          </div>
+
+          <!-- Pareto Weight Tuner Controls -->
+          <div style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #67e8f9; font-weight: 700; font-size: 11.5px;">🎚️ 실시간 파레토 트레이드오프 가중치 (Pareto Tuning)</span>
+              <span id="lblParetoRatio" style="color: #00f2fe; font-weight: 700; font-family: monospace; font-size: 11px;">수율 우선: 50% / 에너지 보존: 50%</span>
+            </div>
+            <input type="range" id="sliderParetoWeight" min="0" max="100" step="1" value="50" style="width: 100%; background: linear-gradient(to right, #38bdf8, #c084fc, #fbbf24); height: 5px; border-radius: 3px; outline: none; cursor: pointer;">
+            
+            <!-- Pareto Canvas & Interactive Plot -->
+            <div style="display: flex; gap: 12px; align-items: center; margin-top: 4px;">
+              <canvas id="paretoFrontierCanvas" width="130" height="100" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 4px; display: block;"></canvas>
+              <div style="font-size: 10.5px; color: var(--text-muted); line-height: 1.4; flex: 1;">
+                <strong style="color:#fff; display:block; margin-bottom: 2px;">실시간 파레토 정책(Policy) 투영</strong>
+                - 좌하단(최저 에너지) ↔ 우상단(최대 수율) 궤적을 3D 시뮬레이션 기류 속도와 광양자 밀도에 즉시 연동 반영합니다.
+              </div>
             </div>
           </div>
         </div>

@@ -1018,6 +1018,8 @@ export class ThreePlantChamber {
     const { isLightOn, simulatedHour, sensors } = envTelemetry;
     this.simulatedHour = simulatedHour;
     this.isLightOn = isLightOn;
+    this.currentPpfd = sensors.ppfd;
+    this.currentAirflowSpeed = sensors.airflowSpeed;
 
     // 1. 24-Hour Diurnal Lighting & Spectrum
     this.updateDiurnalLighting(simulatedHour, isLightOn, sensors);
@@ -1235,8 +1237,11 @@ export class ThreePlantChamber {
       const pos = this.cfdVectorSystem.geometry.attributes.position.array;
       const colors = this.cfdVectorSystem.geometry.attributes.color.array;
       const count = pos.length / 3;
-      const speedMult = (this.currentAirflowSpeed || 1.0) * 0.75;
+      const speedMult = (this.currentAirflowSpeed || 1.0) * 0.75 * (window.paretoSpeedMultiplier !== undefined ? window.paretoSpeedMultiplier : 1.0);
       const isWarm = (this.currentTemp || 24.0) > 27.0;
+
+      const drawCountCfd = Math.max(15, Math.min(count, Math.floor(count * (window.paretoSpeedMultiplier !== undefined ? window.paretoSpeedMultiplier : 1.0))));
+      this.cfdVectorSystem.geometry.setDrawRange(0, drawCountCfd);
 
       for (let i = 0; i < count; i++) {
         const p = this.cfdParticles[i];
@@ -1273,7 +1278,10 @@ export class ThreePlantChamber {
     if (this.photonStreamSystem && this.photonStreamSystem.visible && this.photonParticles) {
       const pos = this.photonStreamSystem.geometry.attributes.position.array;
       const count = pos.length / 3;
-      const ppfdRatio = Math.max(0.3, Math.min(2.2, (this.currentPpfd || 450) / 450)) * 0.75;
+      const ppfdRatio = Math.max(0.3, Math.min(2.2, (this.currentPpfd || 450) / 450)) * 0.75 * (window.paretoPhotonMultiplier !== undefined ? window.paretoPhotonMultiplier : 1.0);
+
+      const drawCountPhoton = Math.max(15, Math.min(count, Math.floor(count * (window.paretoPhotonMultiplier !== undefined ? window.paretoPhotonMultiplier : 1.0))));
+      this.photonStreamSystem.geometry.setDrawRange(0, drawCountPhoton);
 
       for (let i = 0; i < count; i++) {
         const p = this.photonParticles[i];

@@ -1079,6 +1079,85 @@ function triggerSirenAlarm(title, desc) {
   }, 4500);
 }
 
+// Smart Grid VPP and Pareto Tuning variables
+window.vppModeActive = false;
+window.vppSavingsAccumulated = 0.0;
+window.vppSmpHistory = Array.from({ length: 60 }, (_, i) => 120 + 40 * Math.sin(i * 0.1));
+window.vppLastCurtailmentState = false;
+window.paretoSpeedMultiplier = 1.0;
+window.paretoPhotonMultiplier = 1.0;
+
+/**
+ * Render Interactive Pareto Frontier Plot on Canvas
+ */
+function renderParetoFrontier() {
+  const canvas = document.getElementById("paretoFrontierCanvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  const w = 130;
+  const h = 100;
+  
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+  
+  ctx.clearRect(0, 0, w, h);
+  
+  // Draw Grid/Axes
+  ctx.strokeStyle = "rgba(255,255,255,0.12)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(18, 8);
+  ctx.lineTo(18, h - 18);
+  ctx.lineTo(w - 8, h - 18);
+  ctx.stroke();
+  
+  // Draw optimal frontier envelope curve (arc)
+  ctx.strokeStyle = "rgba(251,191,36,0.7)";
+  ctx.lineWidth = 2.0;
+  ctx.beginPath();
+  ctx.moveTo(18, h - 18);
+  ctx.bezierCurveTo(38, h - 55, 78, 18, w - 8, 18);
+  ctx.stroke();
+  
+  // X/Y Axis Labels
+  ctx.fillStyle = "rgba(255,255,255,0.45)";
+  ctx.font = "8px 'Inter', sans-serif";
+  ctx.fillText("Energy Cost", 28, h - 6);
+  
+  ctx.save();
+  ctx.translate(10, h - 18);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText("Yield", 12, 0);
+  ctx.restore();
+
+  // Current selected point on curve based on Pareto slider weight
+  const pWeight = parseInt(document.getElementById("sliderParetoWeight")?.value || "50", 10);
+  const t = pWeight / 100;
+  
+  // Evaluate cubic bezier for position mapping
+  const x0 = 18, y0 = h - 18;
+  const x1 = 38, y1 = h - 55;
+  const x2 = 78, y2 = 18;
+  const x3 = w - 8, y3 = 18;
+  
+  const mt = 1 - t;
+  const px = mt*mt*mt*x0 + 3*mt*mt*t*x1 + 3*mt*t*t*x2 + t*t*t*x3;
+  const py = mt*mt*mt*y0 + 3*mt*mt*t*y1 + 3*mt*t*t*y2 + t*t*t*y3;
+  
+  // Draw Blinking Target Dot
+  ctx.save();
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = "#00f2fe";
+  ctx.fillStyle = "#00f2fe";
+  ctx.beginPath();
+  ctx.arc(px, py, 4.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 // Global states for Leaf and Root dynamic pointer visibility and minimization
 let isLeafPointerVisible = true;
 let isRootPointerVisible = true;
@@ -1416,6 +1495,63 @@ function bindEventListeners() {
     DOM.btnRefreshTelemetryView.addEventListener("click", () => {
       audio.playClick();
       renderScadaTelemetryView();
+    });
+  }
+
+  // Pareto Weight Slider Listener
+  const sliderPareto = document.getElementById("sliderParetoWeight");
+  if (sliderPareto) {
+    sliderPareto.addEventListener("input", (e) => {
+      const val = parseInt(e.target.value, 10);
+      const yieldPct = val;
+      const energyPct = 100 - val;
+      
+      const lbl = document.getElementById("lblParetoRatio");
+      if (lbl) {
+        lbl.textContent = `수율 우선: ${yieldPct}% / 에너지 보존: ${energyPct}%`;
+      }
+      
+      // Update individual weights in standard UI
+      const wYield = (yieldPct / 100) * 10.0;
+      const wDw = (yieldPct / 100) * 10.0;
+      const wEnergy = (energyPct / 100) * 2.0;
+      
+      const sYield = document.getElementById("sliderWeightYield");
+      const sBiomass = document.getElementById("sliderWeightBiomass");
+      const sEnergy = document.getElementById("sliderWeightEnergy");
+      
+      if (sYield) { sYield.value = wYield.toFixed(1); sYield.dispatchEvent(new Event('input')); }
+      if (sBiomass) { sBiomass.value = wDw.toFixed(1); sBiomass.dispatchEvent(new Event('input')); }
+      if (sEnergy) { sEnergy.value = wEnergy.toFixed(2); sEnergy.dispatchEvent(new Event('input')); }
+      
+      // Update multipliers for 3D render loop
+      window.paretoSpeedMultiplier = 0.25 + 1.75 * (val / 100);
+      window.paretoPhotonMultiplier = 0.25 + 1.75 * (val / 100);
+      
+      renderParetoFrontier();
+    });
+  }
+
+  // VPP Enable Toggle Switch
+  const chkEnableVpp = document.getElementById("chkEnableVpp");
+  if (chkEnableVpp) {
+    chkEnableVpp.addEventListener("change", (e) => {
+      window.vppModeActive = e.target.checked;
+      if (typeof audio === "object" && typeof audio.playClick === "function") {
+        audio.playClick();
+      }
+      const statusBadge = document.getElementById("vppBadgeStatus");
+      if (statusBadge) {
+        if (window.vppModeActive) {
+          statusBadge.textContent = "VPP 대기 모드 활성 (Active)";
+          statusBadge.style.background = "rgba(16, 185, 129, 0.25)";
+          statusBadge.style.color = "#34d399";
+        } else {
+          statusBadge.textContent = "정상 급전 대기 (Standby)";
+          statusBadge.style.background = "rgba(255,255,255,0.05)";
+          statusBadge.style.color = "var(--text-muted)";
+        }
+      }
     });
   }
 
@@ -3290,6 +3426,7 @@ function renderRlStudioView() {
     if (DOM.rlStudioMainCanvas && cachedRlData) {
       rlAgent.startAnimation(DOM.rlStudioMainCanvas, cachedRlData);
     }
+    renderParetoFrontier();
   }, 40);
 }
 
@@ -3812,6 +3949,114 @@ function simulationLoop(now) {
           uvbActive: scheduled.uvb
         });
       }
+    }
+
+    // 1b. Smart Grid VPP Integrator Simulation Loop Logic
+    const smpBase = 155 + 85 * Math.sin(Date.now() / 8000.0);
+    const smpNoise = (Math.random() - 0.5) * 12;
+    const currentSmp = Math.max(70, Math.min(380, smpBase + smpNoise));
+    
+    window.vppSmpHistory.push(currentSmp);
+    if (window.vppSmpHistory.length > 60) window.vppSmpHistory.shift();
+
+    // Update real-time SCADA UI elements
+    const lblSmp = document.getElementById("lblVppSmpPrice");
+    if (lblSmp) lblSmp.textContent = currentSmp.toFixed(1);
+
+    const lblSmpTrend = document.getElementById("lblVppSmpTrend");
+    const vppBadgeStatus = document.getElementById("vppBadgeStatus");
+
+    if (currentSmp > 200) {
+      if (window.vppModeActive) {
+        // Override standard sensor inputs to minimal survival levels to escape peak tariffs!
+        envTele.sensors.ppfd = 180;
+        envTele.sensors.airflowSpeed = 0.35;
+
+        // Accumulate grid cost savings (0.64kW reduced * price * scaled time elapsed)
+        const savedMoney = 0.64 * currentSmp * (dtRealSeconds * 12.0);
+        window.vppSavingsAccumulated += savedMoney;
+
+        const lblSavings = document.getElementById("lblVppSavings");
+        if (lblSavings) lblSavings.textContent = `+${Math.floor(window.vppSavingsAccumulated)}`;
+
+        if (vppBadgeStatus) {
+          vppBadgeStatus.textContent = "⚡ VPP 피크 감축 운전 중 (Active)";
+          vppBadgeStatus.style.background = "rgba(16, 185, 129, 0.25)";
+          vppBadgeStatus.style.color = "#34d399";
+        }
+        if (lblSmpTrend) {
+          lblSmpTrend.textContent = "⚠️ 피크 단가 돌입! (감축 운전 중)";
+          lblSmpTrend.style.color = "#fda4af";
+        }
+
+        // Trigger Alert once when transitioning into curtailment
+        if (!window.vppLastCurtailmentState) {
+          window.vppLastCurtailmentState = true;
+          triggerSirenAlarm(
+            "VPP 전력 피크 감축 기동", 
+            `실시간 SMP 단가 ${currentSmp.toFixed(1)}원 돌파! 전력 제어 강제 자동 감축(PPFD 180, Fan 350RPM) 돌입.`
+          );
+        }
+      } else {
+        if (vppBadgeStatus) {
+          vppBadgeStatus.textContent = "⚠️ 고단가 피크 발생 (No Curtailment)";
+          vppBadgeStatus.style.background = "rgba(239, 68, 68, 0.25)";
+          vppBadgeStatus.style.color = "#f87171";
+        }
+        if (lblSmpTrend) {
+          lblSmpTrend.textContent = "⚠️ 고단가 피크 발생! (VPP 미작동)";
+          lblSmpTrend.style.color = "#f87171";
+        }
+        window.vppLastCurtailmentState = false;
+      }
+    } else {
+      window.vppLastCurtailmentState = false;
+      if (vppBadgeStatus) {
+        vppBadgeStatus.textContent = window.vppModeActive ? "VPP 대기 모드 활성 (Active)" : "정상 급전 대기 (Standby)";
+        vppBadgeStatus.style.background = window.vppModeActive ? "rgba(16, 185, 129, 0.15)" : "rgba(255, 255, 255, 0.05)";
+        vppBadgeStatus.style.color = window.vppModeActive ? "#34d399" : "var(--text-muted)";
+      }
+      if (lblSmpTrend) {
+        lblSmpTrend.textContent = `정상 부하 범위 (SMP < 200원)`;
+        lblSmpTrend.style.color = "#38bdf8";
+      }
+    }
+
+    // Draw SMP Chart Canvas
+    const smpCanvas = document.getElementById("vppSmpCanvas");
+    if (smpCanvas) {
+      const smpCtx = smpCanvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+      const sw = smpCanvas.getBoundingClientRect().width || 200;
+      const sh = smpCanvas.getBoundingClientRect().height || 50;
+      smpCanvas.width = sw * dpr;
+      smpCanvas.height = sh * dpr;
+      smpCtx.setTransform(1, 0, 0, 1, 0, 0);
+      smpCtx.scale(dpr, dpr);
+      smpCtx.clearRect(0, 0, sw, sh);
+
+      // Draw peak threshold dash line
+      const yPeak = sh - ((200 - 70) / (380 - 70)) * sh;
+      smpCtx.strokeStyle = "rgba(244, 63, 94, 0.35)";
+      smpCtx.lineWidth = 1;
+      smpCtx.setLineDash([2, 2]);
+      smpCtx.beginPath();
+      smpCtx.moveTo(0, yPeak);
+      smpCtx.lineTo(sw, yPeak);
+      smpCtx.stroke();
+      smpCtx.setLineDash([]);
+
+      // Draw SMP Line
+      smpCtx.strokeStyle = currentSmp > 200 ? "#f43f5e" : "#10b981";
+      smpCtx.lineWidth = 1.6;
+      smpCtx.beginPath();
+      window.vppSmpHistory.forEach((v, idx) => {
+        const x = (idx / (window.vppSmpHistory.length - 1)) * sw;
+        const y = sh - ((v - 70) / (380 - 70)) * sh;
+        if (idx === 0) smpCtx.moveTo(x, y);
+        else smpCtx.lineTo(x, y);
+      });
+      smpCtx.stroke();
     }
 
     // 2. FvCB Photosynthesis
