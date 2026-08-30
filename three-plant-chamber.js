@@ -404,6 +404,118 @@ export class ThreePlantChamber {
     });
     this.rootMistSystem = new THREE.Points(rootMistGeo, rootMistMat);
     this.scene.add(this.rootMistSystem);
+
+    // 4. Real-time 3D CFD Airflow Streamline Vector Field (480 Particles)
+    this.buildCfdVectorField(480);
+
+    // 5. Quantum Photon Energy Density Rain System (360 Photons)
+    this.buildPhotonRainField(360);
+  }
+
+  buildCfdVectorField(count = 480) {
+    this.cfdVectorCount = count;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    this.cfdParticles = [];
+
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 0.18 + Math.random() * 0.92;
+      const y = 0.45 + Math.random() * 1.70;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+
+      pos[i * 3 + 0] = x;
+      pos[i * 3 + 1] = y;
+      pos[i * 3 + 2] = z;
+
+      colors[i * 3 + 0] = 0.0;
+      colors[i * 3 + 1] = 0.95;
+      colors[i * 3 + 2] = 1.0;
+
+      this.cfdParticles.push({
+        angle,
+        radius,
+        y,
+        speedY: 0.007 + Math.random() * 0.015,
+        angularSpeed: 0.010 + Math.random() * 0.020,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const mat = new THREE.PointsMaterial({
+      size: 0.024,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+
+    this.cfdVectorSystem = new THREE.Points(geo, mat);
+    this.scene.add(this.cfdVectorSystem);
+    this.showCfdFlow = true;
+  }
+
+  buildPhotonRainField(count = 360) {
+    this.photonCount = count;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    this.photonParticles = [];
+
+    for (let i = 0; i < count; i++) {
+      const x = (Math.random() - 0.5) * 1.5;
+      const z = (Math.random() - 0.5) * 1.5;
+      const y = 0.5 + Math.random() * 1.70;
+
+      pos[i * 3 + 0] = x;
+      pos[i * 3 + 1] = y;
+      pos[i * 3 + 2] = z;
+
+      colors[i * 3 + 0] = 0.22;
+      colors[i * 3 + 1] = 0.74;
+      colors[i * 3 + 2] = 0.97;
+
+      this.photonParticles.push({
+        x,
+        z,
+        y,
+        speed: 0.014 + Math.random() * 0.022
+      });
+    }
+
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const mat = new THREE.PointsMaterial({
+      size: 0.019,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.75,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+
+    this.photonStreamSystem = new THREE.Points(geo, mat);
+    this.scene.add(this.photonStreamSystem);
+    this.showPhotons = true;
+  }
+
+  toggleCfdFlow(forcedState = null) {
+    this.showCfdFlow = forcedState !== null ? forcedState : !this.showCfdFlow;
+    if (this.cfdVectorSystem) this.cfdVectorSystem.visible = this.showCfdFlow;
+    return this.showCfdFlow;
+  }
+
+  togglePhotons(forcedState = null) {
+    this.showPhotons = forcedState !== null ? forcedState : !this.showPhotons;
+    if (this.photonStreamSystem) this.photonStreamSystem.visible = this.showPhotons;
+    return this.showPhotons;
   }
 
   setCropSpecies(cropProfile) {
@@ -1114,6 +1226,68 @@ export class ThreePlantChamber {
         pos[i * 3 + 2] = Math.sin(meta.baseAngle) * meta.baseRadius;
       }
       this.xylemStreamlineSystem.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // 7. CFD Airflow Vector Field Particles (Helical Downward Vortex & Canopy Flow)
+    if (this.cfdVectorSystem && this.cfdVectorSystem.visible && this.cfdParticles) {
+      const pos = this.cfdVectorSystem.geometry.attributes.position.array;
+      const colors = this.cfdVectorSystem.geometry.attributes.color.array;
+      const count = pos.length / 3;
+      const speedMult = this.currentAirflowSpeed || 1.0;
+      const isWarm = (this.currentTemp || 24.0) > 27.0;
+
+      for (let i = 0; i < count; i++) {
+        const p = this.cfdParticles[i];
+        p.y -= p.speedY * speedMult;
+        p.angle += p.angularSpeed * speedMult;
+
+        if (p.y < 0.45) {
+          p.y = 2.15;
+          p.radius = 0.20 + Math.random() * 0.90;
+        }
+
+        // Swirl around plant canopy
+        const currentR = p.radius * (1.0 + Math.sin(this.time * 2.0 + p.phase) * 0.08);
+        pos[i * 3 + 0] = Math.cos(p.angle) * currentR;
+        pos[i * 3 + 1] = p.y;
+        pos[i * 3 + 2] = Math.sin(p.angle) * currentR;
+
+        // Dynamic Temperature/CO2 Color Shading
+        if (isWarm) {
+          colors[i * 3 + 0] = 0.98; // Amber/Rose
+          colors[i * 3 + 1] = 0.45;
+          colors[i * 3 + 2] = 0.15;
+        } else {
+          colors[i * 3 + 0] = 0.0;  // Cyan/Sky Blue
+          colors[i * 3 + 1] = 0.85;
+          colors[i * 3 + 2] = 0.98;
+        }
+      }
+      this.cfdVectorSystem.geometry.attributes.position.needsUpdate = true;
+      this.cfdVectorSystem.geometry.attributes.color.needsUpdate = true;
+    }
+
+    // 8. Quantum Photon Energy Density Stream (Ceiling LED to Canopy Rain)
+    if (this.photonStreamSystem && this.photonStreamSystem.visible && this.photonParticles) {
+      const pos = this.photonStreamSystem.geometry.attributes.position.array;
+      const count = pos.length / 3;
+      const ppfdRatio = Math.max(0.3, Math.min(2.2, (this.currentPpfd || 450) / 450));
+
+      for (let i = 0; i < count; i++) {
+        const p = this.photonParticles[i];
+        p.y -= p.speed * ppfdRatio;
+
+        if (p.y < 0.50) {
+          p.y = 2.25;
+          p.x = (Math.random() - 0.5) * 1.5;
+          p.z = (Math.random() - 0.5) * 1.5;
+        }
+
+        pos[i * 3 + 0] = p.x;
+        pos[i * 3 + 1] = p.y;
+        pos[i * 3 + 2] = p.z;
+      }
+      this.photonStreamSystem.geometry.attributes.position.needsUpdate = true;
     }
 
     if (this.renderer && this.scene && this.camera) {

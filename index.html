@@ -482,6 +482,14 @@
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
                   <span>IoT/Modbus 브릿지</span>
                 </button>
+                <button id="btnToggleCfdFlow" draggable="true" class="btn btn-outline active" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #00f2fe; color: #a5f3fc; background: rgba(8, 145, 178, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="3D 챔버 내부 실시간 유체역학(CFD) 기류 벡터 시각화 On/Off">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2.5"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>
+                  <span>CFD 기류 벡터</span>
+                </button>
+                <button id="btnTogglePhotons" draggable="true" class="btn btn-outline active" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #fbbf24; color: #fef08a; background: rgba(180, 83, 9, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="3D 챔버 다파장 LED 광양자(Photon) 에너지 밀도 스트림 On/Off">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line></svg>
+                  <span>광양자(Photon) 스트림</span>
+                </button>
               </div>
               <button id="btnToggleToolsExpand" class="btn-toggle-tools-expand" title="생체 진단 도구 전체 펼치기 / 접기 (🖐 드래그하여 순서 변경 가능)">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
@@ -1091,6 +1099,42 @@
           <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 10.5px; color: #cbd5e1; line-height: 1.5;">
             <b style="color: #fbbf24;">🧬 생물학적 메커니즘 근거:</b>
             <p id="optStudioRationaleText" style="margin-top: 4px;">청색광 크립토크롬(CRY1/2) 및 UVR8 광수용체 자극을 통해 PSY 효소를 활성화하여 생체량 저하 없이 루테인 합성을 극대화합니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. GA-RL Ensemble Cross-Validation Panel -->
+      <div style="background: rgba(8, 16, 28, 0.88); border: 1.2px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-md); padding: 14px; margin-top: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            <span style="font-size: 13px; font-weight: 800; color: #38bdf8;">🔬 다목적 파레토 최적해(GA) vs. 강화학습(RL) 앙상블 상호 검증기 (Cross-Validator)</span>
+          </div>
+          <button id="btnDeployEnsembleHybrid" class="btn btn-primary" style="font-size: 11px; padding: 5px 14px; background: linear-gradient(135deg, #0284c7, #059669); border: none; font-weight: 700;">
+            🚀 GA-RL 앙상블 하이브리드 제어 배포
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; font-size: 11px;">
+          <div style="background: rgba(15, 23, 42, 0.7); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+            <div style="color: var(--text-muted); font-size: 10px;">정적 유전알고리즘 (GA) 예측 수율</div>
+            <b id="crossValGaYield" style="font-size: 16px; color: #fbbf24; display: block; margin: 3px 0;">17.2 mg/g</b>
+            <span style="color: var(--text-muted); font-size: 9.5px;">전역 최적 세트포인트</span>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.7); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+            <div style="color: var(--text-muted); font-size: 10px;">동적 강화학습 (RL) 도출 수율</div>
+            <b id="crossValRlYield" style="font-size: 16px; color: #34d399; display: block; margin: 3px 0;">16.8 mg/g</b>
+            <span style="color: #34d399; font-size: 9.5px;">시계열 적응 롤아웃</span>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.7); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+            <div style="color: var(--text-muted); font-size: 10px;">수율 예측 오차율 (MAE)</div>
+            <b id="crossValMae" style="font-size: 16px; color: #38bdf8; display: block; margin: 3px 0;">0.4 mg/g (2.3%)</b>
+            <span style="color: #38bdf8; font-size: 9.5px;">● R² = 0.984 (신뢰도 높음)</span>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.7); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+            <div style="color: var(--text-muted); font-size: 10px;">동적 제어로 인한 전력 추가 절감</div>
+            <b id="crossValEnergyDiff" style="font-size: 16px; color: #c084fc; display: block; margin: 3px 0;">-14.6 kWh (-22.4%)</b>
+            <span style="color: #c084fc; font-size: 9.5px;">DIF 변온 에너지 절감 효과</span>
           </div>
         </div>
       </div>

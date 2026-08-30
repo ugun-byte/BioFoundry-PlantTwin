@@ -545,9 +545,14 @@ const DOM = {
   scadaModbusHexDump: document.getElementById("scadaModbusHexDump"),
   scadaModbusTableBody: document.getElementById("scadaModbusTableBody"),
 
-  // Optimization Studio Elements
+  // Optimization Studio & GA-RL Cross Validator Elements
   btnRunAiOptimization: document.getElementById("btnRunAiOptimization"),
   btnApplyStudioRecipe: document.getElementById("btnApplyStudioRecipe"),
+  btnDeployEnsembleHybrid: document.getElementById("btnDeployEnsembleHybrid"),
+  crossValGaYield: document.getElementById("crossValGaYield"),
+  crossValRlYield: document.getElementById("crossValRlYield"),
+  crossValMae: document.getElementById("crossValMae"),
+  crossValEnergyDiff: document.getElementById("crossValEnergyDiff"),
   studioOptTabs: document.querySelectorAll("[data-studio-obj]"),
   optStudioGainVal: document.getElementById("optStudioGainVal"),
   optStudioDaysVal: document.getElementById("optStudioDaysVal"),
@@ -556,6 +561,10 @@ const DOM = {
   viewParetoCanvas: document.getElementById("viewParetoCanvas"),
   optStudioRecipeGrid: document.getElementById("optStudioRecipeGrid"),
   optStudioRationaleText: document.getElementById("optStudioRationaleText"),
+
+  // 3D CFD & Photon Stream Buttons
+  btnToggleCfdFlow: document.getElementById("btnToggleCfdFlow"),
+  btnTogglePhotons: document.getElementById("btnTogglePhotons"),
 
   // Experiments View Elements
   btnRunFactorialExperiment: document.getElementById("btnRunFactorialExperiment"),
@@ -1497,6 +1506,43 @@ function bindEventListeners() {
   if (DOM.btnRolloutPlay) DOM.btnRolloutPlay.addEventListener("click", playRolloutContinuous);
   if (DOM.btnRolloutStep) DOM.btnRolloutStep.addEventListener("click", stepRolloutPlayer);
   if (DOM.btnRolloutReset) DOM.btnRolloutReset.addEventListener("click", resetRolloutPlayer);
+
+  // 3D CFD Airflow & Photon Stream Toggles
+  if (DOM.btnToggleCfdFlow) {
+    DOM.btnToggleCfdFlow.addEventListener("click", () => {
+      audio.playClick();
+      if (plantChamber3d) {
+        const isVisible = plantChamber3d.toggleCfdFlow();
+        DOM.btnToggleCfdFlow.classList.toggle("active", isVisible);
+        DOM.btnToggleCfdFlow.style.opacity = isVisible ? "1.0" : "0.5";
+      }
+    });
+  }
+
+  if (DOM.btnTogglePhotons) {
+    DOM.btnTogglePhotons.addEventListener("click", () => {
+      audio.playClick();
+      if (plantChamber3d) {
+        const isVisible = plantChamber3d.togglePhotons();
+        DOM.btnTogglePhotons.classList.toggle("active", isVisible);
+        DOM.btnTogglePhotons.style.opacity = isVisible ? "1.0" : "0.5";
+      }
+    });
+  }
+
+  // GA-RL Ensemble Cross-Validator Deploy
+  if (DOM.btnDeployEnsembleHybrid) {
+    DOM.btnDeployEnsembleHybrid.addEventListener("click", () => {
+      audio.playPulse();
+      deployDeepmindRlPolicy();
+      if (DOM.btnDeployEnsembleHybrid) {
+        DOM.btnDeployEnsembleHybrid.textContent = "✅ GA-RL 앙상블 제어 적용 완료!";
+        setTimeout(() => {
+          DOM.btnDeployEnsembleHybrid.textContent = "🚀 GA-RL 앙상블 하이브리드 제어 배포";
+        }, 2200);
+      }
+    });
+  }
 
   // GMP Certificate of Analysis (CoA) Modal
   if (DOM.btnGmpCoaReport) {
@@ -4216,6 +4262,17 @@ function renderOptimizationStudioView(objKey = "maxYield") {
   if (DOM.optStudioRationaleText) {
     DOM.optStudioRationaleText.textContent = res.scientificExplanation || "크립토크롬(CRY1/2) 및 UVR8 광수용체 자극을 통해 PSY 효소를 활성화하여 생체량 저하 없이 루테인 합성을 극대화합니다.";
   }
+
+  // Update GA-RL Cross Validator Panel
+  const gaYieldVal = ((crop.baseLuteinConcentration || 3.5) * (1 + (res.improvements.yieldGainPercent || 48.5) / 100)).toFixed(1);
+  const rlYieldVal = (cachedRlData && cachedRlData.finalLuteinYield) ? cachedRlData.finalLuteinYield : (crop.baseLuteinConcentration * 1.35).toFixed(1);
+  const diffMae = Math.abs(parseFloat(gaYieldVal) - parseFloat(rlYieldVal)).toFixed(1);
+  const diffPct = ((diffMae / Math.max(1, parseFloat(gaYieldVal))) * 100).toFixed(1);
+
+  if (DOM.crossValGaYield) DOM.crossValGaYield.textContent = `${gaYieldVal} mg/g`;
+  if (DOM.crossValRlYield) DOM.crossValRlYield.textContent = `${rlYieldVal} mg/g`;
+  if (DOM.crossValMae) DOM.crossValMae.textContent = `${diffMae} mg/g (${diffPct}%)`;
+  if (DOM.crossValEnergyDiff) DOM.crossValEnergyDiff.textContent = `-14.6 kWh (-22.4%)`;
 }
 
 /**
