@@ -461,6 +461,10 @@
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"></path></svg>
                 <span>DeepMind AI 강화학습</span>
               </button>
+              <button id="btnGmpCoaReport" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #10b981; color: #a7f3d0; background: rgba(6, 78, 59, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="GMP 바이오 의약품 원료 생산 인증서(CoA) 및 QR 이력 추적성 자동 발행">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>GMP 의약품 인증(CoA)</span>
+              </button>
               <button id="btnPlant2Human" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #ec4899; color: #fbcfe8; background: rgba(80, 7, 36, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="식물-인간 인터페이스(Plant2Human) 신경 신호 가시화">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"></path></svg>
                 <span>Plant2Human</span>
@@ -1633,30 +1637,29 @@
         </button>
       </div>
 
-      <!-- Tab Content 1: Modbus Register Table -->
+      <!-- Tab Content 1: Modbus Register Table & Live Packet Scope -->
       <div id="modbusTabContent" style="display: block;">
-        <div style="max-height: 250px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); margin-bottom: 10px;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 10.5px; text-align: left;">
+        <!-- Live Hardware PLC Rack & Packet Scope Canvas -->
+        <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: var(--radius-sm); padding: 8px; margin-bottom: 10px;">
+          <canvas id="modbusPacketCanvas" style="width: 100%; height: 180px; display: block;"></canvas>
+        </div>
+
+        <div style="max-height: 180px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); margin-bottom: 10px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
             <thead style="background: rgba(15, 23, 42, 0.85); color: #c084fc; position: sticky; top: 0;">
               <tr>
-                <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">주소 (Addr)</th>
-                <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">레지스터 심볼</th>
-                <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">실시간 값 (Raw)</th>
-                <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">엔지니어링 단위</th>
-                <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">스케일</th>
-                <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">설명</th>
+                <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">주소 (Addr)</th>
+                <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">레지스터 심볼</th>
+                <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">실시간 값 (Raw)</th>
+                <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">엔지니어링 단위</th>
+                <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">스케일</th>
+                <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">설명</th>
               </tr>
             </thead>
             <tbody id="modbusRegisterTableBody">
               <!-- Dynamically populated -->
             </tbody>
           </table>
-        </div>
-
-        <!-- Modbus Hex Packet Monitor -->
-        <div style="background: rgba(5, 10, 18, 0.9); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: var(--radius-sm); padding: 8px 12px; font-family: monospace; font-size: 10px; color: #a78bfa;">
-          <div style="font-weight: 700; color: #e9d5ff; margin-bottom: 3px;">실시간 Modbus-TCP 응답 프레임 (Function 03)</div>
-          <div id="modbusHexDump" style="word-break: break-all; color: #34d399;">0x00 0x01 0x00 0x00 0x00 0x23 0x01 0x03 0x20 ...</div>
         </div>
       </div>
 
@@ -2445,6 +2448,94 @@
           </button>
           <button id="btnExportRlCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
             📋 RL 훈련 로그 CSV 내보내기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 23: Publication-Grade GMP Certificate of Analysis (CoA) & QR Blockchain Modal -->
+  <div id="coaReportModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 900px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="coaModalTitle" style="color: #34d399; font-size: 15px;">📜 GMP 바이오 의약품 원료 생산 인증서 (Certificate of Analysis)</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Ph. Eur. / USP 규격 준수 • HPLC 화학적 순도 • 중금속/미생물 안전성 • SHA-256 디지털 서명 및 QR 코드</p>
+        </div>
+        <button id="coaModalClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- Printable Certificate Container -->
+      <div id="printableCoaArea" style="background: #ffffff; color: #0f172a; padding: 24px 30px; border-radius: var(--radius-sm); font-family: 'Inter', -apple-system, sans-serif; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+        <!-- Top Header & Seals -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 14px;">
+          <div>
+            <div style="font-size: 9px; font-weight: 800; letter-spacing: 1.5px; color: #047857; text-transform: uppercase;">BioFoundry Korea cGMP Pilot Plant #01</div>
+            <h2 style="font-size: 18px; font-weight: 900; color: #0f172a; margin: 4px 0 2px 0;">CERTIFICATE OF ANALYSIS (시험 성적서)</h2>
+            <div style="font-size: 10px; color: #64748b;">Standard Specification: cGMP / Ph. Eur. 10.0 / USP-NF Molecular Farming Grade</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-family: monospace; font-size: 11px; font-weight: 700; color: #047857;" id="coaCertSerial">GMP-COA-2026-849102</div>
+            <div style="font-size: 10px; color: #64748b;" id="coaHarvestDate">발행일자: 2026. 08. 30</div>
+            <div style="display: inline-block; background: #ecfdf5; border: 1px solid #10b981; color: #047857; font-size: 9.5px; font-weight: 800; padding: 2px 8px; border-radius: 4px; margin-top: 4px;">
+              ✓ FINAL QA APPROVED
+            </div>
+          </div>
+        </div>
+
+        <!-- Botanical & Batch Metadata Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 10px 14px; margin-bottom: 14px; font-size: 10.5px;">
+          <div><b style="color: #475569;">원료 품명:</b> <span id="coaCropName" style="font-weight: 700; color: #0f172a;">메리골드 (Tagetes erecta L.)</span></div>
+          <div><b style="color: #475569;">제조 배치 번호:</b> <span id="coaBatchId" style="font-family: monospace; font-weight: 700; color: #0f172a;">BF-BATCH-MARIGOLD-D42</span></div>
+          <div><b style="color: #475569;">타깃 유효 분자:</b> <span id="coaTargetMolecule" style="font-weight: 700; color: #047857;">눈 건강 루테인 (Lutein)</span></div>
+          <div><b style="color: #475569;">분자식 / CID:</b> <span id="coaFormulaCid" style="font-family: monospace; color: #0f172a;">C40H56O2 (PubChem CID: 5281243)</span></div>
+        </div>
+
+        <!-- Assay Table -->
+        <div style="margin-bottom: 14px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+            <thead>
+              <tr style="background: #0f172a; color: #ffffff;">
+                <th style="padding: 6px 8px; border: 1px solid #0f172a;">시험 항목 (Test Parameter)</th>
+                <th style="padding: 6px 8px; border: 1px solid #0f172a;">시험 방법 (Method)</th>
+                <th style="padding: 6px 8px; border: 1px solid #0f172a;">품질 규격 (Specification)</th>
+                <th style="padding: 6px 8px; border: 1px solid #0f172a;">실측 결과 (Results)</th>
+                <th style="padding: 6px 8px; border: 1px solid #0f172a; text-align: center;">판정</th>
+              </tr>
+            </thead>
+            <tbody id="coaAssayTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 24-Hour Environmental Audit & QR Blockchain Verification Row -->
+        <div style="display: grid; grid-template-columns: 1fr 130px; gap: 16px; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 12px;">
+          <div style="font-size: 10px; color: #475569;">
+            <div style="font-weight: 700; color: #0f172a; margin-bottom: 3px;">24H 환경 이력 추적성 & SHA-256 전자 서명 (Digital Audit Trail)</div>
+            <div>• 적산 광량(DLI): <b id="coaDliVal">27.4 mol/m²d</b> | 주야간 DIF: <b>5.5°C</b> | 폐쇄 수경 절수율: <b>94.8%</b></div>
+            <div style="font-family: monospace; font-size: 9px; color: #64748b; margin-top: 4px; word-break: break-all;">
+              SHA-256 Hash: <span id="coaSha256Hash">a3f8c92b4e710d55e81c7f99b24401a7d66e8832049c15bf289945fa67123bc0</span>
+            </div>
+          </div>
+          <div style="text-align: center;">
+            <canvas id="coaQrCanvas" style="width: 100px; height: 100px; border: 1px solid #e2e8f0; border-radius: 4px;"></canvas>
+            <div style="font-size: 8px; color: #64748b; margin-top: 2px;">스캔하여 진위 검증</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * 인쇄 버튼을 누르면 브라우저 인쇄 다이얼로그를 통해 A4 고품질 PDF로 즉시 저장할 수 있습니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnPrintCoa" class="btn btn-primary" style="padding: 6px 14px; font-size: 11px; background: #10b981; border: none; font-weight: 700; color: #fff;">
+            🖨️ GMP 공식 성적서 인쇄 / PDF 저장 (Print)
+          </button>
+          <button id="btnExportCoaJson" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
+            📋 CoA JSON 데이터 복사
           </button>
         </div>
       </div>

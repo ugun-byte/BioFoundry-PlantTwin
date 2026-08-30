@@ -2142,7 +2142,201 @@ export class LiveTelemetryCharts {
       ctx.fillText(`● ATP RPM (${etcData.atpSynthaseRpm} RPM)`, rightL + 240 * dpr, plotT + 14 * dpr);
     }
   }
+
+  /**
+   * 18. Industrial PLC Modbus-TCP & MQTT Live Hardware Gateway Scope
+   * Left: Industrial PLC Rack Simulator (CPU, Ethernet Modbus Module, DO/AO Relay status LEDs)
+   * Right: Real-Time Hexadecimal Transaction Packet Stream Tracer
+   */
+  renderModbusPacketScope(canvas, iotBridge) {
+    if (!canvas || !iotBridge) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width || 800;
+    const h = rect.height || 220;
+
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+
+    // Dark Background
+    ctx.fillStyle = "rgba(4, 8, 15, 0.95)";
+    ctx.fillRect(0, 0, w, h);
+
+    const midX = w * 0.42;
+
+    // Divider Line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(midX, 10);
+    ctx.lineTo(midX, h - 10);
+    ctx.stroke();
+
+    // ==========================================
+    // LEFT PANE: Industrial PLC Rack Simulator
+    // ==========================================
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① 산업용 PLC 게이트웨이 랙 (LS / Siemens Modbus-TCP)", 14 * dpr, 18 * dpr);
+
+    const rackX = 20;
+    const rackY = 32;
+    const rackW = midX - 40;
+    const rackH = h - 48;
+
+    // Rack Chassis
+    ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+    ctx.fillRect(rackX, rackY, rackW, rackH);
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+    ctx.lineWidth = 1.5 * dpr;
+    ctx.strokeRect(rackX, rackY, rackW, rackH);
+
+    // 4 Slots: Power, CPU, Modbus-TCP, IO Relay
+    const slotW = (rackW - 10) / 4;
+    const slots = [
+      { name: "PSU", sub: "24V DC", led: "#34d399", label: "PWR" },
+      { name: "CPU", sub: "XGT-500", led: "#34d399", label: "RUN" },
+      { name: "ETH", sub: "Port 502", led: (Date.now() % 400 < 200) ? "#fbbf24" : "#34d399", label: "TX/RX" },
+      { name: "RELAY", sub: "8-CH DO", led: "#10b981", label: "ACT" }
+    ];
+
+    slots.forEach((s, idx) => {
+      const sx = rackX + 5 + idx * slotW;
+      const sy = rackY + 5;
+      const sw = slotW - 5;
+      const sh = rackH - 10;
+
+      ctx.fillStyle = "rgba(30, 41, 59, 0.85)";
+      ctx.fillRect(sx, sy, sw, sh);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(sx, sy, sw, sh);
+
+      // Slot Title
+      ctx.fillStyle = "#fff";
+      ctx.font = `bold ${8 * dpr}px 'Inter', sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText(s.name, sx + sw / 2, sy + 14 * dpr);
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+      ctx.font = `${6.5 * dpr}px monospace`;
+      ctx.fillText(s.sub, sx + sw / 2, sy + 24 * dpr);
+
+      // Status LED
+      ctx.fillStyle = s.led;
+      ctx.beginPath();
+      ctx.arc(sx + sw / 2, sy + 38 * dpr, 4 * dpr, 0, 2 * Math.PI);
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+      ctx.font = `${7 * dpr}px monospace`;
+      ctx.fillText(s.label, sx + sw / 2, sy + 50 * dpr);
+    });
+
+    // Subtitle Footer
+    ctx.textAlign = "left";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.font = `${7.5 * dpr}px monospace`;
+    ctx.fillText("Modbus Link: 127.0.0.1:502 | Unit ID: 0x01 | Poll: 100ms", rackX + 4, rackY + rackH + 12 * dpr);
+
+    // ==========================================
+    // RIGHT PANE: Packet Stream Trace Terminal
+    // ==========================================
+    const rightL = midX + 18;
+    const rightW = w - rightL - 18;
+
+    ctx.fillStyle = "#34d399";
+    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② 실시간 Modbus-TCP / MQTT 패킷 트레이서 (Hex Stream)", rightL, 18 * dpr);
+
+    const packets = iotBridge.getPacketStreamHistory();
+    packets.slice(0, 5).forEach((p, idx) => {
+      const cardY = 32 + idx * 34;
+      const isTx = p.direction === "TX";
+
+      ctx.fillStyle = isTx ? "rgba(14, 165, 233, 0.12)" : "rgba(16, 185, 129, 0.12)";
+      ctx.strokeStyle = isTx ? "rgba(56, 189, 248, 0.3)" : "rgba(52, 211, 153, 0.3)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(rightL, cardY, rightW, 30, 3);
+      ctx.fill();
+      ctx.stroke();
+
+      // Direction Badge
+      ctx.fillStyle = isTx ? "#38bdf8" : "#34d399";
+      ctx.font = `bold ${8 * dpr}px monospace`;
+      ctx.fillText(`[${p.direction}] ${p.timestamp}`, rightL + 6, cardY + 11 * dpr);
+
+      ctx.fillStyle = "#fbbf24";
+      ctx.fillText(`${p.funcCode} (${p.addr})`, rightL + 115 * dpr, cardY + 11 * dpr);
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.fillText(`${p.latencyMs}ms`, rightL + rightW - 35 * dpr, cardY + 11 * dpr);
+
+      // Hex Payload Dump Line
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `${7 * dpr}px monospace`;
+      ctx.fillText(p.hexDump.length > 55 ? p.hexDump.slice(0, 55) + "..." : p.hexDump, rightL + 6, cardY + 23 * dpr);
+    });
+  }
+
+  /**
+   * Renders High-Resolution Matrix QR Verification Code on Canvas
+   */
+  renderQrCodeCanvas(canvas, qrUrl = "") {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const size = 120;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    ctx.scale(dpr, dpr);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, size, size);
+
+    // Draw Crisp 2D Matrix Pattern (Deterministic QR Code representation)
+    ctx.fillStyle = "#000000";
+    const modules = 21;
+    const cellSize = size / modules;
+
+    // Fixed Position Finders (3 Corners)
+    const drawFinder = (x0, y0) => {
+      ctx.fillRect(x0 * cellSize, y0 * cellSize, 7 * cellSize, 7 * cellSize);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect((x0 + 1) * cellSize, (y0 + 1) * cellSize, 5 * cellSize, 5 * cellSize);
+      ctx.fillStyle = "#000000";
+      ctx.fillRect((x0 + 2) * cellSize, (y0 + 2) * cellSize, 3 * cellSize, 3 * cellSize);
+    };
+
+    drawFinder(0, 0);
+    drawFinder(modules - 7, 0);
+    drawFinder(0, modules - 7);
+
+    // Pseudo-Random Deterministic Data Bits based on URL hash
+    let hash = 0;
+    for (let i = 0; i < qrUrl.length; i++) hash = ((hash << 5) - hash) + qrUrl.charCodeAt(i);
+
+    for (let r = 0; r < modules; r++) {
+      for (let c = 0; c < modules; c++) {
+        // Skip finder areas
+        if ((r < 8 && c < 8) || (r < 8 && c >= modules - 8) || (r >= modules - 8 && c < 8)) continue;
+        const bit = Math.sin(hash + r * 13 + c * 37) > 0;
+        if (bit) {
+          ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+  }
 }
+
 
 
 

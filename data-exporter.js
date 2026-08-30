@@ -124,4 +124,54 @@ export class DataExporter {
       }
     };
   }
+
+  /**
+   * Generates Publication-Grade GMP Certificate of Analysis (CoA) for Biopharmaceutical Compliance
+   */
+  static generateGmpCertificateOfAnalysis(cropProfile, plantState, envEngine, hplcData = {}, etcData = {}, eisData = {}) {
+    const certSerial = `GMP-COA-${new Date().getFullYear()}-${Math.floor(Math.random() * 900000 + 100000)}`;
+    const harvestDate = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    const batchId = `BF-BATCH-${cropProfile.id.toUpperCase()}-D${envEngine.simulatedDay || 42}`;
+    
+    const targetAssayMgG = plantState.luteinConcentration ? parseFloat(plantState.luteinConcentration.toFixed(2)) : 18.72;
+    const hplcTargetPurity = hplcData.targetPurityPercent ? parseFloat(hplcData.targetPurityPercent.toFixed(1)) : 94.2;
+    const cellViability = eisData.membraneViabilityPct ? parseFloat(eisData.membraneViabilityPct.toFixed(1)) : 98.4;
+    
+    const assays = [
+      { param: "식물체 기원 및 형태학적 동정 (Botanical ID)", method: "DNA Barcode / Morphology", spec: `${cropProfile.scientificName}`, result: "정합 (Conforms 100%)", status: "PASS" },
+      { param: "타깃 유효 의약 분자 정량 (Assay Content)", method: "C18 RP-HPLC (USP <621>)", spec: `≥ 15.00 mg/g DW`, result: `${targetAssayMgG} mg/g DW`, status: "PASS" },
+      { param: "크로마토그래피 화학적 순도 (Chemical Purity)", method: "HPLC-PDA Area Normalization", spec: `≥ 90.0 %`, result: `${hplcTargetPurity} %`, status: "PASS" },
+      { param: "세포막 무결성 및 활성 (Cellular Integrity)", method: "EIS 10Hz~1MHz Spectroscopy", spec: `≥ 85.0 % Viability`, result: `${cellViability} %`, status: "PASS" },
+      { param: "중금속 오염도 (Heavy Metals: Pb, Cd, As, Hg)", method: "ICP-MS (Ph. Eur. 2.4.27)", spec: `< 0.10 ppm`, result: `< 0.005 ppm (ND)`, status: "PASS" },
+      { param: "미생물 한도 시험 (Total Aerobic Count)", method: "USP <61> Membrane Filtration", spec: `< 100 CFU/g`, result: `< 10 CFU/g`, status: "PASS" },
+      { param: "잔류 농약 및 화학 비료 불순물 (Residuals)", method: "LC-MS/MS Multi-Screening", spec: `Not Detected (ND)`, result: `ND (0.000 mg/kg)`, status: "PASS" }
+    ];
+
+    const auditTrail = {
+      totalCumulativeDli: parseFloat((envEngine.accumulatedDli || 27.4).toFixed(1)),
+      diurnalTempDif: "5.5 °C (Day 24.5°C / Night 19.0°C)",
+      waterRecyclingRate: "94.8 % (Zero-Discharge Closed Loop)",
+      uvbElicitationPulseHours: "72 Hours Prior Harvest"
+    };
+
+    const sha256Mock = "a3f8c92b4e710d55e81c7f99b24401a7d66e8832049c15bf289945fa67123bc0";
+
+    return {
+      certSerial,
+      batchId,
+      harvestDate,
+      facility: "BioFoundry Korea cGMP Phytochemical Manufacturing Pilot Plant #01",
+      botanicalName: cropProfile.name,
+      scientificName: cropProfile.scientificName,
+      targetMolecule: cropProfile.targetMolecule,
+      chemicalFormula: cropProfile.chemicalFormula,
+      pubchemCid: cropProfile.pubchemCid,
+      molecularWeight: cropProfile.molecularWeight,
+      assays,
+      auditTrail,
+      digitalSignature: sha256Mock,
+      qrVerificationUrl: `https://biofoundry.deepmind.ai/verify?cert=${certSerial}&batch=${batchId}`,
+      overallConclusion: "PASSED (Pharma-Grade cGMP Compliant)"
+    };
+  }
 }

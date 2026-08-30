@@ -120,4 +120,54 @@ export class IndustrialIoTBridge {
 
     return this.lastMqttPayload;
   }
+
+  /**
+   * Simulates bi-directional Modbus FC06 (Write Single Register) / FC16 (Write Multiple)
+   */
+  sendModbusWriteCommand(addr, value) {
+    const txId = (this.packetCounter++ % 65535).toString(16).padStart(4, "0").toUpperCase();
+    const addrHex = (addr - 40001).toString(16).padStart(4, "0").toUpperCase();
+    const valHex = (value & 0xFFFF).toString(16).padStart(4, "0").toUpperCase();
+    const nowTime = new Date().toTimeString().split(" ")[0] + "." + Math.floor(Math.random() * 900 + 100);
+
+    const txFrame = {
+      timestamp: nowTime,
+      direction: "TX",
+      txId: `0x${txId}`,
+      proto: "Modbus-TCP",
+      funcCode: "FC06 (Write Single Register)",
+      addr: `Register ${addr}`,
+      value: `${value}`,
+      hexDump: `0x${txId.slice(0, 2)} 0x${txId.slice(2, 4)} 0x00 0x00 0x00 0x06 0x01 0x06 0x${addrHex.slice(0, 2)} 0x${addrHex.slice(2, 4)} 0x${valHex.slice(0, 2)} 0x${valHex.slice(2, 4)}`,
+      latencyMs: parseFloat((Math.random() * 1.8 + 1.2).toFixed(1)),
+      status: "ACK (Success 200)"
+    };
+
+    if (!this.packetHistory) this.packetHistory = [];
+    this.packetHistory.unshift(txFrame);
+    if (this.packetHistory.length > 25) this.packetHistory.pop();
+
+    return txFrame;
+  }
+
+  getPacketStreamHistory() {
+    if (!this.packetHistory || this.packetHistory.length === 0) {
+      // Seed initial handshake packets
+      this.packetHistory = [
+        {
+          timestamp: new Date().toTimeString().split(" ")[0] + ".102",
+          direction: "RX",
+          txId: "0x0001",
+          proto: "Modbus-TCP",
+          funcCode: "FC03 (Read Holding Registers)",
+          addr: "40001 ~ 40016",
+          value: "16 Words",
+          hexDump: "0x00 0x01 0x00 0x00 0x00 0x23 0x01 0x03 0x20 0x01 0xC2 0x00 0xF0 0x02 0x80",
+          latencyMs: 1.4,
+          status: "OK (Active Link)"
+        }
+      ];
+    }
+    return this.packetHistory;
+  }
 }

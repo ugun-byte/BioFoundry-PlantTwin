@@ -437,6 +437,27 @@ const DOM = {
   btnDeployRlPolicy: document.getElementById("btnDeployRlPolicy"),
   btnExportRlCSV: document.getElementById("btnExportRlCSV"),
 
+  // Modbus-TCP Packet & Hardware Scope Elements
+  modbusPacketCanvas: document.getElementById("modbusPacketCanvas"),
+
+  // GMP Certificate of Analysis (CoA) Elements
+  btnGmpCoaReport: document.getElementById("btnGmpCoaReport"),
+  coaReportModal: document.getElementById("coaReportModal"),
+  coaModalClose: document.getElementById("coaModalClose"),
+  coaModalTitle: document.getElementById("coaModalTitle"),
+  coaCertSerial: document.getElementById("coaCertSerial"),
+  coaHarvestDate: document.getElementById("coaHarvestDate"),
+  coaCropName: document.getElementById("coaCropName"),
+  coaBatchId: document.getElementById("coaBatchId"),
+  coaTargetMolecule: document.getElementById("coaTargetMolecule"),
+  coaFormulaCid: document.getElementById("coaFormulaCid"),
+  coaAssayTableBody: document.getElementById("coaAssayTableBody"),
+  coaDliVal: document.getElementById("coaDliVal"),
+  coaSha256Hash: document.getElementById("coaSha256Hash"),
+  coaQrCanvas: document.getElementById("coaQrCanvas"),
+  btnPrintCoa: document.getElementById("btnPrintCoa"),
+  btnExportCoaJson: document.getElementById("btnExportCoaJson"),
+
   // Sub-Views
   viewOverview: document.getElementById("viewOverview"),
   viewTelemetry: document.getElementById("viewTelemetry"),
@@ -1248,6 +1269,22 @@ function bindEventListeners() {
     DOM.btnExportRlCSV.addEventListener("click", exportDeepmindRlCSV);
   }
 
+  // GMP Certificate of Analysis (CoA) Modal
+  if (DOM.btnGmpCoaReport) {
+    DOM.btnGmpCoaReport.addEventListener("click", openGmpCoaModal);
+  }
+  if (DOM.coaModalClose) {
+    DOM.coaModalClose.addEventListener("click", () => {
+      if (DOM.coaReportModal) DOM.coaReportModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnPrintCoa) {
+    DOM.btnPrintCoa.addEventListener("click", printGmpCoaDocument);
+  }
+  if (DOM.btnExportCoaJson) {
+    DOM.btnExportCoaJson.addEventListener("click", exportGmpCoaJson);
+  }
+
   // Cross-Origin Window Message Listener for Plant2Human AI (localhost:3006)
   window.addEventListener("message", (event) => {
     if (event.data && event.data.source === "Plant2Human_AI") {
@@ -1693,10 +1730,16 @@ function openIotBridgeModal() {
     DOM.mqttPayloadPre.textContent = JSON.stringify(mqttData.telemetryPayload, null, 2);
   }
 
-  // 3. Show Modal
+  // 3. Show Modal & Render Hardware Packet Scope
   if (DOM.iotBridgeModal) {
     DOM.iotBridgeModal.classList.add("active");
   }
+
+  setTimeout(() => {
+    if (DOM.modbusPacketCanvas && telemetryCharts) {
+      telemetryCharts.renderModbusPacketScope(DOM.modbusPacketCanvas, iotBridge);
+    }
+  }, 60);
 }
 
 function copyMqttJsonPayload() {
@@ -2624,6 +2667,76 @@ function exportDeepmindRlCSV() {
   document.body.removeChild(link);
 }
 
+// ------------------------------------------------------------------------
+// GMP Certificate of Analysis (CoA) & Blockchain Verification Handlers
+// ------------------------------------------------------------------------
+let cachedCoaData = null;
+
+function openGmpCoaModal() {
+  audio.playCoaPrintSound();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const hplcData = bioEngine.calculateHplcChromatogram(envTele.sensors, crop, plantState);
+  const etcData = bioEngine.calculateThylakoidEtcDynamics(envTele.sensors, crop, plantState);
+  const eisData = bioEngine.calculateEisImpedanceSpectroscopy(envTele.sensors, crop, plantState);
+
+  cachedCoaData = DataExporter.generateGmpCertificateOfAnalysis(crop, plantState, envEngine, hplcData, etcData, eisData);
+
+  if (DOM.coaModalTitle) {
+    DOM.coaModalTitle.textContent = `📜 ${crop.name}: GMP 바이오 의약품 원료 생산 인증서 (CoA)`;
+  }
+  if (DOM.coaCertSerial) DOM.coaCertSerial.textContent = cachedCoaData.certSerial;
+  if (DOM.coaHarvestDate) DOM.coaHarvestDate.textContent = `발행일자: ${cachedCoaData.harvestDate}`;
+  if (DOM.coaCropName) DOM.coaCropName.textContent = `${cachedCoaData.botanicalName} (${cachedCoaData.scientificName})`;
+  if (DOM.coaBatchId) DOM.coaBatchId.textContent = cachedCoaData.batchId;
+  if (DOM.coaTargetMolecule) DOM.coaTargetMolecule.textContent = cachedCoaData.targetMolecule;
+  if (DOM.coaFormulaCid) DOM.coaFormulaCid.textContent = `${cachedCoaData.chemicalFormula} (PubChem CID: ${cachedCoaData.pubchemCid})`;
+  if (DOM.coaDliVal) DOM.coaDliVal.textContent = `${cachedCoaData.auditTrail.totalCumulativeDli} mol/m²d`;
+  if (DOM.coaSha256Hash) DOM.coaSha256Hash.textContent = cachedCoaData.digitalSignature;
+
+  // Populate Assay Rows
+  if (DOM.coaAssayTableBody && cachedCoaData.assays) {
+    DOM.coaAssayTableBody.innerHTML = cachedCoaData.assays.map((a, i) => `
+      <tr style="background: ${i % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0;">
+        <td style="padding: 5px 8px; font-weight: 600; color: #0f172a; border-left: 1px solid #e2e8f0;">${a.param}</td>
+        <td style="padding: 5px 8px; color: #64748b; font-family: monospace; font-size: 9.5px;">${a.method}</td>
+        <td style="padding: 5px 8px; color: #475569; font-weight: 500;">${a.spec}</td>
+        <td style="padding: 5px 8px; font-weight: 700; color: #047857;">${a.result}</td>
+        <td style="padding: 5px 8px; text-align: center; font-weight: 800; color: #047857; border-right: 1px solid #e2e8f0;">
+          <span style="display: inline-block; background: #ecfdf5; border: 1px solid #10b981; border-radius: 3px; padding: 1px 6px; font-size: 9px;">${a.status}</span>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  if (DOM.coaReportModal) {
+    DOM.coaReportModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (DOM.coaQrCanvas && telemetryCharts) {
+      telemetryCharts.renderQrCodeCanvas(DOM.coaQrCanvas, cachedCoaData.qrVerificationUrl);
+    }
+  }, 60);
+}
+
+function printGmpCoaDocument() {
+  audio.playCoaPrintSound();
+  window.print();
+}
+
+function exportGmpCoaJson() {
+  if (!cachedCoaData) return;
+  navigator.clipboard.writeText(JSON.stringify(cachedCoaData, null, 2)).then(() => {
+    if (DOM.btnExportCoaJson) {
+      DOM.btnExportCoaJson.textContent = "✅ CoA JSON 복사 완료!";
+      setTimeout(() => {
+        DOM.btnExportCoaJson.textContent = "📋 CoA JSON 데이터 복사";
+      }, 2000);
+    }
+  });
+}
+
 function openElectrophysDiagnostics() {
   audio.playPulse();
   const crop = profileManager.getActiveProfile();
@@ -3144,6 +3257,13 @@ function updateActiveDiagnosticsModals(envTele, crop, plantState, instantPhoto, 
     if (DOM.etcAtpFluxVal) DOM.etcAtpFluxVal.textContent = `${etcData.atpPerSecPerComplex} ATP/s/cplx`;
     if (shouldRenderCanvas && DOM.thylakoidEtcCanvas && telemetryCharts) {
       telemetryCharts.renderThylakoidEtcScope(DOM.thylakoidEtcCanvas, etcData);
+    }
+  }
+
+  // 13. Industrial Modbus-TCP Packet Scope Modal
+  if (DOM.iotBridgeModal && DOM.iotBridgeModal.classList.contains("active")) {
+    if (shouldRenderCanvas && DOM.modbusPacketCanvas && telemetryCharts) {
+      telemetryCharts.renderModbusPacketScope(DOM.modbusPacketCanvas, iotBridge);
     }
   }
 }

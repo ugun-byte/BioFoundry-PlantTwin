@@ -411,7 +411,62 @@ export class CyberAudioEngine {
       osc.stop(this.ctx.currentTime + 0.12);
     } catch (e) {}
   }
+
+  /**
+   * Synthesizes Industrial Modbus-TCP packet transmission ping
+   */
+  playModbusPacketSound() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(1480, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(740, this.ctx.currentTime + 0.05);
+
+      gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.05);
+    } catch (e) {}
+  }
+
+  /**
+   * Synthesizes Official GMP Certificate stamping and print laser scan sound
+   */
+  playCoaPrintSound() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const freqs = [330, 440, 554.37, 659.25, 880];
+      freqs.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.05);
+
+        gain.gain.setValueAtTime(0.07, this.ctx.currentTime + idx * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.05 + 0.25);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(this.ctx.currentTime + idx * 0.05);
+        osc.stop(this.ctx.currentTime + idx * 0.05 + 0.25);
+      });
+    } catch (e) {}
+  }
 }
+
 
 
 
