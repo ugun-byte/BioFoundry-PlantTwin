@@ -696,6 +696,9 @@ function initApp() {
     if (bioPinCard) makeElementDraggable(bioPinCard, viewportCard);
   }
 
+  // Initialize click pointer-hide and double-click box-toggle listeners
+  initHudPointerToggle();
+
   // Initialize Interactive Resizable Panel Layout Gutters
   initResizablePanels();
 
@@ -909,6 +912,64 @@ function makeElementDraggable(cardEl, containerEl) {
 }
 
 /**
+ * Initialize Pointer Hide on Target Pointer End Click and Re-show on Card Box Double-Click
+ */
+function initHudPointerToggle() {
+  const leafPinGroup = document.getElementById("leafTargetPinGroup");
+  const rootPinGroup = document.getElementById("rootTargetPinGroup");
+  const leafCard = document.getElementById("hudLeafCard");
+  const rootCard = document.getElementById("hudRootCard");
+
+  if (leafPinGroup) {
+    leafPinGroup.addEventListener("click", (e) => {
+      e.stopPropagation();
+      isLeafPointerVisible = false;
+      if (typeof audio === "object" && typeof audio.playClick === "function") {
+        audio.playClick();
+      }
+      updateHudLeaderLines();
+    });
+  }
+
+  if (rootPinGroup) {
+    rootPinGroup.addEventListener("click", (e) => {
+      e.stopPropagation();
+      isRootPointerVisible = false;
+      if (typeof audio === "object" && typeof audio.playClick === "function") {
+        audio.playClick();
+      }
+      updateHudLeaderLines();
+    });
+  }
+
+  if (leafCard) {
+    leafCard.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+      isLeafPointerVisible = !isLeafPointerVisible;
+      if (typeof audio === "object" && typeof audio.playClick === "function") {
+        audio.playClick();
+      }
+      updateHudLeaderLines();
+    });
+  }
+
+  if (rootCard) {
+    rootCard.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+      isRootPointerVisible = !isRootPointerVisible;
+      if (typeof audio === "object" && typeof audio.playClick === "function") {
+        audio.playClick();
+      }
+      updateHudLeaderLines();
+    });
+  }
+}
+
+// Global states for Leaf and Root dynamic pointer visibility
+let isLeafPointerVisible = true;
+let isRootPointerVisible = true;
+
+/**
  * Real-Time Dynamic Leader Lines Connecting 3D Plant Tissues to Floating HUD Cards
  */
 function updateHudLeaderLines() {
@@ -960,8 +1021,9 @@ function updateHudLeaderLines() {
   const leafDot = document.getElementById("leafTargetDot");
   const leafPulse = document.getElementById("leafTargetPulse");
   const leafCardDot = document.getElementById("leafCardAttachDot");
+  const leafHit = document.getElementById("leafTargetHitArea");
 
-  if (anchors && anchors.leafScreen && anchors.leafScreen.isVisible && leafCard) {
+  if (isLeafPointerVisible && anchors && anchors.leafScreen && anchors.leafScreen.isVisible && leafCard) {
     const tx = anchors.leafScreen.x;
     const ty = anchors.leafScreen.y;
     const pathInfo = computeLeaderPath(tx, ty, leafCard);
@@ -981,6 +1043,11 @@ function updateHudLeaderLines() {
         leafPulse.setAttribute("cy", ty);
         leafPulse.style.display = "";
       }
+      if (leafHit) {
+        leafHit.setAttribute("cx", tx);
+        leafHit.setAttribute("cy", ty);
+        leafHit.style.display = "";
+      }
       if (leafCardDot) {
         leafCardDot.setAttribute("cx", pathInfo.attachX);
         leafCardDot.setAttribute("cy", pathInfo.attachY);
@@ -991,6 +1058,7 @@ function updateHudLeaderLines() {
     if (leafLine) leafLine.style.display = "none";
     if (leafDot) leafDot.style.display = "none";
     if (leafPulse) leafPulse.style.display = "none";
+    if (leafHit) leafHit.style.display = "none";
     if (leafCardDot) leafCardDot.style.display = "none";
   }
 
@@ -999,8 +1067,9 @@ function updateHudLeaderLines() {
   const rootDot = document.getElementById("rootTargetDot");
   const rootPulse = document.getElementById("rootTargetPulse");
   const rootCardDot = document.getElementById("rootCardAttachDot");
+  const rootHit = document.getElementById("rootTargetHitArea");
 
-  if (anchors && anchors.rootScreen && anchors.rootScreen.isVisible && rootCard) {
+  if (isRootPointerVisible && anchors && anchors.rootScreen && anchors.rootScreen.isVisible && rootCard) {
     const tx = anchors.rootScreen.x;
     const ty = anchors.rootScreen.y;
     const pathInfo = computeLeaderPath(tx, ty, rootCard);
@@ -1020,6 +1089,11 @@ function updateHudLeaderLines() {
         rootPulse.setAttribute("cy", ty);
         rootPulse.style.display = "";
       }
+      if (rootHit) {
+        rootHit.setAttribute("cx", tx);
+        rootHit.setAttribute("cy", ty);
+        rootHit.style.display = "";
+      }
       if (rootCardDot) {
         rootCardDot.setAttribute("cx", pathInfo.attachX);
         rootCardDot.setAttribute("cy", pathInfo.attachY);
@@ -1030,6 +1104,7 @@ function updateHudLeaderLines() {
     if (rootLine) rootLine.style.display = "none";
     if (rootDot) rootDot.style.display = "none";
     if (rootPulse) rootPulse.style.display = "none";
+    if (rootHit) rootHit.style.display = "none";
     if (rootCardDot) rootCardDot.style.display = "none";
   }
 }

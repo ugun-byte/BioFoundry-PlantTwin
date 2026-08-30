@@ -1049,6 +1049,20 @@ input:checked + .switch-slider:before {
   animation: hudPinPulseAnim 2.2s infinite ease-in-out;
 }
 
+.hud-pin-interactive-group {
+  pointer-events: auto;
+  cursor: pointer;
+  transition: opacity 0.25s ease;
+}
+
+.hud-pin-interactive-group:hover circle[id$="TargetDot"] {
+  r: 6.5px !important;
+}
+
+.hud-pin-interactive-group:hover path {
+  stroke-width: 2.5px !important;
+}
+
 .chamber-hud-card.leaf-pos {
   top: 75px;
   right: 14px;

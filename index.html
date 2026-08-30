@@ -534,27 +534,35 @@
               </filter>
             </defs>
 
-            <!-- 1. Leaf Tissue Target Anchor & Leader Line -->
-            <path id="leafLeaderLine" d="M0,0 L0,0" stroke="#00f2fe" stroke-width="1.8" stroke-dasharray="5 3" fill="none" filter="url(#cyanLeaderGlow)" />
-            <circle id="leafTargetDot" cx="-100" cy="-100" r="4" fill="#ffffff" stroke="#00f2fe" stroke-width="2.2" filter="url(#cyanLeaderGlow)" />
-            <circle id="leafTargetPulse" class="hud-pin-pulse" cx="-100" cy="-100" r="7.5" fill="none" stroke="#00f2fe" stroke-width="1.4" opacity="0.75" />
-            <circle id="leafCardAttachDot" cx="-100" cy="-100" r="3" fill="#00f2fe" />
+            <!-- 1. Leaf Tissue Target Anchor & Leader Line Group -->
+            <g id="leafTargetPinGroup" class="hud-pin-interactive-group" style="cursor: pointer;" title="포인터 끝을 클릭하면 지시선이 숨겨집니다 (박스 더블클릭 시 다시 표시)">
+              <path id="leafLeaderLine" d="M0,0 L0,0" stroke="#00f2fe" stroke-width="1.8" stroke-dasharray="5 3" fill="none" filter="url(#cyanLeaderGlow)" />
+              <circle id="leafTargetPulse" class="hud-pin-pulse" cx="-100" cy="-100" r="8.5" fill="none" stroke="#00f2fe" stroke-width="1.5" opacity="0.8" />
+              <circle id="leafTargetDot" cx="-100" cy="-100" r="4.5" fill="#ffffff" stroke="#00f2fe" stroke-width="2.2" filter="url(#cyanLeaderGlow)" />
+              <!-- Clickable hit area for easy tapping on pointer end -->
+              <circle id="leafTargetHitArea" cx="-100" cy="-100" r="16" fill="rgba(0, 242, 254, 0.01)" />
+              <circle id="leafCardAttachDot" cx="-100" cy="-100" r="3.2" fill="#00f2fe" />
+            </g>
 
-            <!-- 2. Root/Rhizosphere Target Anchor & Leader Line -->
-            <path id="rootLeaderLine" d="M0,0 L0,0" stroke="#10b981" stroke-width="1.8" stroke-dasharray="5 3" fill="none" filter="url(#emeraldLeaderGlow)" />
-            <circle id="rootTargetDot" cx="-100" cy="-100" r="4" fill="#ffffff" stroke="#10b981" stroke-width="2.2" filter="url(#emeraldLeaderGlow)" />
-            <circle id="rootTargetPulse" class="hud-pin-pulse" cx="-100" cy="-100" r="7.5" fill="none" stroke="#10b981" stroke-width="1.4" opacity="0.75" />
-            <circle id="rootCardAttachDot" cx="-100" cy="-100" r="3" fill="#10b981" />
+            <!-- 2. Root/Rhizosphere Target Anchor & Leader Line Group -->
+            <g id="rootTargetPinGroup" class="hud-pin-interactive-group" style="cursor: pointer;" title="포인터 끝을 클릭하면 지시선이 숨겨집니다 (박스 더블클릭 시 다시 표시)">
+              <path id="rootLeaderLine" d="M0,0 L0,0" stroke="#10b981" stroke-width="1.8" stroke-dasharray="5 3" fill="none" filter="url(#emeraldLeaderGlow)" />
+              <circle id="rootTargetPulse" class="hud-pin-pulse" cx="-100" cy="-100" r="8.5" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.8" />
+              <circle id="rootTargetDot" cx="-100" cy="-100" r="4.5" fill="#ffffff" stroke="#10b981" stroke-width="2.2" filter="url(#emeraldLeaderGlow)" />
+              <!-- Clickable hit area for easy tapping on pointer end -->
+              <circle id="rootTargetHitArea" cx="-100" cy="-100" r="16" fill="rgba(16, 185, 129, 0.01)" />
+              <circle id="rootCardAttachDot" cx="-100" cy="-100" r="3.2" fill="#10b981" />
+            </g>
           </svg>
 
           <!-- Glassmorphic HUD Card 1: 엽면 생체 분석 -->
-          <div id="hudLeafCard" class="chamber-hud-card leaf-pos">
+          <div id="hudLeafCard" class="chamber-hud-card leaf-pos" title="드래그: 이동 | 더블클릭: 3D 지시선 켜기/끄기">
             <div class="hud-card-header">
               <div style="display:flex; align-items:center; gap:5px;">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path></svg>
                 <span data-i18n="hudLeafHeader">엽면 생체 분석</span>
               </div>
-              <span class="hud-drag-handle" title="드래그하여 이동">⋮⋮</span>
+              <span class="hud-drag-handle" title="드래그하여 이동 (더블클릭: 지시선 토글)">⋮⋮</span>
             </div>
             <div class="hud-stat-grid">
               <span data-i18n="hudChl">엽록소 a/b</span>
@@ -567,13 +575,13 @@
           </div>
 
           <!-- Glassmorphic HUD Card 2: 근권 환경 분석 -->
-          <div id="hudRootCard" class="chamber-hud-card root-pos">
+          <div id="hudRootCard" class="chamber-hud-card root-pos" title="드래그: 이동 | 더블클릭: 3D 지시선 켜기/끄기">
             <div class="hud-card-header emerald">
               <div style="display:flex; align-items:center; gap:5px;">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                 <span data-i18n="hudRootHeader">근권 환경 분석</span>
               </div>
-              <span class="hud-drag-handle" title="드래그하여 이동">⋮⋮</span>
+              <span class="hud-drag-handle" title="드래그하여 이동 (더블클릭: 지시선 토글)">⋮⋮</span>
             </div>
             <div class="hud-stat-grid">
               <span data-i18n="hudRootRh">근권 습도</span>

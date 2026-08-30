@@ -1309,24 +1309,32 @@ export class ThreePlantChamber {
   }
 
   getPlantAnchorPoints() {
-    let leafWorld = new THREE.Vector3(0.06, 0.65, 0.04);
+    // 1. High Upper Leaf Canopy Anchor (Outer Foliage Tip: y ~ 0.82-0.95, x ~ +0.16)
+    let leafWorld = new THREE.Vector3(0.14, 0.82, 0.08);
     if (this.leaves && this.leaves.length > 0) {
-      // Find active visible leaf in canopy
-      const targetLeaf = this.leaves.find(l => l.mesh && l.mesh.visible) || this.leaves[0];
+      // Pick the topmost active mature leaf in the foliage
+      const targetLeaf = this.leaves.slice().reverse().find(l => l.mesh && l.mesh.visible) || this.leaves[this.leaves.length - 1];
       if (targetLeaf && targetLeaf.mesh) {
         targetLeaf.mesh.getWorldPosition(leafWorld);
+        leafWorld.y += 0.08;
+        leafWorld.x += 0.06;
       }
     } else if (this.stemMesh) {
       this.stemMesh.getWorldPosition(leafWorld);
-      leafWorld.y += 0.25;
+      leafWorld.y += 0.35;
+      leafWorld.x += 0.12;
     }
 
-    let rootWorld = new THREE.Vector3(0.0, 0.35, 0.0);
+    // 2. Low Aeroponic Rhizosphere Basin Anchor (Bottom Basin Zone: y ~ 0.22, x ~ -0.12)
+    let rootWorld = new THREE.Vector3(-0.12, 0.22, 0.04);
     if (this.taprootMesh) {
       this.taprootMesh.getWorldPosition(rootWorld);
-      rootWorld.y += 0.05;
+      rootWorld.y -= 0.14; // Bottom tip in aeroponics nutrient mist basin
+      rootWorld.x -= 0.08;
     } else if (this.rootGroup) {
       this.rootGroup.getWorldPosition(rootWorld);
+      rootWorld.y -= 0.24;
+      rootWorld.x -= 0.08;
     }
 
     return {
