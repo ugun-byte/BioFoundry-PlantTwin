@@ -781,8 +781,27 @@ function bindEventListeners() {
   }
 
   // Generic Modal Close
-  DOM.genericModalClose.addEventListener("click", () => DOM.genericCodeModal.classList.remove("active"));
-  DOM.btnGenericCopy.addEventListener("click", copyGenericModalCode);
+  if (DOM.genericModalClose) {
+    DOM.genericModalClose.addEventListener("click", () => DOM.genericCodeModal.classList.remove("active"));
+  }
+  if (DOM.btnGenericCopy) {
+    DOM.btnGenericCopy.addEventListener("click", copyGenericModalCode);
+  }
+
+  // Universal Backdrop Click Dismiss & ESC Key Dismiss for All Modals
+  document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) {
+        backdrop.classList.remove("active");
+      }
+    });
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      document.querySelectorAll(".modal-backdrop.active").forEach(m => m.classList.remove("active"));
+    }
+  });
 }
 
 function openOJIPDiagnostics() {
