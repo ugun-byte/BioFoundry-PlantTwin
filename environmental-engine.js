@@ -49,6 +49,28 @@ export class EnvironmentalEngine {
     this.disturbanceActive = false;
     this.disturbanceType = null;
     this.noiseTimer = 0;
+
+    // Smart Hydroponic pH Neutralization PID Controller & Ion Balance State
+    this.ionBalance = {
+      no3Ratio: 0.85, // 85% Nitrate
+      nh4Ratio: 0.15  // 15% Ammonium
+    };
+
+    this.phPid = {
+      kp: 1.6,
+      ki: 0.08,
+      kd: 0.35,
+      integral: 0,
+      prevError: 0,
+      acidPumpActive: false,
+      basePumpActive: false,
+      dosingRateMlMin: 0
+    };
+  }
+
+  setIonBalance(no3Ratio, nh4Ratio) {
+    this.ionBalance.no3Ratio = Math.max(0.05, Math.min(0.95, no3Ratio));
+    this.ionBalance.nh4Ratio = Math.max(0.05, Math.min(0.95, nh4Ratio));
   }
 
   updateSetpoints(newSetpoints) {
@@ -108,9 +130,41 @@ export class EnvironmentalEngine {
     const targetCo2 = isDaylightPeriod ? this.setpoints.co2Target : 450; // Night respiration venting
     this.currentPhysics.co2Actual += (targetCo2 - this.currentPhysics.co2Actual) * Math.min(1.0, dtSimSeconds / 350.0);
 
-    // 5. Fertigation EC & pH
+    // 5. Fertigation EC & Dynamic Chemical pH with PID Neutralization Pump
     this.currentPhysics.ecActual += (this.setpoints.ecTarget - this.currentPhysics.ecActual) * Math.min(1.0, dtSimSeconds / 1200.0);
-    this.currentPhysics.phActual += (this.setpoints.phTarget - this.currentPhysics.phActual) * Math.min(1.0, dtSimSeconds / 1200.0);
+
+    // Biological chemical pH drift based on Nitrate vs Ammonium ratio
+    const bioPhDriftRate = (this.ionBalance.no3Ratio * 0.003 - this.ionBalance.nh4Ratio * 0.004) * (dtSimSeconds / 60.0);
+    this.currentPhysics.phActual += bioPhDriftRate;
+
+    // Closed-Loop PID Controller calculation for Acid/Base Auto-Dosing
+    const phError = this.currentPhysics.phActual - this.setpoints.phTarget;
+    this.phPid.integral = Math.max(-3.0, Math.min(3.0, this.phPid.integral + phError * dtRealSeconds));
+    const phDerivative = (phError - this.phPid.prevError) / Math.max(0.01, dtRealSeconds);
+    this.phPid.prevError = phError;
+
+    const pidControlOut = this.phPid.kp * phError + this.phPid.ki * this.phPid.integral + this.phPid.kd * phDerivative;
+
+    // Pump actuation threshold
+    if (phError > 0.03) {
+      // pH too high (Alkaline) -> Acid Dosing Pump Active!
+      this.phPid.acidPumpActive = true;
+      this.phPid.basePumpActive = false;
+      this.phPid.dosingRateMlMin = parseFloat(Math.min(12.0, Math.max(0.5, pidControlOut * 3.2)).toFixed(1));
+      const neutralCorrection = (this.phPid.dosingRateMlMin / 60.0) * 0.018 * dtSimSeconds;
+      this.currentPhysics.phActual -= neutralCorrection;
+    } else if (phError < -0.03) {
+      // pH too low (Acidic) -> Base Dosing Pump Active!
+      this.phPid.acidPumpActive = false;
+      this.phPid.basePumpActive = true;
+      this.phPid.dosingRateMlMin = parseFloat(Math.min(12.0, Math.max(0.5, Math.abs(pidControlOut) * 3.2)).toFixed(1));
+      const neutralCorrection = (this.phPid.dosingRateMlMin / 60.0) * 0.018 * dtSimSeconds;
+      this.currentPhysics.phActual += neutralCorrection;
+    } else {
+      this.phPid.acidPumpActive = false;
+      this.phPid.basePumpActive = false;
+      this.phPid.dosingRateMlMin = 0;
+    }
 
     // 6. Calculate VPD based on actual physical values
     const esat = 0.61078 * Math.exp((17.27 * this.currentPhysics.airTempActual) / (this.currentPhysics.airTempActual + 237.3));
@@ -157,7 +211,9 @@ export class EnvironmentalEngine {
         ec: sensorEc,
         ph: sensorPh,
         fvFm: bioModelResult ? bioModelResult.fvFm : 0.82
-      }
+      },
+      phPid: { ...this.phPid },
+      ionBalance: { ...this.ionBalance }
     };
   }
 }

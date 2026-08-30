@@ -1134,6 +1134,12 @@ export class ThreePlantChamber {
           nodeType = leafMatchIdx >= 0 ? `제 ${leafMatchIdx + 1}엽 상위 엽맥 (Leaf #${leafMatchIdx + 1})` : "엽신 광합성 조직 (Lamina Tissue)";
         }
 
+        // 1. 3D Pulse Glow on Clicked Tissue Mesh
+        this.pulseHighlightNode(hit.object);
+
+        // 2. Smooth Zoom-in Focus Camera Animation
+        this.smoothFocusCamera(hit.point, 1.4, 750);
+
         if (this.onNodeClickCallback) {
           this.onNodeClickCallback({
             nodeType,
@@ -1148,6 +1154,62 @@ export class ThreePlantChamber {
         }
       }
     });
+  }
+
+  pulseHighlightNode(hitObject) {
+    if (!hitObject || !hitObject.material) return;
+    const mat = hitObject.material;
+    const origEmissive = mat.emissive ? mat.emissive.getHex() : 0x000000;
+    const origIntensity = mat.emissiveIntensity !== undefined ? mat.emissiveIntensity : 0;
+
+    const pulseColor = new THREE.Color(0x00f2fe);
+    const startTime = performance.now();
+    const duration = 1200;
+
+    const anim = (now) => {
+      const p = (now - startTime) / duration;
+      if (p < 1.0) {
+        const glow = Math.sin(p * Math.PI) * 1.6;
+        if (mat.emissive) {
+          mat.emissive.lerp(pulseColor, 0.4);
+          mat.emissiveIntensity = origIntensity + glow;
+        }
+        requestAnimationFrame(anim);
+      } else {
+        if (mat.emissive) {
+          mat.emissive.setHex(origEmissive);
+          mat.emissiveIntensity = origIntensity;
+        }
+      }
+    };
+    requestAnimationFrame(anim);
+  }
+
+  smoothFocusCamera(targetPos, distance = 1.35, duration = 800) {
+    if (!this.camera || !this.controls) return;
+
+    const startCamPos = this.camera.position.clone();
+    const startTarget = this.controls.target.clone();
+
+    const dir = new THREE.Vector3().subVectors(startCamPos, startTarget).normalize();
+    const endTarget = targetPos.clone();
+    const endCamPos = targetPos.clone().add(dir.multiplyScalar(distance));
+
+    const startTime = performance.now();
+
+    const anim = (now) => {
+      const p = Math.min(1.0, (now - startTime) / duration);
+      const ease = 1.0 - Math.pow(1.0 - p, 3);
+
+      this.camera.position.lerpVectors(startCamPos, endCamPos, ease);
+      this.controls.target.lerpVectors(startTarget, endTarget, ease);
+      this.controls.update();
+
+      if (p < 1.0) {
+        requestAnimationFrame(anim);
+      }
+    };
+    requestAnimationFrame(anim);
   }
 
   project3DToScreen(worldPos) {
@@ -1176,9 +1238,23 @@ export class ThreePlantChamber {
 
   resetCamera() {
     if (this.camera && this.controls) {
-      this.camera.position.set(0, 0.88, 3.25);
-      this.controls.target.set(0, 0.82, 0);
-      this.controls.update();
+      const startCam = this.camera.position.clone();
+      const startTgt = this.controls.target.clone();
+      const endCam = new THREE.Vector3(0, 0.88, 3.25);
+      const endTgt = new THREE.Vector3(0, 0.82, 0);
+
+      const startTime = performance.now();
+      const duration = 650;
+
+      const anim = (now) => {
+        const p = Math.min(1.0, (now - startTime) / duration);
+        const ease = 1.0 - Math.pow(1.0 - p, 3);
+        this.camera.position.lerpVectors(startCam, endCam, ease);
+        this.controls.target.lerpVectors(startTgt, endTgt, ease);
+        this.controls.update();
+        if (p < 1.0) requestAnimationFrame(anim);
+      };
+      requestAnimationFrame(anim);
     }
   }
 

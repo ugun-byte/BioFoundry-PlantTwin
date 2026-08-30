@@ -295,6 +295,42 @@
             <input type="number" id="inputEc" class="slider-num-input" min="0.5" max="4.0" step="0.05" value="2.31" title="직접 수치 입력">
           </div>
 
+          <!-- 11b. pH Control & PID Neutralization -->
+          <div class="slider-row">
+            <div class="slider-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+            </div>
+            <div class="slider-label-group">
+              <span class="slider-label">근권 양액 pH</span>
+              <span class="slider-unit">pH</span>
+            </div>
+            <div class="slider-track-wrap">
+              <input type="range" id="sliderPh" min="5.0" max="7.5" step="0.05" value="6.20" class="slider-input-track">
+              <div class="slider-minmax-row"><span>5.0</span><span>7.5</span></div>
+            </div>
+            <input type="number" id="inputPh" class="slider-num-input" min="5.0" max="7.5" step="0.05" value="6.20" title="직접 수치 입력">
+          </div>
+
+          <!-- PID Dosing Pump Status Card -->
+          <div style="background: rgba(0, 242, 254, 0.04); border: 1px solid rgba(0, 242, 254, 0.18); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 10px;">
+              <span style="color: var(--text-muted);">스마트 pH 자동 중화 PID 펌프</span>
+              <span id="phCurrentBadge" style="font-weight: 700; color: #38bdf8;">6.20 pH</span>
+            </div>
+            <div style="display: flex; gap: 6px; font-size: 9px;">
+              <div id="pumpAcidBadge" style="flex: 1; padding: 3px 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-muted); text-align: center;">
+                산(HNO₃) 펌프: 대기
+              </div>
+              <div id="pumpBaseBadge" style="flex: 1; padding: 3px 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-muted); text-align: center;">
+                알칼리(KOH) 펌프: 대기
+              </div>
+            </div>
+            <div style="margin-top: 6px; font-size: 9px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
+              <span>질소원 비율 (NO₃⁻ : NH₄⁺)</span>
+              <span id="ionRatioText" style="color: #fbbf24; font-weight: 600;">85% : 15%</span>
+            </div>
+          </div>
+
           <!-- 12. UV-B Toggle Switch -->
           <div class="toggle-row">
             <div class="toggle-left">
@@ -344,6 +380,9 @@
           <div class="viewport-floating-header">
             <div class="viewport-title" data-i18n="chamberHeading">3D 시뮬레이션 바이오리액터</div>
             <div class="viewport-tools">
+              <button id="btnOpenMicroscope" class="btn btn-outline" style="padding: 3px 8px; font-size: 10px; height: 26px; border-color: rgba(52, 211, 153, 0.5); color: #6ee7b7; background: rgba(52, 211, 153, 0.12);" title="현미경급 세포 구조 & 기공 개폐 인스펙터">
+                <span>🔬 세포 현미경 인스펙터</span>
+              </button>
               <button id="btnElectrophys" class="btn btn-outline" style="padding: 3px 8px; font-size: 10px; height: 26px; border-color: rgba(0, 242, 254, 0.5); color: #67e8f9; background: rgba(0, 242, 254, 0.12);" title="근권 세포막 전위(Vm) & 이온 채널 진단">
                 <span>⚡ 근권 막전위 (Vm)</span>
               </button>
@@ -1010,9 +1049,67 @@
     </div>
   </div>
 
+  <!-- Modal 9: Microscopic Cellular Structure & Stomata / Chloroplast Inspector Modal -->
+  <div id="microscopeModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 780px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="microscopeModalTitle" style="color: #6ee7b7; font-size: 15px;">🔬 초고해상도 식물 세포 & 기공(Stomata) 현미경 인스펙터</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">공변세포 삼투 팽압 및 틸라코이드 명반응 광인산화 ETR 실시간 분석</p>
+        </div>
+        <button id="microscopeClose" class="modal-close">✕</button>
+      </div>
+      
+      <!-- Key Cellular Metrics -->
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+        <div class="kpi-tile" style="padding: 8px 12px; background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.35);">
+          <span style="font-size: 9px; color: var(--text-muted);">기공 개방도 (Stomatal Aperture)</span>
+          <b id="cellApertureVal" class="kpi-big-val emerald" style="font-size: 20px;">86%</b>
+          <span id="cellTurgorBadge" style="font-size: 9px; color: #38bdf8; font-weight: 600; margin-top: 2px;">공변세포 팽압: 1.82 MPa</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">전자전달속도 (ETR)</span>
+          <b id="cellEtrVal" class="kpi-big-val cyan" style="font-size: 16px;">124.5</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">μmol e⁻/m²·s (명반응)</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">ATP 합성 플럭스</span>
+          <b id="cellAtpVal" class="kpi-big-val gold" style="font-size: 16px;">92%</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">틸라코이드 프로톤 구동</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">Rubisco 카르복실화 활성</span>
+          <b id="cellRubiscoVal" class="kpi-big-val" style="color: #c084fc; font-size: 16px;">89%</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">스트로마 암반응 고정</span>
+        </div>
+      </div>
+
+      <!-- Microscope Canvas Container -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: var(--radius-sm); padding: 12px; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px; color: var(--text-muted);">
+          <span>현미경 단면 시야 (공변세포 한 쌍 & 엽록체 과립 & 수증기 증산)</span>
+          <span style="font-size: 10px; color: #34d399;">● 광학 배율 1,200x 실시간 렌더</span>
+        </div>
+        <canvas id="microscopeStomaCanvas" style="width: 100%; height: 210px; display: block;"></canvas>
+      </div>
+
+      <!-- Interactive Micro Controls -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * VPD가 상승하거나 암조건 전환 시 공변세포의 K⁺ 유출로 기공이 즉시 닫힙니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnFocusZoomTissue" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #6ee7b7; border-color: rgba(52, 211, 153, 0.4);">
+            🎯 3D 잎 조직 초점 줌인
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="three.min.js"></script>
   <script src="OrbitControls.js"></script>
-  <script type="module" src="app.js?v=4.0"></script>
+  <script type="module" src="app.js?v=4.1"></script>
 </body>
 </html>

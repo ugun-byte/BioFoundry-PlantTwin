@@ -658,4 +658,108 @@ export class LiveTelemetryCharts {
     ctx.fillStyle = electroData.stateColor || "#10b981";
     ctx.fill();
   }
+
+  /**
+   * Microscopic Guard Cell & Stomatal Pore Interactive Canvas
+   */
+  renderMicroscopeStomaView(canvas, cellData) {
+    if (!canvas || !cellData) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : 480;
+    const h = rect.height > 0 ? rect.height : 220;
+
+    if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.scale(dpr, dpr);
+    }
+
+    ctx.clearRect(0, 0, w, h);
+
+    const cx = w / 2;
+    const cy = h / 2;
+    const aperturePct = cellData.stomaAperturePct || 75;
+    const apertureWidth = 4 + (aperturePct / 100) * 36;
+
+    // 1. Epidermal Cell Background Tissue Pattern
+    ctx.strokeStyle = "rgba(16, 185, 129, 0.12)";
+    ctx.lineWidth = 1.5;
+    for (let r = 50; r < 220; r += 40) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // 2. Stomatal Pore Aperture Gap (Center Black / Transpiration Hole)
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, apertureWidth / 2, 60, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(5, 10, 18, 0.95)";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(0, 242, 254, 0.4)";
+    ctx.stroke();
+    ctx.restore();
+
+    // 3. Left Guard Cell
+    ctx.save();
+    ctx.shadowColor = "#10b981";
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.ellipse(cx - (apertureWidth / 2 + 32), cy, 32, 62, -0.08, 0, Math.PI * 2);
+    const gradL = ctx.createRadialGradient(cx - 35, cy, 5, cx - 35, cy, 60);
+    gradL.addColorStop(0, "#34d399");
+    gradL.addColorStop(1, "#065f46");
+    ctx.fillStyle = gradL;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#10b981";
+    ctx.stroke();
+
+    // Right Guard Cell
+    ctx.beginPath();
+    ctx.ellipse(cx + (apertureWidth / 2 + 32), cy, 32, 62, 0.08, 0, Math.PI * 2);
+    const gradR = ctx.createRadialGradient(cx + 35, cy, 5, cx + 35, cy, 60);
+    gradR.addColorStop(0, "#34d399");
+    gradR.addColorStop(1, "#065f46");
+    ctx.fillStyle = gradR;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#10b981";
+    ctx.stroke();
+    ctx.restore();
+
+    // 4. Chloroplast Granules inside Guard Cells
+    const chloroOffsets = [
+      { x: -18, y: -30 }, { x: -28, y: -10 }, { x: -16, y: 15 }, { x: -25, y: 35 },
+      { x: 18, y: -30 }, { x: 28, y: -10 }, { x: 16, y: 15 }, { x: 25, y: 35 }
+    ];
+    chloroOffsets.forEach(pt => {
+      const offsetX = pt.x < 0 ? cx - (apertureWidth / 2 + 32) + (pt.x + 22) : cx + (apertureWidth / 2 + 32) + (pt.x - 22);
+      ctx.beginPath();
+      ctx.arc(offsetX, cy + pt.y, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = "#6ee7b7";
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(offsetX, cy + pt.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+    });
+
+    // 5. Transpiration Vapor Glow Particles escaping through pore
+    if (aperturePct > 20) {
+      ctx.fillStyle = "rgba(0, 242, 254, 0.75)";
+      for (let i = 0; i < 6; i++) {
+        const py = cy - 35 + (i * 14);
+        const px = cx + (Math.sin(Date.now() * 0.005 + i) * (apertureWidth * 0.25));
+        ctx.beginPath();
+        ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
 }

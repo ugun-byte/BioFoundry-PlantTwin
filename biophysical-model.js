@@ -382,4 +382,72 @@ export class BioPhysicalEngine {
       wavePoints
     };
   }
+
+  /**
+   * 11. Microscopic Cellular Organelle & Stomatal Dynamics Model
+   * Computes Guard Cell Turgor (MPa), Stomatal Aperture (%),
+   * Chloroplast Thylakoid Light/Dark Reaction Flux, and Rubisco Carboxylation.
+   */
+  calculateMicroscopicCellularMetrics(envParams = {}, cropProfile = {}, plantState = {}) {
+    const { ppfd = 450, airTemp = 24.0, vpd = 1.05, co2 = 800 } = envParams;
+
+    // 1. Guard Cell Osmotic Turgor & Aperture Opening % (0 ~ 100%)
+    // Light (PPFD) activates H+-ATPase -> K+ influx -> swells guard cell -> opens stoma
+    // High VPD (> 1.5 kPa) or extreme CO2 (> 1400 ppm) induces stomatal closure (ABA signaling)
+    const lightDrive = Math.min(1.0, ppfd / (cropProfile.lightSaturationPoint || 650));
+    const vpdPenalty = vpd > 1.4 ? Math.max(0.15, 1.0 - (vpd - 1.4) * 0.85) : 1.0;
+    const co2Penalty = co2 > 1200 ? Math.max(0.4, 1.0 - (co2 - 1200) / 2000) : 1.0;
+    const tempOpt = Math.exp(-0.5 * Math.pow((airTemp - (cropProfile.tempOpt || 24.0)) / 6.0, 2));
+
+    const apertureRatio = Math.max(0.05, Math.min(1.0, lightDrive * vpdPenalty * co2Penalty * tempOpt));
+    const guardTurgorMPa = parseFloat((0.4 + apertureRatio * 1.8).toFixed(2)); // 0.4 MPa closed -> 2.2 MPa wide open
+
+    // 2. Chloroplast Thylakoid Membrane Light Reaction & ETR
+    const etrRate = parseFloat((apertureRatio * (ppfd * 0.28)).toFixed(1)); // Electron Transport Rate (umol e- / m2 s)
+    const atpFluxPct = Math.round(Math.min(100, (etrRate / 180.0) * 100));
+
+    // 3. Stroma Dark Reaction & Rubisco Carboxylation Activation
+    const rubiscoActivePct = Math.round(Math.min(100, Math.max(10, tempOpt * (co2 / 1000.0) * 95.0)));
+
+    return {
+      stomaAperturePct: Math.round(apertureRatio * 100),
+      guardTurgorMPa,
+      etrRate,
+      atpFluxPct,
+      rubiscoActivePct,
+      leafTemp: parseFloat((airTemp - (apertureRatio * 2.2)).toFixed(1))
+    };
+  }
+
+  /**
+   * 12. Smart Hydroponic Nutrient Ion Balance (NO3- vs NH4+) & pH Drift Model
+   * Nitrate (NO3-) uptake alkalinizes root zone (OH- excretion).
+   * Ammonium (NH4+) uptake acidifies root zone (H+ excretion).
+   */
+  calculateNutrientChemicalBalance(envParams = {}, cropProfile = {}, ionConfig = {}) {
+    const { ec = 2.2, currentPH = 6.2, targetPH = 6.2 } = envParams;
+    const { no3Ratio = 0.85, nh4Ratio = 0.15 } = ionConfig;
+
+    // Total nitrogen absorption flux (mmol / L / day proxy)
+    const totalNFlux = (ec / 2.0) * 3.5;
+    const no3Flux = totalNFlux * no3Ratio;
+    const nh4Flux = totalNFlux * nh4Ratio;
+
+    // Net proton flux: NH4+ releases H+ (+1), NO3- releases HCO3-/OH- (-1)
+    const netHPlusFlux = (nh4Flux * 1.0) - (no3Flux * 0.88); // positive = acidifying, negative = alkalinizing
+
+    // Raw chemical pH drift velocity (pH units per minute in recirculation basin)
+    const bufferCapacity = 0.45; // mM/pH buffer capacity of standard nutrient solution
+    const driftVelocity = (-netHPlusFlux * 0.008) / bufferCapacity;
+
+    return {
+      no3Flux: parseFloat(no3Flux.toFixed(2)),
+      nh4Flux: parseFloat(nh4Flux.toFixed(2)),
+      netHPlusFlux: parseFloat(netHPlusFlux.toFixed(3)),
+      driftVelocity: parseFloat(driftVelocity.toFixed(4)),
+      currentPH: parseFloat(currentPH.toFixed(2)),
+      targetPH: parseFloat(targetPH.toFixed(2)),
+      pHDeviation: parseFloat((currentPH - targetPH).toFixed(2))
+    };
+  }
 }

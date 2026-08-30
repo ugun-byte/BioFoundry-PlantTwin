@@ -215,7 +215,28 @@ const DOM = {
   epKChanPct: document.getElementById("epKChanPct"),
   epNrtPct: document.getElementById("epNrtPct"),
   epScopeCanvas: document.getElementById("epScopeCanvas"),
-  btnTriggerIonPulse: document.getElementById("btnTriggerIonPulse")
+  btnTriggerIonPulse: document.getElementById("btnTriggerIonPulse"),
+
+  // pH & Smart PID Pump
+  sliderPh: document.getElementById("sliderPh"),
+  inputPh: document.getElementById("inputPh"),
+  phCurrentBadge: document.getElementById("phCurrentBadge"),
+  pumpAcidBadge: document.getElementById("pumpAcidBadge"),
+  pumpBaseBadge: document.getElementById("pumpBaseBadge"),
+  ionRatioText: document.getElementById("ionRatioText"),
+
+  // Microscope Modal
+  btnOpenMicroscope: document.getElementById("btnOpenMicroscope"),
+  microscopeModal: document.getElementById("microscopeModal"),
+  microscopeClose: document.getElementById("microscopeClose"),
+  microscopeModalTitle: document.getElementById("microscopeModalTitle"),
+  cellApertureVal: document.getElementById("cellApertureVal"),
+  cellTurgorBadge: document.getElementById("cellTurgorBadge"),
+  cellEtrVal: document.getElementById("cellEtrVal"),
+  cellAtpVal: document.getElementById("cellAtpVal"),
+  cellRubiscoVal: document.getElementById("cellRubiscoVal"),
+  microscopeStomaCanvas: document.getElementById("microscopeStomaCanvas"),
+  btnFocusZoomTissue: document.getElementById("btnFocusZoomTissue")
 };
 
 function populateCropDropdown(selectedId = null) {
@@ -620,6 +641,7 @@ function bindEventListeners() {
   bindTwoWayControl(DOM.sliderHumidity, DOM.inputHumidity, (val) => envEngine.updateSetpoints({ humidityTarget: val }));
   bindTwoWayControl(DOM.sliderCo2, DOM.inputCo2, (val) => envEngine.updateSetpoints({ co2Target: val }));
   bindTwoWayControl(DOM.sliderEc, DOM.inputEc, (val) => envEngine.updateSetpoints({ ecTarget: val }));
+  bindTwoWayControl(DOM.sliderPh, DOM.inputPh, (val) => envEngine.updateSetpoints({ phTarget: val }));
 
   // Switches
   DOM.checkUvb.addEventListener("change", (e) => {
@@ -644,6 +666,24 @@ function bindEventListeners() {
       const val = parseFloat(e.target.value) || 2.0;
       envEngine.updateSetpoints({ coldShiftActive: true, coldShiftDelta: val });
       DOM.checkColdShift.checked = true;
+    });
+  }
+
+  // Microscope Inspector Modal
+  if (DOM.btnOpenMicroscope) {
+    DOM.btnOpenMicroscope.addEventListener("click", openMicroscopeInspector);
+  }
+  if (DOM.microscopeClose) {
+    DOM.microscopeClose.addEventListener("click", () => {
+      if (DOM.microscopeModal) DOM.microscopeModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnFocusZoomTissue) {
+    DOM.btnFocusZoomTissue.addEventListener("click", () => {
+      audio.playPulse();
+      if (plantChamber3d) {
+        plantChamber3d.smoothFocusCamera(new THREE.Vector3(0, 0.45, 0), 1.2, 700);
+      }
     });
   }
 
@@ -837,6 +877,36 @@ function bindEventListeners() {
       document.querySelectorAll(".modal-backdrop.active").forEach(m => m.classList.remove("active"));
     }
   });
+}
+
+function openMicroscopeInspector() {
+  audio.playPulse();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+
+  // 1. Calculate Microscopic Cellular & Stomata Metrics
+  const cellData = bioEngine.calculateMicroscopicCellularMetrics(envTele.sensors, crop, plantState);
+
+  // 2. Update Modal Metrics
+  if (DOM.microscopeModalTitle) {
+    DOM.microscopeModalTitle.textContent = `🔬 ${crop.name}: 초고해상도 세포 & 기공(Stomata) 인스펙터`;
+  }
+  if (DOM.cellApertureVal) DOM.cellApertureVal.textContent = `${cellData.stomaAperturePct}%`;
+  if (DOM.cellTurgorBadge) DOM.cellTurgorBadge.textContent = `공변세포 팽압: ${cellData.guardTurgorMPa} MPa`;
+  if (DOM.cellEtrVal) DOM.cellEtrVal.textContent = cellData.etrRate;
+  if (DOM.cellAtpVal) DOM.cellAtpVal.textContent = `${cellData.atpFluxPct}%`;
+  if (DOM.cellRubiscoVal) DOM.cellRubiscoVal.textContent = `${cellData.rubiscoActivePct}%`;
+
+  // 3. Show Modal & Render Microscope Canvas
+  if (DOM.microscopeModal) {
+    DOM.microscopeModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (telemetryCharts && DOM.microscopeStomaCanvas) {
+      telemetryCharts.renderMicroscopeStomaView(DOM.microscopeStomaCanvas, cellData);
+    }
+  }, 60);
 }
 
 function openElectrophysDiagnostics() {
@@ -1075,6 +1145,37 @@ function simulationLoop(now) {
     DOM.hudRootRh.textContent = `${(98.5 + Math.sin(now * 0.002) * 0.4).toFixed(1)} %`;
     DOM.hudRootTemp.textContent = `${ionUptake.rootTemp} °C`;
     DOM.hudRootO2.textContent = `${(ionUptake.absorptionRatio * 100).toFixed(1)}% (NPK)`;
+
+    // 9b. Update Smart pH and PID Auto-Dosing Pump Badges
+    if (DOM.phCurrentBadge) {
+      DOM.phCurrentBadge.textContent = `${envTele.sensors.ph.toFixed(2)} pH`;
+    }
+    if (DOM.pumpAcidBadge && envTele.phPid) {
+      if (envTele.phPid.acidPumpActive) {
+        DOM.pumpAcidBadge.style.background = "rgba(244, 63, 94, 0.25)";
+        DOM.pumpAcidBadge.style.borderColor = "rgba(244, 63, 94, 0.6)";
+        DOM.pumpAcidBadge.style.color = "#fda4af";
+        DOM.pumpAcidBadge.textContent = `산(HNO₃) 투입: ${envTele.phPid.dosingRateMlMin} mL/min`;
+      } else {
+        DOM.pumpAcidBadge.style.background = "rgba(255, 255, 255, 0.05)";
+        DOM.pumpAcidBadge.style.borderColor = "rgba(255, 255, 255, 0.1)";
+        DOM.pumpAcidBadge.style.color = "var(--text-muted)";
+        DOM.pumpAcidBadge.textContent = "산(HNO₃) 펌프: 대기";
+      }
+    }
+    if (DOM.pumpBaseBadge && envTele.phPid) {
+      if (envTele.phPid.basePumpActive) {
+        DOM.pumpBaseBadge.style.background = "rgba(0, 242, 254, 0.25)";
+        DOM.pumpBaseBadge.style.borderColor = "rgba(0, 242, 254, 0.6)";
+        DOM.pumpBaseBadge.style.color = "#67e8f9";
+        DOM.pumpBaseBadge.textContent = `알칼리(KOH) 투입: ${envTele.phPid.dosingRateMlMin} mL/min`;
+      } else {
+        DOM.pumpBaseBadge.style.background = "rgba(255, 255, 255, 0.05)";
+        DOM.pumpBaseBadge.style.borderColor = "rgba(255, 255, 255, 0.1)";
+        DOM.pumpBaseBadge.style.color = "var(--text-muted)";
+        DOM.pumpBaseBadge.textContent = "알칼리(KOH) 펌프: 대기";
+      }
+    }
 
     // 10. Update Timeline Scrubber Text
     DOM.teleDay.textContent = String(envTele.simulatedDay).padStart(2, '0');
