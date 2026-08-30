@@ -718,6 +718,7 @@ function bindEventListeners() {
       numInput.value = val;
       updateSliderFill(slider);
       callback(val);
+      updateStaticPhysicsOnSliderChange();
     });
 
     numInput.addEventListener("input", (e) => {
@@ -729,6 +730,7 @@ function bindEventListeners() {
       slider.value = clamped;
       updateSliderFill(slider);
       callback(clamped);
+      updateStaticPhysicsOnSliderChange();
     });
 
     numInput.addEventListener("change", (e) => {
@@ -741,6 +743,7 @@ function bindEventListeners() {
       slider.value = clamped;
       updateSliderFill(slider);
       callback(clamped);
+      updateStaticPhysicsOnSliderChange();
     });
   };
 
@@ -1928,10 +1931,15 @@ function simulationLoop(now) {
     DOM.kpiEnergyEff.textContent = `${(molecularFlux.hourlyPlantFlux / (ledKw + 0.01)).toFixed(1)} mg/kWh`;
 
     // 9. Update Glassmorphic 3D Chamber HUD Cards (Leaf & Root with NPK Flux)
-    DOM.hudChlAb.textContent = (3.15 + Math.sin(now * 0.001) * 0.08).toFixed(2);
+    const ppfdSens = envTele.sensors.ppfd;
+    const chlAbRatio = (2.85 + 0.65 * (ppfdSens / 800.0)).toFixed(2);
+    const npqVal = instantPhoto.npq !== undefined ? instantPhoto.npq.toFixed(2) : Math.max(0.2, (ppfdSens - 200) / 250).toFixed(2);
+    const rootRhVal = (99.4 - Math.min(3.0, (envTele.sensors.ec - 1.0) * 0.8)).toFixed(1);
+
+    DOM.hudChlAb.textContent = chlAbRatio;
     DOM.hudStomatalGs.textContent = `${instantPhoto.stomata.gs.toFixed(2)} mol m⁻² s⁻¹`;
-    DOM.hudNpq.textContent = (1.25 + Math.cos(now * 0.001) * 0.05).toFixed(2);
-    DOM.hudRootRh.textContent = `${(98.5 + Math.sin(now * 0.002) * 0.4).toFixed(1)} %`;
+    DOM.hudNpq.textContent = npqVal;
+    DOM.hudRootRh.textContent = `${rootRhVal} %`;
     DOM.hudRootTemp.textContent = `${ionUptake.rootTemp} °C`;
     DOM.hudRootO2.textContent = `${(ionUptake.absorptionRatio * 100).toFixed(1)}% (NPK)`;
 
@@ -2018,9 +2026,183 @@ function simulationLoop(now) {
     if (plantChamber3d) {
       plantChamber3d.updateSimulation(plantState, envTele, crop, ionUptake);
     }
+
+    // 13. Real-Time Dynamic Synchronous Diagnostics Modals Updater
+    updateActiveDiagnosticsModals(envTele, crop, plantState, instantPhoto, ionUptake, sapFlowData, now);
   }
 
   requestAnimationFrame(simulationLoop);
+}
+
+let lastDiagnosticRenderTime = 0;
+
+/**
+ * High-Precision Real-Time Diagnostic Modals Updater
+ * Ensures 100% live physical synchronization whenever any modal is open.
+ */
+function updateActiveDiagnosticsModals(envTele, crop, plantState, instantPhoto, ionUptake, sapFlowData, now) {
+  const shouldRenderCanvas = (now - lastDiagnosticRenderTime) >= 100;
+  if (shouldRenderCanvas) {
+    lastDiagnosticRenderTime = now;
+  }
+
+  // 1. Cellular Microscope Modal
+  if (DOM.microscopeModal && DOM.microscopeModal.classList.contains("active")) {
+    const cellMetrics = bioEngine.calculateMicroscopicCellularMetrics(envTele.sensors, crop, plantState);
+    if (DOM.microApertureVal) DOM.microApertureVal.textContent = `${cellMetrics.stomaPoreWidthUm} μm`;
+    if (DOM.microTurgorVal) DOM.microTurgorVal.textContent = `${cellMetrics.guardCellTurgorMPa} MPa`;
+    if (DOM.microStomaDensity) DOM.microStomaDensity.textContent = `${cellMetrics.stomatalDensityPerMm2} / mm²`;
+    if (shouldRenderCanvas && DOM.stomaCanvas && telemetryCharts) {
+      telemetryCharts.renderMicroscopicStomaCanvas(DOM.stomaCanvas, cellMetrics);
+    }
+  }
+
+  // 2. PAM OJIP Fluorometer Modal
+  if (DOM.ojipModal && DOM.ojipModal.classList.contains("active")) {
+    const ojipData = bioEngine.calculateOJIPTransient(envTele.sensors, crop, plantState);
+    if (DOM.ojipFvFmVal) DOM.ojipFvFmVal.textContent = `${ojipData.fvFm}`;
+    if (DOM.ojipPhiPs2Val) DOM.ojipPhiPs2Val.textContent = `${ojipData.phiPs2}`;
+    if (DOM.ojipNpqVal) DOM.ojipNpqVal.textContent = `${ojipData.npq}`;
+    if (DOM.ojipPiAbsVal) DOM.ojipPiAbsVal.textContent = `${ojipData.piAbs}`;
+    if (shouldRenderCanvas && DOM.ojipCurveCanvas && telemetryCharts) {
+      telemetryCharts.renderOJIPCurve(DOM.ojipCurveCanvas, ojipData);
+    }
+  }
+
+  // 3. Xylem Sap Flow Dynamics Modal
+  if (DOM.sapFlowModal && DOM.sapFlowModal.classList.contains("active")) {
+    const sapData = sapFlowData || bioEngine.calculateSapFlowDynamics(envTele.sensors, crop, plantState);
+    if (DOM.sapFluxVal) DOM.sapFluxVal.textContent = `${sapData.sapFluxDensity} g m⁻² s⁻¹`;
+    if (DOM.sapPsiVal) DOM.sapPsiVal.textContent = `${sapData.stemWaterPotentialMPa} MPa`;
+    if (DOM.sapTransVal) DOM.sapTransVal.textContent = `${sapData.transpirationLitersPerDay} L/day`;
+    if (DOM.sapSpeedVal) DOM.sapSpeedVal.textContent = `${sapData.sapVelocityCmHr} cm/hr`;
+    if (shouldRenderCanvas && DOM.sapDiurnalCanvas && telemetryCharts) {
+      telemetryCharts.renderSapDiurnalScope(DOM.sapDiurnalCanvas, sapData);
+    }
+  }
+
+  // 4. Root Electrophysiology Modal
+  if (DOM.electrophysModal && DOM.electrophysModal.classList.contains("active")) {
+    const electroData = bioEngine.calculateRootElectrophysiology(envTele.sensors, crop, plantState);
+    if (DOM.vmPotentialVal) DOM.vmPotentialVal.textContent = `${electroData.membranePotentialMv} mV`;
+    if (DOM.vmHpumpVal) DOM.vmHpumpVal.textContent = `${electroData.hPumpCurrentPicoA} pA`;
+    if (DOM.vmKfluxVal) DOM.vmKfluxVal.textContent = `${electroData.kInfluxFlux} nmol m⁻² s⁻¹`;
+    if (DOM.vmCaSpikeVal) DOM.vmCaSpikeVal.textContent = `${electroData.calciumSpikeMv} mV`;
+    if (shouldRenderCanvas && DOM.electrophysCanvas && telemetryCharts) {
+      telemetryCharts.renderElectrophysScope(DOM.electrophysCanvas, electroData);
+    }
+  }
+
+  // 5. Hyperspectral NDVI/PRI Optical Analyzer Modal
+  if (DOM.hyperspectralModal && DOM.hyperspectralModal.classList.contains("active")) {
+    const hsData = bioEngine.calculateHyperspectralReflectance(envTele.sensors, crop, plantState);
+    if (DOM.hsNdviVal) DOM.hsNdviVal.textContent = `${hsData.ndvi}`;
+    if (DOM.hsPriVal) DOM.hsPriVal.textContent = `${hsData.pri}`;
+    if (DOM.hsReflRatio) DOM.hsReflRatio.textContent = `1 : ${(hsData.nirReflectance / Math.max(0.01, hsData.redReflectance)).toFixed(1)}`;
+    if (DOM.hsChlIndex) DOM.hsChlIndex.textContent = `${hsData.chlIndex}`;
+    if (shouldRenderCanvas && DOM.hyperspectralCanvas && telemetryCharts) {
+      telemetryCharts.renderHyperspectralScope(DOM.hyperspectralCanvas, hsData);
+    }
+  }
+
+  // 6. Stem Cavitation Ultrasonic Acoustic Emission (UAE) Modal
+  if (DOM.cavitationModal && DOM.cavitationModal.classList.contains("active")) {
+    const sapDyn = sapFlowData || bioEngine.calculateSapFlowDynamics(envTele.sensors, crop, plantState);
+    const uaeData = bioEngine.calculateUltrasonicAcousticEmissions(envTele.sensors, crop, plantState, sapDyn);
+    if (DOM.uaeRateVal) DOM.uaeRateVal.textContent = `${uaeData.uaeRateEventsPerMin} Evt/min`;
+    if (DOM.uaeStatusBadge) {
+      DOM.uaeStatusBadge.textContent = `● ${uaeData.cavitationRisk}`;
+      DOM.uaeStatusBadge.style.color = uaeData.uaeRateEventsPerMin < 10.0 ? "#34d399" : (uaeData.uaeRateEventsPerMin < 40.0 ? "#fbbf24" : "#f43f5e");
+    }
+    if (DOM.uaePsiVal) DOM.uaePsiVal.textContent = `${uaeData.psiStemMPa} MPa`;
+    if (DOM.uaeFreqVal) DOM.uaeFreqVal.textContent = `${uaeData.peakFreqKhz} kHz`;
+    if (DOM.uaeAmpVal) DOM.uaeAmpVal.textContent = `${uaeData.amplitudeDb} dB_AE`;
+    if (shouldRenderCanvas && DOM.cavitationScopeCanvas && telemetryCharts) {
+      telemetryCharts.renderCavitationScope(DOM.cavitationScopeCanvas, uaeData);
+    }
+  }
+
+  // 7. HPLC Virtual Chromatography Analyzer Modal
+  if (DOM.hplcModal && DOM.hplcModal.classList.contains("active")) {
+    const hplcData = bioEngine.calculateHplcChromatogram(envTele.sensors, crop, plantState);
+    if (DOM.hplcRtVal) DOM.hplcRtVal.textContent = `${hplcData.targetRtMin} min`;
+    if (DOM.hplcPurityVal) DOM.hplcPurityVal.textContent = `${hplcData.targetPurityPercent} %`;
+    if (DOM.hplcQuantVal) DOM.hplcQuantVal.textContent = `${hplcData.targetQuantMgG} mg/g DW`;
+    if (DOM.hplcPlatesVal) DOM.hplcPlatesVal.textContent = `${hplcData.columnTheoreticalPlates.toLocaleString()}`;
+    if (shouldRenderCanvas && DOM.hplcScopeCanvas && telemetryCharts) {
+      telemetryCharts.renderHplcChromatogramScope(DOM.hplcScopeCanvas, hplcData);
+    }
+  }
+
+  // 8. Biological Electrical Impedance Spectroscopy (EIS) Modal
+  if (DOM.eisModal && DOM.eisModal.classList.contains("active")) {
+    const eisData = bioEngine.calculateEisImpedanceSpectroscopy(envTele.sensors, crop, plantState);
+    if (DOM.eisCmVal) DOM.eisCmVal.textContent = `${eisData.membraneCapacitanceUf} μF/cm²`;
+    if (DOM.eisViabilityBadge) {
+      DOM.eisViabilityBadge.textContent = `● 건전성: ${eisData.membraneViabilityPct}% (${eisData.viabilityStatus})`;
+      DOM.eisViabilityBadge.style.color = eisData.membraneViabilityPct > 85.0 ? "#34d399" : (eisData.membraneViabilityPct > 65.0 ? "#fbbf24" : "#f43f5e");
+    }
+    if (DOM.eisReVal) DOM.eisReVal.textContent = `${eisData.extracellularResistanceOhm.toLocaleString()} Ω`;
+    if (DOM.eisRiVal) DOM.eisRiVal.textContent = `${eisData.intracellularResistanceOhm.toLocaleString()} Ω`;
+    if (DOM.eisFcVal) DOM.eisFcVal.textContent = `${eisData.characteristicFreqKhz} kHz`;
+    if (shouldRenderCanvas && DOM.eisScopeCanvas && telemetryCharts) {
+      telemetryCharts.renderEisNyquistAndBodeScope(DOM.eisScopeCanvas, eisData);
+    }
+  }
+
+  // 9. Stem Cell Meristem Dynamics (SAM) Modal
+  if (DOM.meristemModal && DOM.meristemModal.classList.contains("active")) {
+    const meristemData = bioEngine.calculateMeristemCellCycleDynamics(envTele.sensors, crop, plantState);
+    if (DOM.meristemCycleVal) DOM.meristemCycleVal.textContent = `${meristemData.totalCycleHours} hr`;
+    if (DOM.meristemMiBadge) {
+      DOM.meristemMiBadge.textContent = `● 분열 지수(MI): ${meristemData.mitoticIndexPct}%`;
+    }
+    if (DOM.meristemIaaCkVal) DOM.meristemIaaCkVal.textContent = `${meristemData.iaaCkRatio}`;
+    if (DOM.meristemElongVal) DOM.meristemElongVal.textContent = `${meristemData.elongationRateUmHr} μm/hr`;
+    if (DOM.meristemTurgorDriveVal) DOM.meristemTurgorDriveVal.textContent = `${meristemData.turgorDrivingPressureMPa} MPa`;
+    if (shouldRenderCanvas && DOM.meristemScopeCanvas && telemetryCharts) {
+      telemetryCharts.renderMeristemCellCycleScope(DOM.meristemScopeCanvas, meristemData);
+    }
+  }
+}
+
+/**
+ * Updates static instantaneous physics when sliders change, even if paused
+ */
+function updateStaticPhysicsOnSliderChange() {
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const instantPhoto = bioEngine.calculateInstantaneousPhotosynthesis(envTele.sensors, crop);
+  const ionUptake = bioEngine.calculateRootIonUptake(envTele.sensors, crop, plantState);
+  const sapFlowData = bioEngine.calculateSapFlowDynamics(envTele.sensors, crop, plantState);
+
+  // Update Instantaneous HUD
+  DOM.teleSensPpfd.textContent = Math.round(envTele.sensors.ppfd);
+  DOM.teleSensRh.textContent = envTele.sensors.humidity.toFixed(1);
+  DOM.teleSensAirTemp.textContent = envTele.sensors.airTemp.toFixed(1);
+  DOM.teleSensCo2.textContent = Math.round(envTele.sensors.co2);
+  DOM.teleSensLeafTemp.textContent = instantPhoto.stomata.leafTemp.toFixed(1);
+  DOM.teleSensEc.textContent = envTele.sensors.ec.toFixed(2);
+  DOM.teleSensVpd.textContent = envTele.sensors.vpd.toFixed(2);
+  DOM.teleSensFvFm.textContent = instantPhoto.fvFm.toFixed(3);
+
+  DOM.metaPpfd.textContent = Math.round(envTele.sensors.ppfd);
+  DOM.metaAn.textContent = instantPhoto.netAn.toFixed(1);
+  DOM.hudStomatalGs.textContent = `${instantPhoto.stomata.gs.toFixed(2)} mol m⁻² s⁻¹`;
+  DOM.hudChlAb.textContent = (2.85 + 0.65 * (envTele.sensors.ppfd / 800.0)).toFixed(2);
+  DOM.hudNpq.textContent = (instantPhoto.npq !== undefined ? instantPhoto.npq : Math.max(0.2, (envTele.sensors.ppfd - 200) / 250)).toFixed(2);
+  DOM.hudRootRh.textContent = `${(99.4 - Math.min(3.0, (envTele.sensors.ec - 1.0) * 0.8)).toFixed(1)} %`;
+  DOM.hudRootTemp.textContent = `${ionUptake.rootTemp} °C`;
+  DOM.hudRootO2.textContent = `${(ionUptake.absorptionRatio * 100).toFixed(1)}% (NPK)`;
+
+  if (plantChamber3d) {
+    plantChamber3d.updateSimulation(plantState, envTele, crop, ionUptake);
+    if (plantChamber3d.setSapFlowSpeed) {
+      plantChamber3d.setSapFlowSpeed(sapFlowData.sapFluxDensity);
+    }
+  }
+
+  updateActiveDiagnosticsModals(envTele, crop, plantState, instantPhoto, ionUptake, sapFlowData, performance.now());
 }
 
 function toggleAiAutoPilot() {
