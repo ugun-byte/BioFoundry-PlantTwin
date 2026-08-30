@@ -215,4 +215,32 @@ export class CyberAudioEngine {
       osc.stop(this.ctx.currentTime + 0.22);
     } catch (e) {}
   }
+
+  /**
+   * Synthesizes gentle rhythmic cellular mitosis division double-pulse
+   */
+  playMitosisPulseSound() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      [0.0, 0.09].forEach((offset, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(idx === 0 ? 520 : 780, this.ctx.currentTime + offset);
+        osc.frequency.exponentialRampToValueAtTime(idx === 0 ? 300 : 420, this.ctx.currentTime + offset + 0.05);
+
+        gain.gain.setValueAtTime(0.05, this.ctx.currentTime + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + offset + 0.05);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(this.ctx.currentTime + offset);
+        osc.stop(this.ctx.currentTime + offset + 0.05);
+      });
+    } catch (e) {}
+  }
 }

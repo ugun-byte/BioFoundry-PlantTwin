@@ -431,6 +431,10 @@
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
                 <span>생체 임피던스(EIS)</span>
               </button>
+              <button id="btnMeristemScope" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #06b6d4; color: #cffafe; background: rgba(8, 51, 68, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="줄기세포 분열조직(SAM/RAM) 세포분열주기(G1-S-G2-M) 가상 분석기">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+                <span>세포 분열주기(SAM)</span>
+              </button>
               <button id="btnIotBridge" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #a855f7; color: #e9d5ff; background: rgba(88, 28, 135, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="스마트팜 산업용 PLC/Modbus-TCP/MQTT 브릿지">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
                 <span>IoT/Modbus 브릿지</span>
@@ -1556,6 +1560,81 @@
           </button>
           <button id="btnExportEisCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
             📋 EIS 스윕 데이터 CSV 내보내기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 16: Stem Cell Meristem Dynamics & Cell Division Cycle (G1-S-G2-M) Modal -->
+  <div id="meristemModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 860px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="meristemModalTitle" style="color: #38bdf8; font-size: 15px;">🧬 줄기세포 분열조직(SAM/RAM) 세포분열주기(G1-S-G2-M) & 호르몬 동역학</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Cyclin-CDK 검문 경로 • 옥신(IAA) / 사이토키닌(CK) 형태 형성 구배 • Lockhart 신장 모델</p>
+        </div>
+        <button id="meristemClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+        <div class="kpi-tile" style="padding: 8px 12px; background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.35);">
+          <span style="font-size: 9px; color: var(--text-muted);">총 세포주기 시간 (τ_cycle)</span>
+          <b id="meristemCycleVal" class="kpi-big-val cyan" style="font-size: 20px;">19.2 hr</b>
+          <span id="meristemMiBadge" style="font-size: 9px; color: #34d399; font-weight: 600; margin-top: 2px;">● 분열 지수(MI): 7.4%</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">옥신/사이토키닌 비율 (IAA/CK)</span>
+          <b id="meristemIaaCkVal" class="kpi-big-val gold" style="font-size: 16px;">3.82</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">엽원기 개시 최적 균형</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">세포 신장률 (Lockhart r_elong)</span>
+          <b id="meristemElongVal" class="kpi-big-val emerald" style="font-size: 16px;">14.8 μm/hr</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Expansin 활성화 양호</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">유효 팽압 구동력 (P - Y)</span>
+          <b id="meristemTurgorDriveVal" class="kpi-big-val purple" style="font-size: 16px;">0.40 MPa</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">벽 항복 임계치 초과</span>
+        </div>
+      </div>
+
+      <!-- Meristem Scope Dual Canvas -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); padding: 12px; position: relative; margin-bottom: 12px;">
+        <canvas id="meristemScopeCanvas" style="width: 100%; height: 220px; display: block;"></canvas>
+      </div>
+
+      <!-- Regulatory Pathway Breakdown Table -->
+      <div style="max-height: 120px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); margin-bottom: 10px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+          <thead style="background: rgba(15, 23, 42, 0.9); color: #38bdf8; position: sticky; top: 0;">
+            <tr>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">조절 인자 / 유전자</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">생체 발달 기능</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">발현 위치 / 구배</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">활성 지표</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">상태</th>
+            </tr>
+          </thead>
+          <tbody id="meristemParamTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * 조명(PPFD)과 온도(DIF)가 최적화되면 Cyclin-CDK 활성화로 세포주기가 18시간 이내로 가속됩니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnRescanMeristem" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
+            🔬 분열조직 타임랩스 재스캔
+          </button>
+          <button id="btnExportMeristemCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
+            📋 세포분열 주기 CSV 내보내기
           </button>
         </div>
       </div>

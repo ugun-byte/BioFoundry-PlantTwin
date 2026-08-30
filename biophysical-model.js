@@ -903,7 +903,93 @@ export class BioPhysicalEngine {
       sweepData
     };
   }
+
+  /**
+   * 19. Stem Cell Meristem Dynamics (SAM/RAM) & Cell Cycle (G1-S-G2-M) Model
+   * Simulates shoot/root apical meristem stem cell division kinetics, Cyclin-CDK checkpoints,
+   * phytohormone morphogen gradients (Auxin IAA vs Cytokinin CK), and Lockhart cell elongation.
+   */
+  calculateMeristemCellCycleDynamics(envParams = {}, cropProfile = {}, plantState = {}) {
+    const { ppfd = 450, airTemp = 24.0 } = envParams;
+    const turgor = plantState.turgorPressureMPa !== undefined ? plantState.turgorPressureMPa : 0.65;
+    const biomass = plantState.biomassGrams || 5.0;
+
+    // 1. Phytohormone Morphogen Concentrations
+    // Cytokinin (CK in nM): Promotes WUS in Central Zone (CZ)
+    const baseCkNm = 28.5;
+    const ckConcNm = parseFloat((baseCkNm * (0.8 + 0.4 * (ppfd / 500.0))).toFixed(1));
+
+    // Auxin (IAA in uM): Promotes organ initiation in Peripheral Zone (PZ) & Rib Meristem (RM)
+    const baseIaaUm = 4.2;
+    const iaaConcUm = parseFloat((baseIaaUm * (0.85 + 0.3 * (airTemp / 25.0))).toFixed(2));
+
+    const iaaCkRatio = parseFloat((iaaConcUm / (ckConcNm * 0.001 * 100.0)).toFixed(2));
+
+    // 2. Cell Cycle Duration & Phase Breakdown (G1 -> S -> G2 -> M)
+    // Temperature Q10 temperature acceleration factor
+    const tempQ10Factor = Math.pow(2.0, (airTemp - 20.0) / 10.0);
+    const baseCycleHours = 22.5;
+    const totalCycleHours = parseFloat((baseCycleHours / Math.max(0.6, tempQ10Factor)).toFixed(1));
+
+    // Fractions of cycle in each phase
+    const g1Hours = parseFloat((totalCycleHours * 0.44).toFixed(1));
+    const sHours = parseFloat((totalCycleHours * 0.26).toFixed(1));
+    const g2Hours = parseFloat((totalCycleHours * 0.19).toFixed(1));
+    const mHours = parseFloat((totalCycleHours * 0.11).toFixed(1));
+
+    const phaseDistribution = [
+      { phase: "G1", name: "G1기 (세포 생장 및 S기 준비)", hours: g1Hours, percent: 44.0, color: "#38bdf8", regulator: "CYCD3;1 / E2F" },
+      { phase: "S", name: "S기 (DNA 복제 및 염색체 합성)", hours: sHours, percent: 26.0, color: "#a855f7", regulator: "PCNA / RNR" },
+      { phase: "G2", name: "G2기 (분열 준비 및 유사분열 검문)", hours: g2Hours, percent: 19.0, color: "#ec4899", regulator: "CDKB1;1 / CYCB1" },
+      { phase: "M", name: "M기 (유사분열 및 세포질 분열)", hours: mHours, percent: 11.0, color: "#10b981", regulator: "KNOLLE / Phragmoplast" }
+    ];
+
+    // 3. Mitotic Index (MI %): Fraction of meristem cells undergoing active mitosis
+    const mitoticIndexPct = parseFloat((5.2 * (0.8 + 0.4 * (airTemp / 24.0)) * (0.7 + 0.3 * (ppfd / 400.0))).toFixed(1));
+
+    // 4. Lockhart Cell Elongation Dynamics: r_elong = Phi * (P - Y)
+    const cellWallExtensibilityPhi = 0.085; // MPa^-1 hr^-1 (Expansin activity)
+    const yieldThresholdY = 0.25; // MPa
+    const effectiveTurgorDrivingForce = Math.max(0.0, turgor - yieldThresholdY);
+    const elongationRateUmHr = parseFloat((120.0 * cellWallExtensibilityPhi * effectiveTurgorDrivingForce * (iaaConcUm / 4.0)).toFixed(1));
+
+    // 5. Spatial Morphogen Gradient from SAM Center (0 um) to Primordium P2 (200 um)
+    const spatialGradient = [];
+    for (let r = 0; r <= 200; r += 10) {
+      // CK peaks at Center (CZ), Auxin peaks at Peripheral Zone (PZ ~ 70 um)
+      const ckProfile = ckConcNm * Math.exp(-Math.pow(r / 60.0, 2));
+      const iaaProfile = iaaConcUm * Math.exp(-Math.pow((r - 75.0) / 45.0, 2)) + (iaaConcUm * 0.35);
+      const wusActivity = 100.0 * Math.exp(-Math.pow(r / 40.0, 2));
+      const cellDivisionRate = mitoticIndexPct * Math.exp(-Math.pow((r - 70.0) / 50.0, 2));
+
+      spatialGradient.push({
+        radiusUm: r,
+        ckNm: parseFloat(ckProfile.toFixed(1)),
+        iaaUm: parseFloat(iaaProfile.toFixed(2)),
+        wusActivityPct: parseFloat(wusActivity.toFixed(1)),
+        cellDivisionRate: parseFloat(cellDivisionRate.toFixed(2))
+      });
+    }
+
+    return {
+      meristemType: "Shoot Apical Meristem (SAM - 줄기 정단 분열조직)",
+      totalCycleHours,
+      g1Hours,
+      sHours,
+      g2Hours,
+      mHours,
+      mitoticIndexPct,
+      iaaConcUm,
+      ckConcNm,
+      iaaCkRatio,
+      elongationRateUmHr,
+      turgorDrivingPressureMPa: parseFloat(effectiveTurgorDrivingForce.toFixed(2)),
+      phaseDistribution,
+      spatialGradient
+    };
+  }
 }
+
 
 
 

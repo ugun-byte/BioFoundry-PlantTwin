@@ -333,7 +333,22 @@ const DOM = {
   eisScopeCanvas: document.getElementById("eisScopeCanvas"),
   eisParamTableBody: document.getElementById("eisParamTableBody"),
   btnRescanEis: document.getElementById("btnRescanEis"),
-  btnExportEisCSV: document.getElementById("btnExportEisCSV")
+  btnExportEisCSV: document.getElementById("btnExportEisCSV"),
+
+  // Stem Cell Meristem Dynamics & Cell Division Cycle (G1-S-G2-M) Modal
+  btnMeristemScope: document.getElementById("btnMeristemScope"),
+  meristemModal: document.getElementById("meristemModal"),
+  meristemClose: document.getElementById("meristemClose"),
+  meristemModalTitle: document.getElementById("meristemModalTitle"),
+  meristemCycleVal: document.getElementById("meristemCycleVal"),
+  meristemMiBadge: document.getElementById("meristemMiBadge"),
+  meristemIaaCkVal: document.getElementById("meristemIaaCkVal"),
+  meristemElongVal: document.getElementById("meristemElongVal"),
+  meristemTurgorDriveVal: document.getElementById("meristemTurgorDriveVal"),
+  meristemScopeCanvas: document.getElementById("meristemScopeCanvas"),
+  meristemParamTableBody: document.getElementById("meristemParamTableBody"),
+  btnRescanMeristem: document.getElementById("btnRescanMeristem"),
+  btnExportMeristemCSV: document.getElementById("btnExportMeristemCSV")
 };
 
 function populateCropDropdown(selectedId = null) {
@@ -894,6 +909,22 @@ function bindEventListeners() {
   }
   if (DOM.btnExportEisCSV) {
     DOM.btnExportEisCSV.addEventListener("click", exportEisDataCSV);
+  }
+
+  // Stem Cell Meristem Dynamics Modal
+  if (DOM.btnMeristemScope) {
+    DOM.btnMeristemScope.addEventListener("click", openMeristemModal);
+  }
+  if (DOM.meristemClose) {
+    DOM.meristemClose.addEventListener("click", () => {
+      if (DOM.meristemModal) DOM.meristemModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnRescanMeristem) {
+    DOM.btnRescanMeristem.addEventListener("click", openMeristemModal);
+  }
+  if (DOM.btnExportMeristemCSV) {
+    DOM.btnExportMeristemCSV.addEventListener("click", exportMeristemDataCSV);
   }
 
   // Timeline Controls
@@ -1581,6 +1612,81 @@ function exportEisDataCSV() {
   const link = document.createElement("a");
   link.setAttribute("href", url);
   link.setAttribute("download", `BioFoundry_EIS_${crop.id}_Day${DOM.teleDay ? DOM.teleDay.textContent : '01'}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function openMeristemModal() {
+  audio.playMitosisPulseSound();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const meristemData = bioEngine.calculateMeristemCellCycleDynamics(envTele.sensors, crop, plantState);
+
+  if (DOM.meristemModalTitle) {
+    DOM.meristemModalTitle.textContent = `🧬 ${crop.name}: 줄기세포 분열조직(SAM) 세포분열주기(G1-S-G2-M) 동역학`;
+  }
+  if (DOM.meristemCycleVal) DOM.meristemCycleVal.textContent = `${meristemData.totalCycleHours} hr`;
+  if (DOM.meristemMiBadge) {
+    DOM.meristemMiBadge.textContent = `● 분열 지수(MI): ${meristemData.mitoticIndexPct}% (분열 활성도 ${meristemData.mitoticIndexPct > 6.0 ? '높음' : '보통'})`;
+    DOM.meristemMiBadge.style.color = meristemData.mitoticIndexPct > 6.0 ? "#34d399" : "#38bdf8";
+  }
+  if (DOM.meristemIaaCkVal) DOM.meristemIaaCkVal.textContent = `${meristemData.iaaCkRatio}`;
+  if (DOM.meristemElongVal) DOM.meristemElongVal.textContent = `${meristemData.elongationRateUmHr} μm/hr`;
+  if (DOM.meristemTurgorDriveVal) DOM.meristemTurgorDriveVal.textContent = `${meristemData.turgorDrivingPressureMPa} MPa`;
+
+  // Regulatory Pathway Breakdown Table
+  const pathways = [
+    { gene: "WUSCHEL (WUS)", func: "중심대(CZ) 줄기세포 전분화능 유지", loc: "CZ 중심 오거나이저 (0~40μm)", act: "100% (줄기세포 풀 안정)", status: "발현 활성" },
+    { gene: "CLAVATA3 (CLV3)", func: "WUS 음성 피드백 줄기세포 수 억제", loc: "L1/L2 튜니카 외층", act: "음성 피드백 정상", status: "안정" },
+    { gene: "CYCD3;1 / CDK", func: "G1 → S기 진입 인산화 촉진 (당/CK 감지)", loc: "주변대(PZ) 분열 세포", act: `${meristemData.g1Hours}h (G1기 제어)`, status: "촉진" },
+    { gene: "CDKB1;1 / CYCB1", func: "G2 → M기 유사분열 및 세포판 형성", loc: "분열기(M) 세포", act: `${meristemData.mHours}h (M기 유사분열)`, status: "활성" },
+    { gene: "PIN1 옥신 수송체", func: "엽원기 P0/P1로의 극성 옥신 수송", loc: "PZ 주변대 엽원기 (75μm)", act: `${meristemData.iaaConcUm} μM (옥신 피크)`, status: "극성 수송" },
+    { gene: "Expansin (EXPA1)", func: "세포벽 산성화 이완 및 신장 유도", loc: "신장대(Elongation Zone)", act: `${meristemData.elongationRateUmHr} μm/hr (신장률)`, status: "이완 활성" }
+  ];
+
+  if (DOM.meristemParamTableBody) {
+    DOM.meristemParamTableBody.innerHTML = pathways.map(p => `
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <td style="padding: 5px 8px; font-family: monospace; color: #38bdf8; font-weight: 700;">${p.gene}</td>
+        <td style="padding: 5px 8px; color: #e2e8f0;">${p.func}</td>
+        <td style="padding: 5px 8px; color: var(--text-muted);">${p.loc}</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: #fbbf24;">${p.act}</td>
+        <td style="padding: 5px 8px; color: #34d399; font-weight: 600;">${p.status}</td>
+      </tr>
+    `).join("");
+  }
+
+  if (DOM.meristemModal) {
+    DOM.meristemModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (telemetryCharts && DOM.meristemScopeCanvas) {
+      telemetryCharts.renderMeristemCellCycleScope(DOM.meristemScopeCanvas, meristemData);
+    }
+  }, 60);
+}
+
+function exportMeristemDataCSV() {
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const meristemData = bioEngine.calculateMeristemCellCycleDynamics(envTele.sensors, crop, plantState);
+
+  const header = `# BioFoundry PlantTwin - Shoot Apical Meristem (SAM) Cell Cycle & Morphogen Dataset\n` +
+    `# Crop: ${crop.name} (${crop.scientificName})\n` +
+    `# Total Cell Cycle Duration: ${meristemData.totalCycleHours} hr (G1: ${meristemData.g1Hours}h, S: ${meristemData.sHours}h, G2: ${meristemData.g2Hours}h, M: ${meristemData.mHours}h)\n` +
+    `# Mitotic Index: ${meristemData.mitoticIndexPct}% | IAA/CK Ratio: ${meristemData.iaaCkRatio}\n` +
+    `# Lockhart Elongation Rate: ${meristemData.elongationRateUmHr} um/hr\n\n` +
+    `[SPATIAL MORPHOGEN GRADIENT (CZ -> PZ -> Primordia)]\n` +
+    `Radius_um,Cytokinin_CK_nM,Auxin_IAA_uM,WUSCHEL_Activity_pct,Mitotic_Division_Rate\n` +
+    meristemData.spatialGradient.map(g => `${g.radiusUm},${g.ckNm},${g.iaaUm},${g.wusActivityPct},${g.cellDivisionRate}`).join("\n");
+
+  const blob = new Blob(["\uFEFF" + header], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `BioFoundry_Meristem_SAM_${crop.id}_Day${DOM.teleDay ? DOM.teleDay.textContent : '01'}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

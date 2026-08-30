@@ -1377,4 +1377,179 @@ export class LiveTelemetryCharts {
       ctx.restore();
     }
   }
+
+  /**
+   * Real-Time Stem Cell Meristem Dynamics & Cell Cycle Phase Wheel Canvas
+   */
+  renderMeristemCellCycleScope(canvas, meristemData) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = (rect.width > 0 ? rect.width : 780) * dpr;
+    const h = (rect.height > 0 ? rect.height : 230) * dpr;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+
+    ctx.clearRect(0, 0, w, h);
+
+    // 1. Futuristic Glass Background
+    ctx.fillStyle = "rgba(4, 11, 20, 0.96)";
+    ctx.fillRect(0, 0, w, h);
+
+    const padL = 40 * dpr;
+    const padR = 20 * dpr;
+    const padT = 30 * dpr;
+    const padB = 32 * dpr;
+    const midGap = 35 * dpr;
+    const singlePlotW = (w - padL - padR - midGap) / 2;
+    const plotH = h - padT - padB;
+
+    // ==========================================================
+    // PANE 1: Radial Cell Division Cycle Wheel (G1 -> S -> G2 -> M)
+    // ==========================================================
+    const centerX = padL + singlePlotW * 0.45;
+    const centerY = padT + plotH * 0.52;
+    const outerR = Math.min(singlePlotW * 0.38, plotH * 0.44);
+    const innerR = outerR * 0.58;
+
+    // Title
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = `bold ${9.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① 세포 분열주기 래디얼 휠 (G1 → S → G2 → M)", padL, padT - 10 * dpr);
+
+    const phases = meristemData.phaseDistribution || [];
+    let startAngle = -Math.PI / 2;
+
+    phases.forEach(p => {
+      const sliceAngle = (p.percent / 100.0) * (Math.PI * 2);
+      const endAngle = startAngle + sliceAngle;
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, outerR, startAngle, endAngle);
+      ctx.arc(centerX, centerY, innerR, endAngle, startAngle, true);
+      ctx.closePath();
+
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(15, 23, 42, 0.9)";
+      ctx.lineWidth = 2 * dpr;
+      ctx.stroke();
+
+      // Label at slice center
+      const midAngle = startAngle + sliceAngle / 2;
+      const labelR = (outerR + innerR) / 2;
+      const lx = centerX + Math.cos(midAngle) * labelR;
+      const ly = centerY + Math.sin(midAngle) * labelR;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `bold ${9 * dpr}px 'Inter', sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(p.phase, lx, ly);
+
+      startAngle = endAngle;
+    });
+
+    // Donut Center Stats
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = `bold ${11 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`${meristemData.totalCycleHours}h`, centerX, centerY - 5 * dpr);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.font = `${8 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`MI ${meristemData.mitoticIndexPct}%`, centerX, centerY + 8 * dpr);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+
+    // Legend on the right side of Pane 1
+    const legendX = padL + singlePlotW * 0.78;
+    phases.forEach((p, idx) => {
+      const ly = padT + 25 * dpr + idx * 24 * dpr;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(legendX, ly - 8 * dpr, 8 * dpr, 8 * dpr);
+
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${p.phase}: ${p.hours}h`, legendX + 12 * dpr, ly);
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.font = `${7.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(p.regulator, legendX + 12 * dpr, ly + 10 * dpr);
+    });
+
+    // ==========================================================
+    // PANE 2: Meristem Morphogen Spatial Gradient (0 to 200 um)
+    // ==========================================================
+    const pane2L = padL + singlePlotW + midGap;
+
+    // Grid lines for Radial Distance (0 to 200 um)
+    ctx.strokeStyle = "rgba(6, 182, 212, 0.1)";
+    ctx.lineWidth = 1 * dpr;
+    for (let r = 0; r <= 200; r += 50) {
+      const x = pane2L + (r / 200.0) * singlePlotW;
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + plotH);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${r}μm`, x - 8 * dpr, padT + plotH + 14 * dpr);
+    }
+
+    // Title & Subtitle
+    ctx.fillStyle = "#22d3ee";
+    ctx.font = `bold ${9.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② SAM 공간 호르몬 구배 (옥신 IAA vs 사이토키닌 CK)", pane2L, padT - 10 * dpr);
+
+    const grad = meristemData.spatialGradient || [];
+    if (grad.length > 0) {
+      // 1. Plot Cytokinin (CK in nM, cyan curve)
+      const maxCk = Math.max(35.0, (meristemData.ckConcNm || 28.5) * 1.1);
+      ctx.save();
+      ctx.strokeStyle = "#38bdf8";
+      ctx.shadowColor = "#38bdf8";
+      ctx.shadowBlur = 6 * dpr;
+      ctx.lineWidth = 2 * dpr;
+      ctx.beginPath();
+      grad.forEach((pt, i) => {
+        const x = pane2L + (pt.radiusUm / 200.0) * singlePlotW;
+        const y = padT + ((maxCk - pt.ckNm) / maxCk) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // 2. Plot Auxin (IAA in uM, gold curve)
+      const maxIaa = Math.max(6.0, (meristemData.iaaConcUm || 4.2) * 1.25);
+      ctx.save();
+      ctx.strokeStyle = "#fbbf24";
+      ctx.shadowColor = "#fbbf24";
+      ctx.shadowBlur = 6 * dpr;
+      ctx.lineWidth = 2 * dpr;
+      ctx.beginPath();
+      grad.forEach((pt, i) => {
+        const x = pane2L + (pt.radiusUm / 200.0) * singlePlotW;
+        const y = padT + ((maxIaa - pt.iaaUm) / maxIaa) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // Curve Labels
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`● 사이토키닌 CK (정단 CZ 피크)`, pane2L + 10 * dpr, padT + 15 * dpr);
+      ctx.fillStyle = "#fbbf24";
+      ctx.fillText(`● 옥신 IAA (엽원기 PZ 피크)`, pane2L + 10 * dpr, padT + 28 * dpr);
+    }
+  }
 }
