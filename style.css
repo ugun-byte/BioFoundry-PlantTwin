@@ -6,14 +6,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Core Glassmorphic Background Hierarchy - Translucent Frosted Glass */
+  /* Core Glassmorphic Background Hierarchy - 50% Enhanced Transparency for Lab Background */
   --bg-app: #060a0f;
-  --bg-surface: rgba(10, 18, 28, 0.45);
-  --bg-card: rgba(13, 22, 35, 0.40);
-  --bg-card-alt: rgba(11, 19, 30, 0.38);
-  --bg-card-hover: rgba(20, 32, 48, 0.55);
-  --bg-input: rgba(6, 12, 18, 0.70);
-  --bg-overlay: rgba(4, 8, 14, 0.85);
+  --bg-surface: rgba(10, 18, 28, 0.22);
+  --bg-card: rgba(13, 22, 35, 0.18);
+  --bg-card-alt: rgba(11, 19, 30, 0.16);
+  --bg-card-hover: rgba(20, 32, 48, 0.28);
+  --bg-input: rgba(6, 12, 18, 0.35);
+  --bg-overlay: rgba(4, 8, 14, 0.60);
 
   /* Borders & Dividers */
   --border-subtle: rgba(255, 255, 255, 0.06);
@@ -89,9 +89,9 @@ body {
 .scope-card,
 .global-header,
 .context-strip {
-  backdrop-filter: blur(14px) saturate(160%);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* App Container */
@@ -1320,8 +1320,8 @@ input:checked + .switch-slider:before {
 }
 
 .kpi-tile.featured {
-  border-color: rgba(16, 185, 129, 0.45);
-  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.50);
+  background: rgba(16, 185, 129, 0.08);
 }
 
 .kpi-top {
