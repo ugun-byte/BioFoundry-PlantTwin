@@ -206,48 +206,71 @@ function populateCropDropdown(selectedId = null) {
 }
 
 function initApp() {
-  i18n.updateDOM();
-  populateCropDropdown();
+  console.log("🚀 BioFoundry PlantTwin Initializing...");
+  try {
+    i18n.updateDOM();
+  } catch (e) {
+    console.error("i18n error:", e);
+  }
 
-  plantChamber3d = new ThreePlantChamber(DOM.plant3dContainer);
-  telemetryCharts = new LiveTelemetryCharts({
-    photoScope: DOM.photoScopeChart,
-    luteinScope: DOM.luteinScopeChart
-  });
+  try {
+    populateCropDropdown();
+  } catch (e) {
+    console.error("populateCropDropdown error:", e);
+  }
+
+  try {
+    plantChamber3d = new ThreePlantChamber(DOM.plant3dContainer);
+  } catch (e) {
+    console.error("ThreePlantChamber init error:", e);
+  }
+
+  try {
+    telemetryCharts = new LiveTelemetryCharts({
+      photoScope: DOM.photoScopeChart,
+      luteinScope: DOM.luteinScopeChart
+    });
+  } catch (e) {
+    console.error("LiveTelemetryCharts init error:", e);
+  }
 
   // Wire 3D Raycasting Bio-HUD Pin Callback
-  plantChamber3d.setNodeClickCallback((data) => {
-    audio.playPulse();
-    const crop = profileManager.getActiveProfile();
-    const envTele = envEngine.getLiveSensorTelemetry();
-    const instantPhoto = bioEngine.calculateInstantaneousPhotosynthesis({
-      ppfd: envTele.sensors.ppfd,
-      airTemp: envTele.sensors.airTemp,
-      humidity: envTele.sensors.humidity,
-      co2Air: envTele.sensors.co2,
-      vpdAir: envTele.sensors.vpd,
-      spectrum: envTele.sensors.spectrum
-    }, crop);
+  if (plantChamber3d) {
+    plantChamber3d.setNodeClickCallback((data) => {
+      audio.playPulse();
+      const crop = profileManager.getActiveProfile();
+      const envTele = envEngine.getLiveSensorTelemetry();
+      const instantPhoto = bioEngine.calculateInstantaneousPhotosynthesis({
+        ppfd: envTele.sensors.ppfd,
+        airTemp: envTele.sensors.airTemp,
+        humidity: envTele.sensors.humidity,
+        co2Air: envTele.sensors.co2,
+        vpdAir: envTele.sensors.vpd,
+        spectrum: envTele.sensors.spectrum
+      }, crop);
 
-    DOM.hudNodeTitle.textContent = data.nodeType;
-    if (data.nodeType.includes("근권") || data.nodeType.includes("흡수근") || data.nodeType.includes("Root")) {
-      DOM.hudLeafTemp.textContent = `${(instantPhoto.stomata.leafTemp - 2.6).toFixed(1)} °C`;
-      DOM.hudNetAn.textContent = `${(instantPhoto.netAn * 0.45).toFixed(2)}`;
-      DOM.hudMoleculeConc.textContent = `${(plantState.luteinConcentration * 0.62).toFixed(2)} mg/g`;
-    } else {
-      DOM.hudLeafTemp.textContent = `${instantPhoto.stomata.leafTemp} °C`;
-      DOM.hudNetAn.textContent = `${instantPhoto.netAn.toFixed(2)} μmol`;
-      DOM.hudMoleculeConc.textContent = `${plantState.luteinConcentration.toFixed(2)} mg/g DW`;
-    }
+      if (DOM.hudNodeTitle) DOM.hudNodeTitle.textContent = data.nodeType;
+      if (data.nodeType.includes("근권") || data.nodeType.includes("흡수근") || data.nodeType.includes("Root")) {
+        if (DOM.hudLeafTemp) DOM.hudLeafTemp.textContent = `${(instantPhoto.stomata.leafTemp - 2.6).toFixed(1)} °C`;
+        if (DOM.hudNetAn) DOM.hudNetAn.textContent = `${(instantPhoto.netAn * 0.45).toFixed(2)}`;
+        if (DOM.hudMoleculeConc) DOM.hudMoleculeConc.textContent = `${(plantState.luteinConcentration * 0.62).toFixed(2)} mg/g`;
+      } else {
+        if (DOM.hudLeafTemp) DOM.hudLeafTemp.textContent = `${instantPhoto.stomata.leafTemp} °C`;
+        if (DOM.hudNetAn) DOM.hudNetAn.textContent = `${instantPhoto.netAn.toFixed(2)} μmol`;
+        if (DOM.hudMoleculeConc) DOM.hudMoleculeConc.textContent = `${plantState.luteinConcentration.toFixed(2)} mg/g DW`;
+      }
 
-    DOM.hologramBioHud.style.left = `${data.screenX}px`;
-    DOM.hologramBioHud.style.top = `${data.screenY}px`;
-    DOM.hologramBioHud.style.display = "block";
-  });
+      if (DOM.hologramBioHud) {
+        DOM.hologramBioHud.style.left = `${data.screenX}px`;
+        DOM.hologramBioHud.style.top = `${data.screenY}px`;
+        DOM.hologramBioHud.style.display = "block";
+      }
+    });
+  }
 
   if (DOM.hudPinClose) {
     DOM.hudPinClose.addEventListener("click", () => {
-      DOM.hologramBioHud.style.display = "none";
+      if (DOM.hologramBioHud) DOM.hologramBioHud.style.display = "none";
       if (plantChamber3d) plantChamber3d.clearPin();
     });
   }
@@ -258,9 +281,11 @@ function initApp() {
   const rootCard = document.getElementById("hudRootCard");
   const bioPinCard = document.getElementById("hologramBioHud");
 
-  makeElementDraggable(leafCard, viewportCard);
-  makeElementDraggable(rootCard, viewportCard);
-  makeElementDraggable(bioPinCard, viewportCard);
+  if (viewportCard) {
+    if (leafCard) makeElementDraggable(leafCard, viewportCard);
+    if (rootCard) makeElementDraggable(rootCard, viewportCard);
+    if (bioPinCard) makeElementDraggable(bioPinCard, viewportCard);
+  }
 
   // Initialize Interactive Resizable Panel Layout Gutters
   initResizablePanels();
@@ -269,6 +294,7 @@ function initApp() {
   buildParamEditor();
   resetPlantState();
 
+  console.log("✅ BioFoundry PlantTwin Initialized & Running 60FPS loop");
   requestAnimationFrame(simulationLoop);
 }
 
@@ -1138,5 +1164,9 @@ function copyGenericModalCode() {
   });
 }
 
-// Launch application on DOM ready
-window.addEventListener("DOMContentLoaded", initApp);
+// Launch application on DOM ready or immediately if already loaded
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
