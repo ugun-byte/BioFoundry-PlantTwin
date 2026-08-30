@@ -2333,6 +2333,437 @@ export class LiveTelemetryCharts {
       }
     }
   }
+
+  /**
+   * 19. Real-Time Rhizosphere PGPR Microbiome & Biofertilizer Symbiosis Dual-Pane Scope
+   * Left: Root Hair Micro-Zone, Exudate Carbon Cloud & Bacterial Biofilm Colonization (CFU)
+   * Right: 60-Second Multi-Trace Oscilloscope (Density Log CFU, Pi Solubilization, BNF Activity, Rhizo-pH)
+   */
+  renderRhizosphereMicrobiomeScope(canvas, microData = {}) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = (rect.width > 0 ? rect.width : 780) * dpr;
+    const h = (rect.height > 0 ? rect.height : 230) * dpr;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Dark Background Grid
+    ctx.fillStyle = "rgba(4, 8, 15, 0.95)";
+    ctx.fillRect(0, 0, w, h);
+
+    const midX = w * 0.44;
+
+    // Divider Line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.lineWidth = 1 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(midX, 10 * dpr);
+    ctx.lineTo(midX, h - 10 * dpr);
+    ctx.stroke();
+
+    // ==========================================
+    // LEFT PANE: Rhizosphere Root & Biofilm Colonization Micro-Diagram
+    // ==========================================
+    const leftW = midX;
+    const rootCenterY = h * 0.52;
+
+    ctx.fillStyle = "#34d399";
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① 근권 미생물 군집(PGPR) 공생 & 바이오필름 정착", 14 * dpr, 20 * dpr);
+
+    // 1. Root Epidermis & Cortical Cylinder (Brown/Amber tissue)
+    ctx.fillStyle = "rgba(180, 83, 9, 0.25)";
+    ctx.fillRect(15 * dpr, rootCenterY - 30 * dpr, 70 * dpr, 60 * dpr);
+    ctx.strokeStyle = "rgba(245, 158, 11, 0.6)";
+    ctx.lineWidth = 2 * dpr;
+    ctx.strokeRect(15 * dpr, rootCenterY - 30 * dpr, 70 * dpr, 60 * dpr);
+
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("뿌리 표피", 24 * dpr, rootCenterY - 4 * dpr);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+    ctx.font = `${9.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("Root Cortex", 22 * dpr, rootCenterY + 12 * dpr);
+
+    // 2. Root Hairs Protruding into Soil
+    const hairYOffsets = [-22, -8, 8, 22];
+    ctx.strokeStyle = "rgba(251, 191, 36, 0.7)";
+    ctx.lineWidth = 3 * dpr;
+    hairYOffsets.forEach(yOff => {
+      ctx.beginPath();
+      ctx.moveTo(85 * dpr, rootCenterY + yOff * dpr);
+      ctx.bezierCurveTo(120 * dpr, rootCenterY + (yOff - 6) * dpr, 140 * dpr, rootCenterY + (yOff + 6) * dpr, 175 * dpr, rootCenterY + yOff * dpr);
+      ctx.stroke();
+    });
+
+    // 3. Exudate Carbon Gradient Cloud (Glow around roots)
+    const exudateGrad = ctx.createRadialGradient(90 * dpr, rootCenterY, 15 * dpr, 140 * dpr, rootCenterY, 110 * dpr);
+    exudateGrad.addColorStop(0.0, "rgba(56, 189, 248, 0.35)");
+    exudateGrad.addColorStop(0.5, "rgba(16, 185, 129, 0.2)");
+    exudateGrad.addColorStop(1.0, "rgba(0, 0, 0, 0.0)");
+    ctx.fillStyle = exudateGrad;
+    ctx.fillRect(80 * dpr, rootCenterY - 65 * dpr, 160 * dpr, 130 * dpr);
+
+    // 4. Microbial Colony Cells (Fluorescent green Bacillus rods & Cyan circles)
+    const colonizationPct = microData.biofilmColonizationPct || 78.0;
+    const numCells = Math.min(65, Math.round((colonizationPct / 100.0) * 55) + 10);
+
+    for (let i = 0; i < numCells; i++) {
+      const cx = (100 + (i * 19) % 130 + Math.sin(i * 3.7) * 15) * dpr;
+      const cy = (rootCenterY + ((i * 23) % 90 - 45) + Math.cos(i * 2.1) * 8) * dpr;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate((i * 45 * Math.PI) / 180);
+      ctx.fillStyle = i % 2 === 0 ? "#10b981" : "#34d399";
+      ctx.shadowColor = "#34d399";
+      ctx.shadowBlur = 6 * dpr;
+
+      // Bacillus Rod shape
+      ctx.beginPath();
+      ctx.roundRect(-5 * dpr, -2 * dpr, 10 * dpr, 4 * dpr, 2 * dpr);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 5. Insoluble Phosphate Chelation Particles (Gold Sparkles)
+    for (let p = 0; p < 8; p++) {
+      const px = (185 + (p * 22) % 45) * dpr;
+      const py = (rootCenterY + ((p * 31) % 80 - 40)) * dpr;
+      ctx.fillStyle = "#fbbf24";
+      ctx.shadowColor = "#f59e0b";
+      ctx.shadowBlur = 8 * dpr;
+      ctx.beginPath();
+      ctx.arc(px, py, 3 * dpr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Left Pane Footer Status Badge
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`균주: ${microData.strainName || "Bacillus velezensis"} | 정착도: ${microData.biofilmColonizationPct}%`, 18 * dpr, h - 12 * dpr);
+
+    // ==========================================
+    // RIGHT PANE: 60-Second Multi-Trace Oscilloscope
+    // ==========================================
+    const rightL = midX + 18 * dpr;
+    const rightW = w - rightL - 18 * dpr;
+    const plotT = 40 * dpr;
+    const plotH = h - 72 * dpr;
+
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② 60초 생체 반응 스코프 (균밀도 CFU, Pi 가용화, BNF 질소고정)", rightL, 20 * dpr);
+
+    // Horizontal Grid Lines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1 * dpr;
+    for (let y = plotT; y <= plotT + plotH; y += plotH / 4) {
+      ctx.beginPath(); ctx.moveTo(rightL, y); ctx.lineTo(rightL + rightW, y); ctx.stroke();
+    }
+
+    // Vertical Time Grid Lines (0s, 15s, 30s, 45s, 60s)
+    for (let s = 0; s <= 60; s += 15) {
+      const x = rightL + (s / 60.0) * rightW;
+      ctx.beginPath(); ctx.moveTo(x, plotT); ctx.lineTo(x, plotT + plotH); ctx.stroke();
+      ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+      ctx.font = `bold ${11 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${s}s`, x - 8 * dpr, plotT + plotH + 18 * dpr);
+    }
+
+    const wavePoints = microData.wavePoints || [];
+    if (wavePoints.length > 1) {
+      // 1. Plot Microbial Density (CFU Log, Emerald Green)
+      ctx.save();
+      ctx.strokeStyle = "#10b981";
+      ctx.shadowColor = "#10b981";
+      ctx.shadowBlur = 8 * dpr;
+      ctx.lineWidth = 2.4 * dpr;
+      ctx.beginPath();
+      wavePoints.forEach((pt, i) => {
+        const x = rightL + (pt.timeSec / 60.0) * rightW;
+        // cfuLog ranges 6.0 to 10.0
+        const norm = Math.max(0.0, Math.min(1.0, (pt.cfuLog - 6.0) / 4.0));
+        const y = plotT + plotH - (norm * plotH);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // 2. Plot Phosphate Solubilization (Gold)
+      ctx.save();
+      ctx.strokeStyle = "#fbbf24";
+      ctx.shadowColor = "#fbbf24";
+      ctx.shadowBlur = 6 * dpr;
+      ctx.lineWidth = 1.8 * dpr;
+      ctx.beginPath();
+      wavePoints.forEach((pt, i) => {
+        const x = rightL + (pt.timeSec / 60.0) * rightW;
+        // pi ranges 0 to 12 umol/h
+        const norm = Math.max(0.0, Math.min(1.0, pt.piSolubilized / 10.0));
+        const y = plotT + plotH - (norm * plotH);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // 3. Plot Biological Nitrogen Fixation BNF (Cyan)
+      ctx.save();
+      ctx.strokeStyle = "#00f2fe";
+      ctx.shadowColor = "#00f2fe";
+      ctx.shadowBlur = 6 * dpr;
+      ctx.lineWidth = 1.8 * dpr;
+      ctx.beginPath();
+      wavePoints.forEach((pt, i) => {
+        const x = rightL + (pt.timeSec / 60.0) * rightW;
+        // bnf ranges 0 to 250 nmol
+        const norm = Math.max(0.0, Math.min(1.0, pt.bnfActivity / 220.0));
+        const y = plotT + plotH - (norm * plotH);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // Oscilloscope Legend Pills
+      ctx.fillStyle = "#10b981";
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`● 균밀도 (${microData.cfuScientific || "4.8×10⁸"})`, rightL + 8 * dpr, plotT + 16 * dpr);
+
+      ctx.fillStyle = "#fbbf24";
+      ctx.fillText(`● Pi 가용화 (${microData.phosphateSolubilizedUmolPerHour} μmol/h)`, rightL + 160 * dpr, plotT + 16 * dpr);
+
+      ctx.fillStyle = "#00f2fe";
+      ctx.fillText(`● BNF (${microData.nitrogenaseActivityNmol} nmol/h)`, rightL + 330 * dpr, plotT + 16 * dpr);
+    }
+  }
+
+  /**
+   * 20. CRISPR-Cas9 Target Cleavage & Secondary Metabolic Rewiring Dual-Pane Scope
+   * Left: CRISPR RNP / sgRNA Cleavage Complex & Metabolic Flux Balance Branch Routing
+   * Right: 60-Second Real-Time Multi-Trace Flux Tracer & Predicted HPLC Yield Profile
+   */
+  renderCrisprMetabolicRewiringScope(canvas, crisprData = {}) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = (rect.width > 0 ? rect.width : 780) * dpr;
+    const h = (rect.height > 0 ? rect.height : 230) * dpr;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Dark Background Grid
+    ctx.fillStyle = "rgba(4, 8, 15, 0.95)";
+    ctx.fillRect(0, 0, w, h);
+
+    const midX = w * 0.45;
+
+    // Divider Line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.lineWidth = 1 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(midX, 10 * dpr);
+    ctx.lineTo(midX, h - 10 * dpr);
+    ctx.stroke();
+
+    // ==========================================
+    // LEFT PANE: Metabolic Flux Balance Network Diagram
+    // ==========================================
+    const leftW = midX;
+    const cy = h * 0.52;
+
+    ctx.fillStyle = "#a855f7";
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① CRISPR-Cas9 대사 분기점 플럭스 밸런스(FBA)", 14 * dpr, 20 * dpr);
+
+    const nodes = crisprData.networkNodes || [];
+    if (nodes.length >= 4) {
+      // Draw Connecting Flux Arrows / Pipes
+      const pNode = nodes[0];
+      const sNode = nodes[1];
+      const eNode = nodes[2];
+      const prodNode = nodes[3];
+
+      const px = pNode.xRatio * leftW;
+      const py = pNode.yRatio * h;
+      const sx = sNode.xRatio * leftW;
+      const sy = sNode.yRatio * h;
+      const ex = eNode.xRatio * leftW;
+      const ey = eNode.yRatio * h;
+      const prodx = prodNode.xRatio * leftW;
+      const prody = prodNode.yRatio * h;
+
+      // Pipe 1: Precursor -> Shunt (Dashed or blocked)
+      ctx.save();
+      ctx.setLineDash(sNode.isBlocked ? [4 * dpr, 4 * dpr] : []);
+      ctx.strokeStyle = sNode.isBlocked ? "rgba(239, 68, 68, 0.4)" : "rgba(255, 255, 255, 0.25)";
+      ctx.lineWidth = sNode.isBlocked ? 2 * dpr : 4 * dpr;
+      ctx.beginPath(); ctx.moveTo(px + 35 * dpr, py); ctx.lineTo(sx - 40 * dpr, sy); ctx.stroke();
+      ctx.restore();
+
+      // Pipe 2: Precursor -> Target Enzyme (Glowing Thick Path)
+      ctx.save();
+      ctx.strokeStyle = "rgba(168, 85, 247, 0.85)";
+      ctx.shadowColor = "#a855f7";
+      ctx.shadowBlur = 10 * dpr;
+      ctx.lineWidth = 5 * dpr;
+      ctx.beginPath(); ctx.moveTo(px + 35 * dpr, py); ctx.lineTo(ex - 45 * dpr, ey); ctx.stroke();
+      ctx.restore();
+
+      // Pipe 3: Enzyme -> High-Yield Product
+      ctx.save();
+      ctx.strokeStyle = "rgba(251, 191, 36, 0.85)";
+      ctx.shadowColor = "#fbbf24";
+      ctx.shadowBlur = 10 * dpr;
+      ctx.lineWidth = 5 * dpr;
+      ctx.beginPath(); ctx.moveTo(ex + 45 * dpr, ey); ctx.lineTo(prodx - 45 * dpr, prody); ctx.stroke();
+      ctx.restore();
+
+      // Draw Node Cards
+      nodes.forEach(n => {
+        const nx = n.xRatio * leftW;
+        const ny = n.yRatio * h;
+        const nw = 85 * dpr;
+        const nh = 36 * dpr;
+
+        ctx.fillStyle = n.isBlocked ? "rgba(239, 68, 68, 0.15)" : (n.isTarget ? "rgba(168, 85, 247, 0.2)" : (n.isProduct ? "rgba(251, 191, 36, 0.2)" : "rgba(30, 41, 59, 0.85)"));
+        ctx.strokeStyle = n.isBlocked ? "#ef4444" : (n.isTarget ? "#c084fc" : (n.isProduct ? "#fbbf24" : "#38bdf8"));
+        ctx.lineWidth = 1.5 * dpr;
+        ctx.beginPath();
+        ctx.roundRect(nx - nw / 2, ny - nh / 2, nw, nh, 4 * dpr);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#fff";
+        ctx.font = `bold ${10.5 * dpr}px 'Inter', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.fillText(n.name.length > 14 ? n.name.slice(0, 13) + ".." : n.name, nx, ny - 2 * dpr);
+
+        ctx.fillStyle = n.isBlocked ? "#f87171" : (n.isProduct ? "#fbbf24" : "#38bdf8");
+        ctx.font = `bold ${9 * dpr}px monospace`;
+        ctx.fillText(n.isBlocked ? "⛔ FLUX 차단 (0.04x)" : `플럭스: ${n.flux} μmol`, nx, ny + 11 * dpr);
+        ctx.textAlign = "left";
+      });
+    }
+
+    // Left Pane Footer
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.font = `bold ${11 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`sgRNA On-Target: ${crisprData.onTargetScore}% | 수율 증폭: +${Math.round((crisprData.yieldMultiplier - 1.0) * 100)}%`, 16 * dpr, h - 12 * dpr);
+
+    // ==========================================
+    // RIGHT PANE: 60-Second Multi-Trace Oscilloscope
+    // ==========================================
+    const rightL = midX + 18 * dpr;
+    const rightW = w - rightL - 18 * dpr;
+    const plotT = 40 * dpr;
+    const plotH = h - 72 * dpr;
+
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② 60초 대사 플럭스 재분배 스코프 (Target 물질 vs Byproduct)", rightL, 20 * dpr);
+
+    // Horizontal Grid Lines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1 * dpr;
+    for (let y = plotT; y <= plotT + plotH; y += plotH / 4) {
+      ctx.beginPath(); ctx.moveTo(rightL, y); ctx.lineTo(rightL + rightW, y); ctx.stroke();
+    }
+
+    // Vertical Time Grid Lines (0s, 15s, 30s, 45s, 60s)
+    for (let s = 0; s <= 60; s += 15) {
+      const x = rightL + (s / 60.0) * rightW;
+      ctx.beginPath(); ctx.moveTo(x, plotT); ctx.lineTo(x, plotT + plotH); ctx.stroke();
+      ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+      ctx.font = `bold ${11 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${s}s`, x - 8 * dpr, plotT + plotH + 18 * dpr);
+    }
+
+    const wavePoints = crisprData.wavePoints || [];
+    if (wavePoints.length > 1) {
+      // 1. Plot Target Compound Flux (Gold trace)
+      ctx.save();
+      ctx.strokeStyle = "#fbbf24";
+      ctx.shadowColor = "#fbbf24";
+      ctx.shadowBlur = 8 * dpr;
+      ctx.lineWidth = 2.4 * dpr;
+      ctx.beginPath();
+      wavePoints.forEach((pt, i) => {
+        const x = rightL + (pt.timeSec / 60.0) * rightW;
+        // targetFlux ranges 0 to 100
+        const norm = Math.max(0.0, Math.min(1.0, pt.targetFlux / 90.0));
+        const y = plotT + plotH - (norm * plotH);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // 2. Plot Shunt / Byproduct Flux (Red / Grey trace)
+      ctx.save();
+      ctx.strokeStyle = "#ef4444";
+      ctx.shadowColor = "#ef4444";
+      ctx.shadowBlur = 6 * dpr;
+      ctx.lineWidth = 1.8 * dpr;
+      ctx.beginPath();
+      wavePoints.forEach((pt, i) => {
+        const x = rightL + (pt.timeSec / 60.0) * rightW;
+        // shuntFlux ranges 0 to 60
+        const norm = Math.max(0.0, Math.min(1.0, pt.shuntFlux / 90.0));
+        const y = plotT + plotH - (norm * plotH);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // 3. Plot Biomass Metabolic Burden Penalty (Purple trace)
+      ctx.save();
+      ctx.strokeStyle = "#c084fc";
+      ctx.shadowColor = "#c084fc";
+      ctx.shadowBlur = 6 * dpr;
+      ctx.lineWidth = 1.8 * dpr;
+      ctx.beginPath();
+      wavePoints.forEach((pt, i) => {
+        const x = rightL + (pt.timeSec / 60.0) * rightW;
+        // burden ranges 0 to 15%
+        const norm = Math.max(0.0, Math.min(1.0, pt.biomassLoad / 15.0));
+        const y = plotT + plotH - (norm * plotH * 0.5);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // Oscilloscope Legend Pills
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`● 타깃 약리 플럭스 (${crisprData.rewiredFluxUmol} μmol)`, rightL + 8 * dpr, plotT + 16 * dpr);
+
+      ctx.fillStyle = "#ef4444";
+      ctx.fillText(`● 부산물 플럭스 (${crisprData.editMode === "knockout" ? "3.5" : "38.0"} μmol)`, rightL + 180 * dpr, plotT + 16 * dpr);
+
+      ctx.fillStyle = "#c084fc";
+      ctx.fillText(`● 대사 부하 (${crisprData.biomassPenaltyPct}%)`, rightL + 340 * dpr, plotT + 16 * dpr);
+    }
+  }
 }
 
 

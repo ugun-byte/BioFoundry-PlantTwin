@@ -458,6 +458,40 @@ const DOM = {
   btnPrintCoa: document.getElementById("btnPrintCoa"),
   btnExportCoaJson: document.getElementById("btnExportCoaJson"),
 
+  // 19. Rhizosphere PGPR Microbiome Symbiosis Modal Elements
+  btnRhizosphereMicrobiome: document.getElementById("btnRhizosphereMicrobiome"),
+  microbiomeModal: document.getElementById("microbiomeModal"),
+  microbiomeClose: document.getElementById("microbiomeClose"),
+  microbiomeModalTitle: document.getElementById("microbiomeModalTitle"),
+  selectMicroStrain: document.getElementById("selectMicroStrain"),
+  sliderMicroDosage: document.getElementById("sliderMicroDosage"),
+  microDosageLabel: document.getElementById("microDosageLabel"),
+  btnInoculateMicrobiome: document.getElementById("btnInoculateMicrobiome"),
+  btnExportMicrobiomeCSV: document.getElementById("btnExportMicrobiomeCSV"),
+  microCfuVal: document.getElementById("microCfuVal"),
+  microStrainBadge: document.getElementById("microStrainBadge"),
+  microBiofilmVal: document.getElementById("microBiofilmVal"),
+  microPiSolubilizedVal: document.getElementById("microPiSolubilizedVal"),
+  microFertilizerSavedVal: document.getElementById("microFertilizerSavedVal"),
+  microbiomeCanvas: document.getElementById("microbiomeCanvas"),
+
+  // 20. CRISPR-Cas9 Metabolic Rewiring Modal Elements
+  btnCrisprMetabolic: document.getElementById("btnCrisprMetabolic"),
+  crisprModal: document.getElementById("crisprModal"),
+  crisprClose: document.getElementById("crisprClose"),
+  crisprModalTitle: document.getElementById("crisprModalTitle"),
+  selectCrisprGene: document.getElementById("selectCrisprGene"),
+  selectCrisprMode: document.getElementById("selectCrisprMode"),
+  btnExecuteCrisprEdit: document.getElementById("btnExecuteCrisprEdit"),
+  btnExportCrisprJson: document.getElementById("btnExportCrisprJson"),
+  crisprOnTargetVal: document.getElementById("crisprOnTargetVal"),
+  crisprFoldChangeVal: document.getElementById("crisprFoldChangeVal"),
+  crisprEditStatusBadge: document.getElementById("crisprEditStatusBadge"),
+  crisprYieldMultiplierVal: document.getElementById("crisprYieldMultiplierVal"),
+  crisprProductBadge: document.getElementById("crisprProductBadge"),
+  crisprBiomassLoadVal: document.getElementById("crisprBiomassLoadVal"),
+  crisprCanvas: document.getElementById("crisprCanvas"),
+
   // Sub-Views
   viewOverview: document.getElementById("viewOverview"),
   viewTelemetry: document.getElementById("viewTelemetry"),
@@ -1283,6 +1317,63 @@ function bindEventListeners() {
   }
   if (DOM.btnExportCoaJson) {
     DOM.btnExportCoaJson.addEventListener("click", exportGmpCoaJson);
+  }
+
+  // 19. Rhizosphere PGPR Microbiome Symbiosis Modal
+  if (DOM.btnRhizosphereMicrobiome) {
+    DOM.btnRhizosphereMicrobiome.addEventListener("click", openRhizosphereMicrobiomeModal);
+  }
+  if (DOM.microbiomeClose) {
+    DOM.microbiomeClose.addEventListener("click", () => {
+      if (DOM.microbiomeModal) DOM.microbiomeModal.classList.remove("active");
+    });
+  }
+  if (DOM.selectMicroStrain) {
+    DOM.selectMicroStrain.addEventListener("change", (e) => {
+      microbiomeOptions.innoculantType = e.target.value;
+      openRhizosphereMicrobiomeModal();
+    });
+  }
+  if (DOM.sliderMicroDosage) {
+    DOM.sliderMicroDosage.addEventListener("input", (e) => {
+      microbiomeOptions.dosageLevel = parseFloat(e.target.value);
+      if (DOM.microDosageLabel) DOM.microDosageLabel.textContent = `${microbiomeOptions.dosageLevel.toFixed(1)}x`;
+      openRhizosphereMicrobiomeModal();
+    });
+  }
+  if (DOM.btnInoculateMicrobiome) {
+    DOM.btnInoculateMicrobiome.addEventListener("click", inoculateMicrobialStrain);
+  }
+  if (DOM.btnExportMicrobiomeCSV) {
+    DOM.btnExportMicrobiomeCSV.addEventListener("click", exportMicrobiomeDataCSV);
+  }
+
+  // 20. CRISPR-Cas9 Metabolic Rewiring Modal
+  if (DOM.btnCrisprMetabolic) {
+    DOM.btnCrisprMetabolic.addEventListener("click", openCrisprMetabolicModal);
+  }
+  if (DOM.crisprClose) {
+    DOM.crisprClose.addEventListener("click", () => {
+      if (DOM.crisprModal) DOM.crisprModal.classList.remove("active");
+    });
+  }
+  if (DOM.selectCrisprGene) {
+    DOM.selectCrisprGene.addEventListener("change", (e) => {
+      crisprOptions.editGene = e.target.value;
+      openCrisprMetabolicModal();
+    });
+  }
+  if (DOM.selectCrisprMode) {
+    DOM.selectCrisprMode.addEventListener("change", (e) => {
+      crisprOptions.editMode = e.target.value;
+      openCrisprMetabolicModal();
+    });
+  }
+  if (DOM.btnExecuteCrisprEdit) {
+    DOM.btnExecuteCrisprEdit.addEventListener("click", executeCrisprRnpEdit);
+  }
+  if (DOM.btnExportCrisprJson) {
+    DOM.btnExportCrisprJson.addEventListener("click", exportCrisprReportJson);
   }
 
   // Cross-Origin Window Message Listener for Plant2Human AI (localhost:3006)
@@ -2737,6 +2828,128 @@ function exportGmpCoaJson() {
   });
 }
 
+// ------------------------------------------------------------------------
+// 19. Rhizosphere PGPR Microbiome Symbiosis & Biofertilizer Handlers
+// ------------------------------------------------------------------------
+let microbiomeOptions = {
+  innoculantType: "bacillus_velezensis",
+  dosageLevel: 1.0
+};
+let cachedMicrobiomeData = null;
+
+function openRhizosphereMicrobiomeModal() {
+  audio.playPulse();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  cachedMicrobiomeData = bioEngine.calculateRhizosphereMicrobiomeDynamics(plantState, envTele.sensors, microbiomeOptions);
+
+  if (DOM.microbiomeModalTitle) {
+    DOM.microbiomeModalTitle.textContent = `🌱 ${crop.name}: 근권 토양 미생물(PGPR) 공생 질소고정 & 인산가용화 반응기`;
+  }
+  if (DOM.microCfuVal) DOM.microCfuVal.textContent = cachedMicrobiomeData.cfuScientific;
+  if (DOM.microStrainBadge) DOM.microStrainBadge.textContent = `● ${cachedMicrobiomeData.strainName}`;
+  if (DOM.microBiofilmVal) DOM.microBiofilmVal.textContent = `${cachedMicrobiomeData.biofilmColonizationPct}%`;
+  if (DOM.microPiSolubilizedVal) DOM.microPiSolubilizedVal.textContent = `${cachedMicrobiomeData.phosphateSolubilizedUmolPerHour} μmol/h`;
+  if (DOM.microFertilizerSavedVal) DOM.microFertilizerSavedVal.textContent = `-${cachedMicrobiomeData.fertilizerReductionRatePct}% 절감`;
+
+  if (DOM.microbiomeModal) {
+    DOM.microbiomeModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (DOM.microbiomeCanvas && telemetryCharts) {
+      telemetryCharts.renderRhizosphereMicrobiomeScope(DOM.microbiomeCanvas, cachedMicrobiomeData);
+    }
+  }, 60);
+}
+
+function inoculateMicrobialStrain() {
+  audio.playSuccessBeep();
+  if (plantChamber3d && plantChamber3d.triggerIonPulseAnimation) {
+    plantChamber3d.triggerIonPulseAnimation();
+  }
+  showToast(`🌱 [${cachedMicrobiomeData ? cachedMicrobiomeData.strainName : "PGPR 균주"}] 근권 접종 완료! 바이오필름 정착 가속`);
+  openRhizosphereMicrobiomeModal();
+}
+
+function exportMicrobiomeDataCSV() {
+  if (!cachedMicrobiomeData) return;
+  const crop = profileManager.getActiveProfile();
+  const header = `# BioFoundry PlantTwin - Rhizosphere PGPR Microbiome Symbiosis & Biofertilizer Dataset\n` +
+    `# Crop: ${crop.name} (${crop.scientificName}) | Strain: ${cachedMicrobiomeData.strainName}\n` +
+    `# Microbial Density: ${cachedMicrobiomeData.cfuScientific} | Biofilm Colonization: ${cachedMicrobiomeData.biofilmColonizationPct}%\n` +
+    `# Pi Solubilized: ${cachedMicrobiomeData.phosphateSolubilizedUmolPerHour} umol/h | BNF Nitrogenase: ${cachedMicrobiomeData.nitrogenaseActivityNmol} nmol/h\n` +
+    `# NPK Fertilizer Reduction: ${cachedMicrobiomeData.fertilizerReductionRatePct}% | ISR Priming: ${cachedMicrobiomeData.isrPrimingLevelPct}%\n\n` +
+    `Time_sec,Log_CFU,Phosphate_Solubilized_umol_h,BNF_Activity_nmol_h,Rhizosphere_pH\n` +
+    cachedMicrobiomeData.wavePoints.map(p => `${p.timeSec},${p.cfuLog},${p.piSolubilized},${p.bnfActivity},${p.rhizoPh}`).join("\n");
+
+  const blob = new Blob(["\uFEFF" + header], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `BioFoundry_Rhizosphere_Microbiome_${crop.id}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ------------------------------------------------------------------------
+// 20. CRISPR-Cas9 Metabolic Rewiring & FBA Handlers
+// ------------------------------------------------------------------------
+let crisprOptions = {
+  targetCrop: "tomato",
+  editGene: "LCY-e",
+  editMode: "knockout",
+  guideRna: "5'-GTCGCCGAGCTGGCCGCCGA-3'",
+  pamSequence: "NGG"
+};
+let cachedCrisprData = null;
+
+function openCrisprMetabolicModal() {
+  audio.playPulse();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  cachedCrisprData = bioEngine.calculateCrisprMetabolicRewiring(plantState, envTele.sensors, crisprOptions);
+
+  if (DOM.crisprModalTitle) {
+    DOM.crisprModalTitle.textContent = `🧬 ${crop.name}: CRISPR-Cas9 가상 유전자 편집 & 2차 대사 리와이어링`;
+  }
+  if (DOM.crisprOnTargetVal) DOM.crisprOnTargetVal.textContent = `${cachedCrisprData.onTargetScore}% (Indel ${cachedCrisprData.indelEfficiencyPct}%)`;
+  if (DOM.crisprFoldChangeVal) DOM.crisprFoldChangeVal.textContent = `Log2FC ${cachedCrisprData.expressionFoldChange < 1 ? '-' + (1/cachedCrisprData.expressionFoldChange).toFixed(2) : '+' + cachedCrisprData.expressionFoldChange.toFixed(2)}x`;
+  if (DOM.crisprEditStatusBadge) DOM.crisprEditStatusBadge.textContent = `● ${cachedCrisprData.editGene} ${cachedCrisprData.editMode === "knockout" ? "Knock-out" : "CRISPRa OE"}`;
+  if (DOM.crisprYieldMultiplierVal) DOM.crisprYieldMultiplierVal.textContent = `+${Math.round((cachedCrisprData.yieldMultiplier - 1.0) * 100)}% (${cachedCrisprData.yieldMultiplier}x)`;
+  if (DOM.crisprProductBadge) DOM.crisprProductBadge.textContent = `● ${cachedCrisprData.targetCompound} 몰입`;
+  if (DOM.crisprBiomassLoadVal) DOM.crisprBiomassLoadVal.textContent = `${cachedCrisprData.biomassPenaltyPct}% (경미)`;
+
+  if (DOM.crisprModal) {
+    DOM.crisprModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (DOM.crisprCanvas && telemetryCharts) {
+      telemetryCharts.renderCrisprMetabolicRewiringScope(DOM.crisprCanvas, cachedCrisprData);
+    }
+  }, 60);
+}
+
+function executeCrisprRnpEdit() {
+  audio.playSuccessBeep();
+  showToast(`⚡ [Cas9 RNP : ${crisprOptions.editGene}] 유전체 절단 성공! On-Target ${cachedCrisprData ? cachedCrisprData.onTargetScore : 96.8}%`);
+  openCrisprMetabolicModal();
+}
+
+function exportCrisprReportJson() {
+  if (!cachedCrisprData) return;
+  navigator.clipboard.writeText(JSON.stringify(cachedCrisprData, null, 2)).then(() => {
+    if (DOM.btnExportCrisprJson) {
+      DOM.btnExportCrisprJson.textContent = "✅ CRISPR 리포트 JSON 복사 완료!";
+      setTimeout(() => {
+        DOM.btnExportCrisprJson.textContent = "📋 CRISPR 유전체 편집 리포트 JSON 복사";
+      }, 2000);
+    }
+  });
+}
+
 function openElectrophysDiagnostics() {
   audio.playPulse();
   const crop = profileManager.getActiveProfile();
@@ -3264,6 +3477,35 @@ function updateActiveDiagnosticsModals(envTele, crop, plantState, instantPhoto, 
   if (DOM.iotBridgeModal && DOM.iotBridgeModal.classList.contains("active")) {
     if (shouldRenderCanvas && DOM.modbusPacketCanvas && telemetryCharts) {
       telemetryCharts.renderModbusPacketScope(DOM.modbusPacketCanvas, iotBridge);
+    }
+  }
+
+  // 14. Rhizosphere PGPR Microbiome Symbiosis Modal
+  if (DOM.microbiomeModal && DOM.microbiomeModal.classList.contains("active")) {
+    const microData = bioEngine.calculateRhizosphereMicrobiomeDynamics(plantState, envTele.sensors, microbiomeOptions);
+    cachedMicrobiomeData = microData;
+    if (DOM.microCfuVal) DOM.microCfuVal.textContent = microData.cfuScientific;
+    if (DOM.microStrainBadge) DOM.microStrainBadge.textContent = `● ${microData.strainName}`;
+    if (DOM.microBiofilmVal) DOM.microBiofilmVal.textContent = `${microData.biofilmColonizationPct}%`;
+    if (DOM.microPiSolubilizedVal) DOM.microPiSolubilizedVal.textContent = `${microData.phosphateSolubilizedUmolPerHour} μmol/h`;
+    if (DOM.microFertilizerSavedVal) DOM.microFertilizerSavedVal.textContent = `-${microData.fertilizerReductionRatePct}% 절감`;
+    if (shouldRenderCanvas && DOM.microbiomeCanvas && telemetryCharts) {
+      telemetryCharts.renderRhizosphereMicrobiomeScope(DOM.microbiomeCanvas, microData);
+    }
+  }
+
+  // 15. CRISPR-Cas9 Metabolic Rewiring Modal
+  if (DOM.crisprModal && DOM.crisprModal.classList.contains("active")) {
+    const crisprData = bioEngine.calculateCrisprMetabolicRewiring(plantState, envTele.sensors, crisprOptions);
+    cachedCrisprData = crisprData;
+    if (DOM.crisprOnTargetVal) DOM.crisprOnTargetVal.textContent = `${crisprData.onTargetScore}% (Indel ${crisprData.indelEfficiencyPct}%)`;
+    if (DOM.crisprFoldChangeVal) DOM.crisprFoldChangeVal.textContent = `Log2FC ${crisprData.expressionFoldChange < 1 ? '-' + (1/crisprData.expressionFoldChange).toFixed(2) : '+' + crisprData.expressionFoldChange.toFixed(2)}x`;
+    if (DOM.crisprEditStatusBadge) DOM.crisprEditStatusBadge.textContent = `● ${crisprData.editGene} ${crisprData.editMode === "knockout" ? "Knock-out" : "CRISPRa OE"}`;
+    if (DOM.crisprYieldMultiplierVal) DOM.crisprYieldMultiplierVal.textContent = `+${Math.round((crisprData.yieldMultiplier - 1.0) * 100)}% (${crisprData.yieldMultiplier}x)`;
+    if (DOM.crisprProductBadge) DOM.crisprProductBadge.textContent = `● ${crisprData.targetCompound} 몰입`;
+    if (DOM.crisprBiomassLoadVal) DOM.crisprBiomassLoadVal.textContent = `${crisprData.biomassPenaltyPct}% (경미)`;
+    if (shouldRenderCanvas && DOM.crisprCanvas && telemetryCharts) {
+      telemetryCharts.renderCrisprMetabolicRewiringScope(DOM.crisprCanvas, crisprData);
     }
   }
 }

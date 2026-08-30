@@ -469,6 +469,14 @@
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"></path></svg>
                 <span>Plant2Human</span>
               </button>
+              <button id="btnRhizosphereMicrobiome" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #10b981; color: #a7f3d0; background: rgba(6, 78, 59, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="근권 유익 미생물(PGPR) 공생 질소고정 & 인산가용화 생체 반응기">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+                <span>근권 미생물(PGPR)</span>
+              </button>
+              <button id="btnCrisprMetabolic" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #a855f7; color: #e9d5ff; background: rgba(88, 28, 135, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="CRISPR-Cas9 가상 유전자 편집 & 2차 대사 생합성 경로 리와이어링 분석기">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.5"><path d="M2 12h20M7 5l5 7-5 7M17 5l-5 7 5 7"></path></svg>
+                <span>CRISPR 유전자 편집</span>
+              </button>
               <button id="btnIotBridge" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #a855f7; color: #e9d5ff; background: rgba(88, 28, 135, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="스마트팜 산업용 PLC/Modbus-TCP/MQTT 브릿지">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
                 <span>IoT/Modbus 브릿지</span>
@@ -2536,6 +2544,157 @@
           </button>
           <button id="btnExportCoaJson" class="btn btn-outline" style="padding: 9px 18px; font-size: 14px; font-weight: 700; color: #38bdf8; border-color: rgba(56, 189, 248, 0.5); background: rgba(56, 189, 248, 0.1);">
             📋 CoA JSON 데이터 복사
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 24: Real-Time Rhizosphere PGPR Microbiome Symbiosis & Biofertilizer Modal -->
+  <div id="microbiomeModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 1100px; max-width: 96vw; max-height: 92vh; overflow-y: auto;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="microbiomeModalTitle" style="color: #34d399; font-size: 20px; font-weight: 800;">🌱 근권 토양 미생물(PGPR) 공생 질소고정 & 불용성 인산가용화 생체 반응기</h3>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">뿌리 삼투 분비물(Root Exudates) • Bacillus velezensis 바이오필름 정착 • 유기산 킬레이트 인산 가용화 • 생물학적 질소고정(BNF) • 화학 비료 50% 절감</p>
+        </div>
+        <button id="microbiomeClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- KPI Summary Cards (4 Cards) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+        <div class="kpi-tile" style="padding: 12px 16px; background: rgba(16, 185, 129, 0.08); border-color: rgba(52, 211, 153, 0.35);">
+          <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">근권 유익 균밀도 (CFU)</span>
+          <b id="microCfuVal" class="kpi-big-val emerald" style="font-size: 26px; margin: 4px 0;">4.85 × 10⁸ CFU</b>
+          <span id="microStrainBadge" style="font-size: 12.5px; color: #34d399; font-weight: 700;">● Bacillus velezensis B1</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">바이오필름 뿌리 정착도</span>
+          <b id="microBiofilmVal" class="kpi-big-val cyan" style="font-size: 24px; margin: 4px 0;">84.5%</b>
+          <span style="font-size: 12.5px; color: var(--text-muted);">근권 표피 전면 코팅</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">불용성 인산(Pi) 가용화율</span>
+          <b id="microPiSolubilizedVal" class="kpi-big-val gold" style="font-size: 24px; margin: 4px 0;">4.85 μmol/h</b>
+          <span style="font-size: 12.5px; color: #fbbf24; font-weight: 600;">유기산 말산/구연산 킬레이트</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">화학 비료(NPK) 절감률</span>
+          <b id="microFertilizerSavedVal" class="kpi-big-val purple" style="font-size: 24px; margin: 4px 0;">-42.8% 절감</b>
+          <span style="font-size: 12.5px; color: #c084fc; font-weight: 600;">ISR 전신획득저항성 유도</span>
+        </div>
+      </div>
+
+      <!-- Interactive PGPR Control Bar -->
+      <div style="background: rgba(15, 23, 42, 0.7); border: 1.5px solid rgba(52, 211, 153, 0.25); border-radius: var(--radius-sm); padding: 12px 18px; margin-bottom: 14px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <label style="font-size: 13.5px; font-weight: 700; color: #34d399;">유익 미생물 균주 선택:</label>
+          <select id="selectMicroStrain" style="background: rgba(4, 8, 15, 0.9); color: #fff; border: 1.5px solid rgba(52, 211, 153, 0.4); border-radius: 4px; padding: 6px 12px; font-size: 13px; font-weight: 600;">
+            <option value="bacillus_velezensis">Bacillus velezensis B1 (인산가용화 / 병원균 항균 바이오필름)</option>
+            <option value="pseudomonas_fluorescens">Pseudomonas fluorescens 2P24 (근권 강력 정착 / 사이드로포어 철분 흡수)</option>
+            <option value="rhizobium">Rhizobium leguminosarum (공생 생물학적 질소고정 BNF)</option>
+          </select>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <label style="font-size: 13.5px; font-weight: 700; color: #fbbf24;">미생물 접종량 배율:</label>
+          <input type="range" id="sliderMicroDosage" min="0.2" max="3.0" step="0.2" value="1.0" style="width: 130px; accent-color: #10b981;">
+          <span id="microDosageLabel" style="font-size: 13px; font-weight: 800; color: #fff; min-width: 38px;">1.0x</span>
+          <button id="btnInoculateMicrobiome" class="btn btn-primary" style="padding: 7px 16px; font-size: 13px; font-weight: 800; background: #10b981; border: none; color: #fff;">
+            🌱 미생물 접종 및 바이오필름 배양
+          </button>
+        </div>
+      </div>
+
+      <!-- Microbiome Dual-Scope Canvas -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1.5px solid rgba(52, 211, 153, 0.3); border-radius: var(--radius-sm); padding: 14px; position: relative; margin-bottom: 14px;">
+        <canvas id="microbiomeCanvas" style="width: 100%; height: 280px; display: block;"></canvas>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px;">
+        <div style="font-size: 13px; color: var(--text-muted);">
+          * 뿌리 탄소 분비물(Malate, Sucrose)을 미생물이 섭취하며 분비한 유기산이 불용성 Ca-P 결합을 분해하여 식물 흡수율을 극대화합니다.
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button id="btnExportMicrobiomeCSV" class="btn btn-outline" style="padding: 8px 16px; font-size: 13.5px; font-weight: 700; color: #34d399; border-color: rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.1);">
+            📋 근권 미생물 텔레메트리 CSV 저장
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 25: CRISPR-Cas9 Targeted Gene Knockout & Secondary Metabolic Rewiring Modal -->
+  <div id="crisprModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 1100px; max-width: 96vw; max-height: 92vh; overflow-y: auto;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="crisprModalTitle" style="color: #c084fc; font-size: 20px; font-weight: 800;">🧬 CRISPR-Cas9 가상 유전자 편집 & 2차 대사 생합성 경로 리와이어링(Metabolic Rewiring)</h3>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">sgRNA 가이드 서열 설계 • Cas9 On-Target 절단율 • 대사 플럭스 밸런스(FBA) 분기 재분배 • 타깃 약리 분자 수율 극대화 • 대사 부하(Metabolic Burden) 최소화</p>
+        </div>
+        <button id="crisprClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- KPI Summary Cards (4 Cards) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+        <div class="kpi-tile" style="padding: 12px 16px; background: rgba(168, 85, 247, 0.08); border-color: rgba(192, 132, 252, 0.35);">
+          <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Cas9 On-Target 절단 효율</span>
+          <b id="crisprOnTargetVal" class="kpi-big-val purple" style="font-size: 26px; margin: 4px 0;">96.8% (Indel 91.0%)</b>
+          <span style="font-size: 12.5px; color: #34d399; font-weight: 700;">● Off-Target 위험도: 0.38% (안전)</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">타깃 효소 발현량 변동</span>
+          <b id="crisprFoldChangeVal" class="kpi-big-val cyan" style="font-size: 24px; margin: 4px 0;">Log2FC -4.64x</b>
+          <span id="crisprEditStatusBadge" style="font-size: 12.5px; color: #f87171; font-weight: 700;">● LCY-e Knock-out 완료</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">약리 유효 대사체 수율 증폭</span>
+          <b id="crisprYieldMultiplierVal" class="kpi-big-val gold" style="font-size: 24px; margin: 4px 0;">+433% (4.33x)</b>
+          <span id="crisprProductBadge" style="font-size: 12.5px; color: #fbbf24; font-weight: 600;">β-Carotene & Lutein 몰입</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">식물 대사 부하(Burden)</span>
+          <b id="crisprBiomassLoadVal" class="kpi-big-val emerald" style="font-size: 24px; margin: 4px 0;">3.8% (경미)</b>
+          <span style="font-size: 12.5px; color: #34d399; font-weight: 600;">생체량 성장 정상 유지</span>
+        </div>
+      </div>
+
+      <!-- Interactive CRISPR Gene Editing Control Bar -->
+      <div style="background: rgba(15, 23, 42, 0.7); border: 1.5px solid rgba(192, 132, 252, 0.25); border-radius: var(--radius-sm); padding: 12px 18px; margin-bottom: 14px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <label style="font-size: 13.5px; font-weight: 700; color: #c084fc;">표적 대사 분기 유전자:</label>
+          <select id="selectCrisprGene" style="background: rgba(4, 8, 15, 0.9); color: #fff; border: 1.5px solid rgba(192, 132, 252, 0.4); border-radius: 4px; padding: 6px 12px; font-size: 13px; font-weight: 600;">
+            <option value="LCY-e">LCY-e [Lycopene ε-cyclase] ➔ ε-고리 차단, β-카로틴/루테인 수율 4.3배 증폭 (KO)</option>
+            <option value="CHY-b">CHY-b [β-carotene hydroxylase] ➔ 제아잔틴/아스타잔틴 수산화 증폭 (CRISPRa OE)</option>
+            <option value="PAL">PAL [Phenylalanine ammonia-lyase] ➔ 페닐프로파노이드 레스베라트롤 경로 전환 (OE)</option>
+            <option value="DXS">DXS [DOXP synthase] ➔ MEP 테르페노이드 전구체 풀 4배 확장 (OE)</option>
+          </select>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <label style="font-size: 13.5px; font-weight: 700; color: #38bdf8;">편집 방식:</label>
+          <select id="selectCrisprMode" style="background: rgba(4, 8, 15, 0.9); color: #fff; border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: 600;">
+            <option value="knockout">Knock-out (Cas9 RNP 이중가닥 절단 & Frameshift Indel)</option>
+            <option value="overexpression">Overexpression (dCas9-VP64 CRISPRa 전사 활성화)</option>
+          </select>
+          <button id="btnExecuteCrisprEdit" class="btn btn-primary" style="padding: 7px 18px; font-size: 13px; font-weight: 800; background: #a855f7; border: none; color: #fff;">
+            ⚡ Cas9 RNP 유전자 편집 실행
+          </button>
+        </div>
+      </div>
+
+      <!-- CRISPR Dual-Scope Canvas -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1.5px solid rgba(192, 132, 252, 0.3); border-radius: var(--radius-sm); padding: 14px; position: relative; margin-bottom: 14px;">
+        <canvas id="crisprCanvas" style="width: 100%; height: 280px; display: block;"></canvas>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px;">
+        <div style="font-size: 13px; color: var(--text-muted);">
+          * FBA(Flux Balance Analysis) 알고리즘이 유전자 조작에 따른 세포 내 탄소 자원 분배 경로를 실시간으로 재계산합니다.
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button id="btnExportCrisprJson" class="btn btn-outline" style="padding: 8px 16px; font-size: 13.5px; font-weight: 700; color: #c084fc; border-color: rgba(168, 85, 247, 0.5); background: rgba(168, 85, 247, 0.1);">
+            📋 CRISPR 유전체 편집 리포트 JSON 복사
           </button>
         </div>
       </div>

@@ -1338,6 +1338,218 @@ export class BioPhysicalEngine {
       wavePoints
     };
   }
+
+  /**
+   * 19. Real-Time Rhizosphere PGPR Microbiome Symbiosis & Biofertilizer Engine
+   * Calculates Root Exudation Flux, Microbial Colony Density (CFU),
+   * Organic Acid Phosphate Solubilization, BNF Nitrogenase Activity, & Fertilizer Reduction.
+   */
+  calculateRhizosphereMicrobiomeDynamics(plantState = {}, envState = {}, options = {}) {
+    const rootMass = plantState.rootMass || 42.0; // grams
+    const temp = envState.temperature || 24.5;
+    const ph = envState.ph || 6.2;
+    const par = envState.par || 450.0;
+    const co2 = envState.co2 || 600.0;
+    const innoculantType = options.innoculantType || "bacillus_velezensis"; // "bacillus_velezensis", "pseudomonas_fluorescens", "rhizobium"
+    const innoculantDosage = options.dosageLevel || 1.0; // 0.2 to 3.0x multiplier
+
+    // 1. Photosynthetic carbon allocation to root exudates (sucrose, malate, flavonoids)
+    const baseExudation = 1.25 + (par / 800.0) * 1.8 * (co2 / 400.0) * 0.8;
+    const tempOptimum = Math.exp(-Math.pow(temp - 26.0, 2) / 60.0);
+    const exudationRateMgCPerHour = parseFloat((baseExudation * (rootMass / 35.0) * tempOptimum).toFixed(2));
+
+    // 2. Microbial Population Density Dynamics (Logistic Growth in Rhizosphere)
+    let carryingCapacityLog = 8.8; // 10^8.8 CFU/g soil
+    let specificGrowthRate = 0.42 * tempOptimum;
+    let bnfCapacity = 0.0;
+    let phosphateSolubilizationEfficiency = 0.0;
+    let strainName = "Bacillus velezensis B1";
+
+    if (innoculantType === "bacillus_velezensis") {
+      strainName = "Bacillus velezensis B1 (인산가용화/항진균)";
+      phosphateSolubilizationEfficiency = 1.45;
+      bnfCapacity = 0.35;
+    } else if (innoculantType === "pseudomonas_fluorescens") {
+      strainName = "Pseudomonas fluorescens 2P24 (근권정착/사이드로포어)";
+      phosphateSolubilizationEfficiency = 1.20;
+      bnfCapacity = 0.20;
+    } else if (innoculantType === "rhizobium") {
+      strainName = "Rhizobium leguminosarum (공생 질소고정)";
+      phosphateSolubilizationEfficiency = 0.40;
+      bnfCapacity = 1.95;
+    }
+
+    const cfuDensityLog = Math.min(9.4, 6.2 + (Math.log10(innoculantDosage + 0.1) * 0.8) + (exudationRateMgCPerHour * 0.45));
+    const cfuPerGramSoil = Math.round(Math.pow(10, cfuDensityLog));
+    const cfuScientific = `${(cfuPerGramSoil / 1e8).toFixed(2)} × 10⁸ CFU/g`;
+
+    // 3. Biofilm Root Surface Colonization Rate (%)
+    const biofilmColonizationPct = parseFloat(Math.min(98.5, Math.max(12.0, (cfuDensityLog / 9.2) * 94.0 * (ph >= 5.5 && ph <= 7.2 ? 1.05 : 0.85))).toFixed(1));
+
+    // 4. Organic Acid Chelation & Insoluble Phosphate Solubilization Rate (μmol Pi / hr)
+    // Secretion of Malic, Citric, and 2-Ketogluconic acids by PGPR
+    const organicAcidSecretedUmol = parseFloat((exudationRateMgCPerHour * 8.4 * phosphateSolubilizationEfficiency * (biofilmColonizationPct / 100.0)).toFixed(1));
+    const phosphateSolubilizedUmolPerHour = parseFloat((organicAcidSecretedUmol * 0.48 * (ph > 6.0 ? 1.2 : 0.75)).toFixed(2));
+
+    // 5. Biological Nitrogen Fixation (BNF) Nitrogenase Activity
+    const nitrogenaseActivityNmol = parseFloat((bnfCapacity * (cfuDensityLog / 8.0) * 125.0 * (tempOptimum)).toFixed(1));
+    const bioAvailableNitrogenPpm = parseFloat(((nitrogenaseActivityNmol * 0.028) + 14.5).toFixed(1));
+
+    // 6. Chemical NPK Fertilizer Reduction & Root Priming Index (ISR)
+    const fertilizerReductionRatePct = parseFloat(Math.min(62.0, (biofilmColonizationPct * 0.45) + (phosphateSolubilizedUmolPerHour * 1.8) + (bnfCapacity * 12.0)).toFixed(1));
+    const isrPrimingLevelPct = parseFloat(Math.min(99.0, (biofilmColonizationPct * 0.75) + 24.0).toFixed(1));
+
+    // 7. 60-Second Real-Time Oscilloscope Waveform Points
+    const wavePoints = [];
+    for (let t = 0; t <= 60; t += 0.5) {
+      const pulse = Math.sin((2 * Math.PI * t) / 14.0);
+      const instCfu = cfuDensityLog + (0.04 * pulse);
+      const instPi = phosphateSolubilizedUmolPerHour * (1.0 + 0.08 * pulse);
+      const instBnf = nitrogenaseActivityNmol * (1.0 + 0.12 * Math.cos((2 * Math.PI * t) / 10.0));
+      const instRhizoPh = ph - (0.15 * (biofilmColonizationPct / 100.0)) + (0.03 * pulse);
+
+      wavePoints.push({
+        timeSec: t,
+        cfuLog: parseFloat(instCfu.toFixed(2)),
+        piSolubilized: parseFloat(instPi.toFixed(2)),
+        bnfActivity: parseFloat(instBnf.toFixed(1)),
+        rhizoPh: parseFloat(instRhizoPh.toFixed(2))
+      });
+    }
+
+    return {
+      strainName,
+      innoculantType,
+      innoculantDosage,
+      exudationRateMgCPerHour,
+      cfuDensityLog: parseFloat(cfuDensityLog.toFixed(2)),
+      cfuScientific,
+      biofilmColonizationPct,
+      organicAcidSecretedUmol,
+      phosphateSolubilizedUmolPerHour,
+      nitrogenaseActivityNmol,
+      bioAvailableNitrogenPpm,
+      fertilizerReductionRatePct,
+      isrPrimingLevelPct,
+      wavePoints
+    };
+  }
+
+  /**
+   * 20. CRISPR-Cas9 Targeted Gene Knockout & Secondary Metabolic Pathway Rewiring Engine
+   * Calculates Cas9 On-Target Efficiency, Indel Mutation Rate, Metabolic Flux Balance Analysis (FBA),
+   * Target Compound (Lutein, Resveratrol, Artemisinin) Yield Multiplication, and Biomass Burden.
+   */
+  calculateCrisprMetabolicRewiring(plantState = {}, envState = {}, options = {}) {
+    const targetCrop = options.targetCrop || "tomato";
+    const editGene = options.editGene || "LCY-e"; // "LCY-e" (Lycopene epsilon cyclase KO), "CHY-b" (beta-hydroxylase), "PAL" (Phenylalanine ammonia-lyase), "DXS" (DOXP synthase)
+    const editMode = options.editMode || "knockout"; // "knockout", "overexpression", "multiplex"
+    const guideRnaDesign = options.guideRna || "5'-GTCGCCGAGCTGGCCGCCGA-3'";
+    const pamSequence = options.pamSequence || "NGG";
+
+    // 1. CRISPR-Cas9 Cleavage Kinetics & On/Off-Target Prediction
+    const gcContentPct = 65.0; // Optimum 50-70%
+    const onTargetScore = parseFloat(Math.min(99.4, Math.max(78.0, 88.5 + (gcContentPct - 50.0) * 0.4 - Math.random() * 2.0)).toFixed(1));
+    const offTargetRiskScore = parseFloat(Math.max(0.1, (100.0 - onTargetScore) * 0.12).toFixed(2));
+    const indelEfficiencyPct = editMode === "knockout" ? parseFloat((onTargetScore * 0.94).toFixed(1)) : 0.0;
+    const expressionFoldChange = editMode === "knockout" ? 0.04 : 4.85;
+
+    // 2. Secondary Metabolic Pathway Flux Balance Analysis (FBA)
+    let pathwayName = "카로티노이드 생합성 분기 리와이어링 (Carotenoid Branch)";
+    let precursorName = "Lycopene (리코펜)";
+    let targetCompound = "β-Carotene & Zeaxanthin (고부가가치 항산화물질)";
+    let baselineFluxUmol = 14.5;
+    let rewiredFluxUmol = 62.8;
+    let yieldMultiplier = 4.33;
+    let biomassPenaltyPct = 4.2;
+
+    if (editGene === "LCY-e") {
+      pathwayName = "카로티노이드 ε-고리 차단 ➔ β-고리 경로 몰입 (LCY-e KO)";
+      precursorName = "Lycopene (기질)";
+      targetCompound = "β-Carotene / Lutein 전구체";
+      baselineFluxUmol = 16.2;
+      rewiredFluxUmol = editMode === "knockout" ? 74.5 : 22.0;
+      yieldMultiplier = parseFloat((rewiredFluxUmol / baselineFluxUmol).toFixed(2));
+      biomassPenaltyPct = 3.8;
+    } else if (editGene === "CHY-b") {
+      pathwayName = "제아잔틴 수산화 경로 증폭 (CHY-b Overexpression)";
+      precursorName = "β-Carotene";
+      targetCompound = "Zeaxanthin & Astaxanthin";
+      baselineFluxUmol = 8.4;
+      rewiredFluxUmol = editMode === "overexpression" ? 48.6 : 2.1;
+      yieldMultiplier = parseFloat((rewiredFluxUmol / baselineFluxUmol).toFixed(2));
+      biomassPenaltyPct = 5.2;
+    } else if (editGene === "PAL") {
+      pathwayName = "페닐프로파노이드 플라보노이드 경로 전환 (PAL 증폭)";
+      precursorName = "L-Phenylalanine";
+      targetCompound = "Resveratrol & Quercetin";
+      baselineFluxUmol = 12.0;
+      rewiredFluxUmol = editMode === "overexpression" ? 58.4 : 3.5;
+      yieldMultiplier = parseFloat((rewiredFluxUmol / baselineFluxUmol).toFixed(2));
+      biomassPenaltyPct = 6.4;
+    } else if (editGene === "DXS") {
+      pathwayName = "MEP 테르페노이드 전구체 풀 대폭 확장 (DXS Up-regulation)";
+      precursorName = "Pyruvate + G3P";
+      targetCompound = "Artemisinin & Paclitaxel Precursors";
+      baselineFluxUmol = 22.0;
+      rewiredFluxUmol = 89.2;
+      yieldMultiplier = parseFloat((rewiredFluxUmol / baselineFluxUmol).toFixed(2));
+      biomassPenaltyPct = 7.8;
+    }
+
+    // 3. Predicted Metabolic HPLC Peak Spectrum Profile
+    const hplcRetentionTimeMin = 14.8;
+    const peakAreaMauSec = Math.round(rewiredFluxUmol * 285.0);
+    const purityPct = parseFloat(Math.min(99.6, 92.0 + (onTargetScore / 100.0) * 6.5).toFixed(1));
+
+    // 4. Flux Balance Network Nodes Data (for Canvas Pathway Visualizer)
+    const networkNodes = [
+      { id: "precursor", name: precursorName, flux: 100, xRatio: 0.15, yRatio: 0.5 },
+      { id: "branch_shunt", name: "부반응 경로 (Shunt / Degradation)", flux: editMode === "knockout" ? 4 : 45, xRatio: 0.5, yRatio: 0.22, isBlocked: editMode === "knockout" },
+      { id: "target_enzyme", name: `${editGene} [Cas9 ${editMode === "knockout" ? "KO" : "OE"}]`, flux: editMode === "knockout" ? 5 : 95, xRatio: 0.5, yRatio: 0.78, isTarget: true },
+      { id: "product_target", name: targetCompound, flux: Math.round((rewiredFluxUmol / baselineFluxUmol) * 22), xRatio: 0.85, yRatio: 0.78, isProduct: true }
+    ];
+
+    // 5. 60-Second Oscilloscope Waveform Points
+    const wavePoints = [];
+    for (let t = 0; t <= 60; t += 0.5) {
+      const pulse = Math.sin((2 * Math.PI * t) / 12.0);
+      const instTargetFlux = rewiredFluxUmol * (1.0 + 0.05 * pulse);
+      const instShuntFlux = (editMode === "knockout" ? 3.5 : 38.0) * (1.0 - 0.08 * pulse);
+      const instBiomassLoad = biomassPenaltyPct + (0.3 * Math.cos((2 * Math.PI * t) / 8.0));
+
+      wavePoints.push({
+        timeSec: t,
+        targetFlux: parseFloat(instTargetFlux.toFixed(1)),
+        shuntFlux: parseFloat(instShuntFlux.toFixed(1)),
+        biomassLoad: parseFloat(instBiomassLoad.toFixed(2))
+      });
+    }
+
+    return {
+      targetCrop,
+      editGene,
+      editMode,
+      guideRnaDesign,
+      pamSequence,
+      onTargetScore,
+      offTargetRiskScore,
+      indelEfficiencyPct,
+      expressionFoldChange,
+      pathwayName,
+      precursorName,
+      targetCompound,
+      baselineFluxUmol,
+      rewiredFluxUmol,
+      yieldMultiplier,
+      biomassPenaltyPct,
+      hplcRetentionTimeMin,
+      peakAreaMauSec,
+      purityPct,
+      networkNodes,
+      wavePoints
+    };
+  }
 }
 
 
