@@ -1929,6 +1929,220 @@ export class LiveTelemetryCharts {
     ctx.font = `${8 * dpr}px 'Inter', sans-serif`;
     ctx.fillText("■ 공급 목표 (Target) | ■ 배액 실측 (Drain ISE)", rightL, plotT - 6 * dpr);
   }
+
+  /**
+   * 17. Thylakoid Membrane Electron Transport Chain (ETC) & ATP Synthase Dual-Pane Scope
+   * Left: Thylakoid Lipid Bilayer (PSII -> Cyt b6f -> PSI -> ATP Synthase Rotor)
+   * Right: 60-Second Energetics Oscilloscope (pmf in mV, ETR, Lumen pH, ATP Synthase RPM)
+   */
+  renderThylakoidEtcScope(canvas, etcData = {}) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width || 800;
+    const h = rect.height || 220;
+
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Dark Background Grid
+    ctx.fillStyle = "rgba(4, 8, 15, 0.95)";
+    ctx.fillRect(0, 0, w, h);
+
+    const midX = w * 0.45;
+
+    // Divider Line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(midX, 10);
+    ctx.lineTo(midX, h - 10);
+    ctx.stroke();
+
+    // ==========================================
+    // LEFT PANE: Thylakoid Membrane Complexes Diagram
+    // ==========================================
+    ctx.fillStyle = "#34d399";
+    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① 틸라코이드 막 전자전달계(ETC) & ATP 합성 나노모터", 14 * dpr, 18 * dpr);
+
+    const leftW = midX;
+    const membraneY = h * 0.52;
+
+    // Lipid Bilayer Double Band
+    ctx.fillStyle = "rgba(16, 185, 129, 0.18)";
+    ctx.fillRect(20, membraneY - 10, leftW - 40, 20);
+    ctx.strokeStyle = "rgba(52, 211, 153, 0.4)";
+    ctx.lineWidth = 1.5 * dpr;
+    ctx.strokeRect(20, membraneY - 10, leftW - 40, 20);
+
+    // Compartment Labels
+    ctx.fillStyle = "rgba(56, 189, 248, 0.7)";
+    ctx.font = `bold ${8 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("스트로마 (Stroma pH 7.85)", 24, membraneY - 18);
+
+    ctx.fillStyle = "rgba(251, 191, 36, 0.7)";
+    ctx.fillText(`루멘 (Lumen pH ${etcData.lumenPh || 5.85}) - 산성화`, 24, membraneY + 28);
+
+    // 4 Protein Complexes along membrane
+    const complexes = [
+      { name: "PSII", sub: "2H₂O→O₂", x: 65, color: "#10b981", shape: "rect" },
+      { name: "Cyt b₆f", sub: "Q-Cycle 4H⁺", x: 135, color: "#38bdf8", shape: "rect" },
+      { name: "PSI", sub: "P700→Fd", x: 205, color: "#a855f7", shape: "rect" },
+      { name: "ATP Synthase", sub: `${etcData.atpSynthaseRpm || 840} RPM`, x: 285, color: "#fbbf24", shape: "rotor" }
+    ];
+
+    complexes.forEach(c => {
+      ctx.fillStyle = c.color;
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 1 * dpr;
+
+      if (c.shape === "rect") {
+        ctx.beginPath();
+        ctx.roundRect(c.x - 22, membraneY - 20, 44, 40, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#fff";
+        ctx.font = `bold ${8 * dpr}px 'Inter', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.fillText(c.name, c.x, membraneY - 2);
+
+        ctx.fillStyle = "rgba(0,0,0,0.85)";
+        ctx.font = `${7 * dpr}px 'Inter', sans-serif`;
+        ctx.fillText(c.sub, c.x, membraneY + 10);
+      } else {
+        // Rotating F0F1 ATP Synthase Rotor
+        ctx.beginPath();
+        ctx.arc(c.x, membraneY - 14, 15 * dpr, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+
+        // Stalk & F0 base in membrane
+        ctx.fillRect(c.x - 6, membraneY - 2, 12, 22);
+
+        ctx.fillStyle = "#000";
+        ctx.font = `bold ${7.5 * dpr}px 'Inter', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.fillText("F₁ Rotor", c.x, membraneY - 16);
+        ctx.fillText(`${etcData.atpSynthaseRpm || 840}RPM`, c.x, membraneY - 6);
+
+        // Proton cascade arrow into Stroma
+        ctx.fillStyle = "#fbbf24";
+        ctx.font = `bold ${8 * dpr}px 'Inter', sans-serif`;
+        ctx.fillText("▲ H⁺ 방출 (ATP 생성)", c.x, membraneY - 34);
+      }
+    });
+
+    // Subtitle Footer in Left Pane
+    ctx.textAlign = "left";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.font = `${8 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`ETR: ${etcData.linearEtr || 88.5} μmol e⁻ | pmf: ${etcData.protonMotiveForcePmfMv || 192.4} mV | ATP: ${etcData.atpPerSecPerComplex || 42.0} ATP/s`, 20, h - 10 * dpr);
+
+    // ==========================================
+    // RIGHT PANE: 60-Second Multi-Trace Oscilloscope
+    // ==========================================
+    const rightL = midX + 18;
+    const rightW = w - rightL - 18;
+    const plotT = 36;
+    const plotH = h - 65;
+
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② 60초 광에너지 대사 스코프 (pmf, ETR, 루멘 pH, ATP RPM)", rightL, 18 * dpr);
+
+    // Horizontal Grid Lines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+    ctx.lineWidth = 1;
+    for (let y = plotT; y <= plotT + plotH; y += plotH / 4) {
+      ctx.beginPath(); ctx.moveTo(rightL, y); ctx.lineTo(rightL + rightW, y); ctx.stroke();
+    }
+
+    // Vertical Time Grid Lines (0s, 15s, 30s, 45s, 60s)
+    for (let s = 0; s <= 60; s += 15) {
+      const x = rightL + (s / 60.0) * rightW;
+      ctx.beginPath(); ctx.moveTo(x, plotT); ctx.lineTo(x, plotT + plotH); ctx.stroke();
+      ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.font = `${8 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${s}s`, x - 6 * dpr, plotT + plotH + 14 * dpr);
+    }
+
+    const wavePoints = etcData.wavePoints || [];
+    if (wavePoints.length > 1) {
+      // 1. Plot Proton Motive Force (pmf, Gold trace)
+      ctx.save();
+      ctx.strokeStyle = "#fbbf24";
+      ctx.shadowColor = "#fbbf24";
+      ctx.shadowBlur = 6 * dpr;
+      ctx.lineWidth = 2 * dpr;
+      ctx.beginPath();
+      wavePoints.forEach((pt, i) => {
+        const x = rightL + (pt.timeSec / 60.0) * rightW;
+        // pmf ranges 140 to 240 mV
+        const norm = Math.max(0.0, Math.min(1.0, (pt.pmfMv - 140.0) / 100.0));
+        const y = plotT + plotH - (norm * plotH);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // 2. Plot Linear ETR (Cyan trace)
+      ctx.save();
+      ctx.strokeStyle = "#38bdf8";
+      ctx.shadowColor = "#38bdf8";
+      ctx.shadowBlur = 4 * dpr;
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.beginPath();
+      wavePoints.forEach((pt, i) => {
+        const x = rightL + (pt.timeSec / 60.0) * rightW;
+        // ETR ranges 0 to 180
+        const norm = Math.max(0.0, Math.min(1.0, pt.etr / 180.0));
+        const y = plotT + plotH - (norm * plotH);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // 3. Plot ATP Synthase RPM (Purple trace)
+      ctx.save();
+      ctx.strokeStyle = "#c084fc";
+      ctx.shadowColor = "#c084fc";
+      ctx.shadowBlur = 4 * dpr;
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.beginPath();
+      wavePoints.forEach((pt, i) => {
+        const x = rightL + (pt.timeSec / 60.0) * rightW;
+        // RPM ranges 0 to 1400
+        const norm = Math.max(0.0, Math.min(1.0, pt.rpm / 1400.0));
+        const y = plotT + plotH - (norm * plotH);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // Oscilloscope Legend Pills
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`● pmf (${etcData.protonMotiveForcePmfMv} mV)`, rightL + 8 * dpr, plotT + 14 * dpr);
+
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillText(`● ETR (${etcData.linearEtr} μmol e⁻)`, rightL + 120 * dpr, plotT + 14 * dpr);
+
+      ctx.fillStyle = "#c084fc";
+      ctx.fillText(`● ATP RPM (${etcData.atpSynthaseRpm} RPM)`, rightL + 240 * dpr, plotT + 14 * dpr);
+    }
+  }
 }
+
 
 

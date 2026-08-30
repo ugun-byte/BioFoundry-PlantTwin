@@ -61,6 +61,10 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
           <span data-i18n="btnScheduler">24H 스케줄러</span>
         </button>
+        <button id="btnPlant2HumanBridge" class="btn-header" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); background: rgba(14, 165, 233, 0.12);" title="Plant2Human AI (localhost:3006) 양방향 클라우드 데이터 동기화">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          <span>Plant2Human 연동</span>
+        </button>
       </div>
     </header>
 
@@ -444,6 +448,14 @@
               <button id="btnHydroponicIseScope" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #0284c7; color: #bae6fd; background: rgba(12, 74, 110, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="스마트 양액 100% 폐쇄 재순환 & 6-ISE 이온 전극 실시간 자동 보정기">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
                 <span>스마트 양액 폐쇄 루프(ISE)</span>
+              </button>
+              <button id="btnThylakoidEtcScope" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #eab308; color: #fef08a; background: rgba(113, 63, 18, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="엽록체 틸라코이드 막 전자전달계(ETC) & ATP 합성 나노모터 스코프">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span>틸라코이드 ETC / ATP</span>
+              </button>
+              <button id="btnPlant2Human" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #ec4899; color: #fbcfe8; background: rgba(80, 7, 36, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="식물-인간 인터페이스(Plant2Human) 신경 신호 가시화">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"></path></svg>
+                <span>Plant2Human</span>
               </button>
               <button id="btnIotBridge" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #a855f7; color: #e9d5ff; background: rgba(88, 28, 135, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="스마트팜 산업용 PLC/Modbus-TCP/MQTT 브릿지">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
@@ -2160,6 +2172,162 @@
           </button>
           <button id="btnExportIseCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
             📋 배액 ISE 계측 데이터 CSV 내보내기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 19: Plant2Human AI (localhost:3006) Bidirectional Cloud Sync Bridge Modal -->
+  <div id="plant2HumanModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 880px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="p2hModalTitle" style="color: #38bdf8; font-size: 15px;">🔗 Plant2Human AI ↔ BioFoundry PlantTwin 실시간 양방향 데이터 브릿지</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">PubChem 분자 구조 데이터 수신 • 스마트팜 맞춤형 광생합성 레시피 피드백 • 원클릭 크로스 플랫폼 동기화</p>
+        </div>
+        <button id="p2hModalClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- Connection Status Bar -->
+      <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #34d399; box-shadow: 0 0 10px #34d399;"></span>
+          <span style="font-size: 12px; font-weight: 700; color: #fff;">연계 플랫폼: <span style="color: #38bdf8;">Plant2Human AI OS (http://localhost:3006)</span></span>
+        </div>
+        <div style="font-family: monospace; font-size: 11px; color: #fbbf24;">
+          통신 프로토콜: Web Messaging (postMessage) & JSON-RPC
+        </div>
+      </div>
+
+      <!-- 4 Target Molecule Pipeline Cards -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+        <div class="kpi-tile" style="padding: 8px 10px; border-color: rgba(56, 189, 248, 0.4); cursor: pointer;" id="p2hCardLutein">
+          <span style="font-size: 9px; color: #38bdf8; font-weight: 700;">눈 건강 파이프라인</span>
+          <b style="font-size: 13px; color: #fff; margin-top: 2px;">루테인 (Lutein)</b>
+          <span style="font-size: 9px; color: var(--text-muted);">CID: 5281243 | C40H56O2</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px; border-color: rgba(168, 85, 247, 0.4); cursor: pointer;" id="p2hCardResveratrol">
+          <span style="font-size: 9px; color: #c084fc; font-weight: 700;">항노화 파이프라인</span>
+          <b style="font-size: 13px; color: #fff; margin-top: 2px;">레스베라트롤</b>
+          <span style="font-size: 9px; color: var(--text-muted);">CID: 445154 | C14H12O3</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px; border-color: rgba(16, 185, 129, 0.4); cursor: pointer;" id="p2hCardSulforaphane">
+          <span style="font-size: 9px; color: #34d399; font-weight: 700;">면역/항암 파이프라인</span>
+          <b style="font-size: 13px; color: #fff; margin-top: 2px;">설포라판</b>
+          <span style="font-size: 9px; color: var(--text-muted);">CID: 5350 | C6H11NOS2</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px; border-color: rgba(244, 63, 94, 0.4); cursor: pointer;" id="p2hCardAstaxanthin">
+          <span style="font-size: 9px; color: #fb7185; font-weight: 700;">강력 항산화 파이프라인</span>
+          <b style="font-size: 13px; color: #fff; margin-top: 2px;">아스타잔틴</b>
+          <span style="font-size: 9px; color: var(--text-muted);">CID: 5281224 | C40H52O4</span>
+        </div>
+      </div>
+
+      <!-- Real-Time Bidirectional Data Exchange JSON Payload Screen -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; color: #38bdf8; font-weight: 700;">
+            <span>📥 Plant2Human 수신 페이로드 (Incoming Specs)</span>
+            <span style="font-size: 10px; color: var(--text-muted);">PubChem API</span>
+          </div>
+          <pre id="p2hIncomingJson" style="background: #030712; padding: 10px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.08); font-family: monospace; font-size: 10px; color: #38bdf8; height: 160px; overflow-y: auto; white-space: pre-wrap; margin: 0;"></pre>
+        </div>
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; color: #34d399; font-weight: 700;">
+            <span>🚀 BioFoundry 송신 페이로드 (Optimized Recipe CoA)</span>
+            <span style="font-size: 10px; color: var(--text-muted);">Twin Output</span>
+          </div>
+          <pre id="p2hOutgoingJson" style="background: #030712; padding: 10px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.08); font-family: monospace; font-size: 10px; color: #34d399; height: 160px; overflow-y: auto; white-space: pre-wrap; margin: 0;"></pre>
+        </div>
+      </div>
+
+      <!-- Footer Action Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * Plant2Human AI에서 원료를 클릭하면 시뮬레이터가 최적 재배 레시피를 실시간 자동 연산합니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnP2hFetch" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">
+            ⚡ Plant2Human 원료 데이터 수신 (Fetch)
+          </button>
+          <button id="btnP2hPush" class="btn btn-primary" style="padding: 6px 14px; font-size: 11px; background: #10b981; border: none; font-weight: 700;">
+            🚀 최적 레시피 Plant2Human으로 피드백 전송 (Push)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 20: Chloroplast Thylakoid Membrane ETC & ATP Synthase Dynamics Modal -->
+  <div id="thylakoidEtcModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 880px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="thylakoidModalTitle" style="color: #34d399; font-size: 15px;">⚡ 엽록체 틸라코이드 막 전자전달계(ETC) & ATP 합성 나노모터 스코프</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">PSII 물 분해 • 플라스토퀴논 Q-Cycle • 루멘 pH 구배(ΔpH) • 양성자 구동력(pmf) • F₀F₁-ATP Synthase 회전수(RPM)</p>
+        </div>
+        <button id="thylakoidClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+        <div class="kpi-tile" style="padding: 8px 12px; background: rgba(251, 191, 36, 0.08); border-color: rgba(251, 191, 36, 0.35);">
+          <span style="font-size: 9px; color: var(--text-muted);">양성자 구동력 (pmf)</span>
+          <b id="etcPmfVal" class="kpi-big-val gold" style="font-size: 20px;">192.4 mV</b>
+          <span id="etcDeltaPhBadge" style="font-size: 9px; color: #34d399; font-weight: 600; margin-top: 2px;">● ΔpH: 2.00 (Lumen pH 5.85)</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">선형 전자 전달 속도 (Je)</span>
+          <b id="etcLinearEtrVal" class="kpi-big-val cyan" style="font-size: 16px;">88.5 μmol e⁻</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">PSII → Cyt b₆f → PSI</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">ATP 합성효소 회전 속도</span>
+          <b id="etcRpmVal" class="kpi-big-val purple" style="font-size: 16px;">840 RPM</b>
+          <span style="font-size: 9px; color: #34d399; margin-top: 2px;">F₀F₁ 로터 나노 터빈 구동</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">엽록체 ATP 생성 플럭스</span>
+          <b id="etcAtpFluxVal" class="kpi-big-val emerald" style="font-size: 16px;">42.0 ATP/s/cplx</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Rubisco 캘빈회로 공급</span>
+        </div>
+      </div>
+
+      <!-- Dual Canvas -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: var(--radius-sm); padding: 12px; position: relative; margin-bottom: 12px;">
+        <canvas id="thylakoidEtcCanvas" style="width: 100%; height: 220px; display: block;"></canvas>
+      </div>
+
+      <!-- ETC Complex Breakdown Table -->
+      <div style="max-height: 120px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); margin-bottom: 10px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+          <thead style="background: rgba(15, 23, 42, 0.9); color: #34d399; position: sticky; top: 0;">
+            <tr>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">단백질 복합체</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">생화학적 반응 기전</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">양성자(H⁺) 수송</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">실시간 산출물</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">에너지 상태</th>
+            </tr>
+          </thead>
+          <tbody id="thylakoidEtcTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * PPFD가 증가하면 루멘이 산성화(pH 5.4)되어 pmf가 210mV를 초과하고 ATP 합성이 최대 1200 RPM으로 가속됩니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnPulseEtr" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); font-weight: 700;">
+            ⚡ 광계 펄스 ETR 여기 시험 (Pulse ETR)
+          </button>
+          <button id="btnExportThylakoidCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
+            📋 틸라코이드 ETC 데이터 CSV 내보내기
           </button>
         </div>
       </div>

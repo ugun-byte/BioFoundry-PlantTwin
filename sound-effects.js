@@ -301,6 +301,63 @@ export class CyberAudioEngine {
       });
     } catch (e) {}
   }
+
+  /**
+   * Synthesizes Plant2Human AI cloud sync data transfer chime
+   */
+  playCloudSyncSound() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      [0.0, 0.07, 0.14, 0.21].forEach((offset, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = "sine";
+        const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 arpeggio
+        osc.frequency.setValueAtTime(freqs[idx], this.ctx.currentTime + offset);
+
+        gain.gain.setValueAtTime(0.06, this.ctx.currentTime + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + offset + 0.09);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(this.ctx.currentTime + offset);
+        osc.stop(this.ctx.currentTime + offset + 0.09);
+      });
+    } catch (e) {}
+  }
+
+  /**
+   * Synthesizes rotary F0F1-ATP Synthase nanomotor turbine hum
+   */
+  playAtpSynthaseRpmSound() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(240, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(720, this.ctx.currentTime + 0.18);
+      osc.frequency.exponentialRampToValueAtTime(360, this.ctx.currentTime + 0.35);
+
+      gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.07, this.ctx.currentTime + 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.35);
+    } catch (e) {}
+  }
 }
+
 
 

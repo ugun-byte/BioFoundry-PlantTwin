@@ -1255,7 +1255,91 @@ export class BioPhysicalEngine {
       sensors: sensorDetails
     };
   }
+
+  /**
+   * 22. Thylakoid Membrane Electron Transport Chain (ETC) & ATP Synthase Rotary Dynamics Model
+   * Simulates PSII water splitting, PQ pool redox, Cyt b6f Q-cycle proton pumping, PSI P700,
+   * Trans-thylakoid lumen-stroma pH gradient (ΔpH), Proton Motive Force (pmf, mV),
+   * and F0F1-ATP Synthase rotary nanomotor speed (RPM) and ATP generation rate (ATP/s).
+   */
+  calculateThylakoidEtcDynamics(envParams = {}, cropProfile = {}, plantState = {}, options = {}) {
+    const { ppfd = 450.0, airTemp = 24.0, co2 = 800.0 } = envParams;
+    const isEtrPulse = !!options.etrPulse;
+
+    // 1. Photosystem II Linear Electron Transport Rate (Je, μmol e- / m² s)
+    const alphaPSII = 0.84 * 0.5;
+    const phiPSII = 0.835 * Math.max(0.2, 1.0 - (ppfd / 1400.0));
+    let linearEtr = ppfd * alphaPSII * phiPSII;
+    if (isEtrPulse) {
+      linearEtr *= 1.65;
+    }
+    linearEtr = parseFloat(linearEtr.toFixed(1));
+
+    // 2. Plastoquinone (PQ) Pool Redox State
+    const pqReductionRate = linearEtr * 0.008;
+    const pqOxidationRate = (co2 / 400.0) * (0.8 + 0.2 * (airTemp / 24.0)) * 0.95;
+    const pqReducedRatio = parseFloat(Math.min(0.95, Math.max(0.08, pqReductionRate / (pqReductionRate + pqOxidationRate))).toFixed(2));
+    const pqOxidizedRatio = parseFloat((1.0 - pqReducedRatio).toFixed(2));
+
+    // 3. Proton Translocation across Thylakoid Membrane (H+ / m² s)
+    const protonFluxHPerSec = parseFloat((linearEtr * 4.0).toFixed(1));
+
+    // 4. Stroma pH & Thylakoid Lumen pH Gradient (ΔpH)
+    const stromaPh = 7.85;
+    const lumenPh = parseFloat(Math.max(5.35, 6.80 - (protonFluxHPerSec / 850.0) * 1.35).toFixed(2));
+    const deltaPh = parseFloat((stromaPh - lumenPh).toFixed(2));
+
+    // 5. Proton Motive Force (pmf, mV)
+    const T_kelvin = 273.15 + (airTemp || 24.0);
+    const nernstFactor = (2.302585 * 8.314462 * T_kelvin) / 96485.33 * 1000.0;
+    const deltaPsiMv = 38.0;
+    const deltaPHEquivMv = deltaPh * nernstFactor;
+    const protonMotiveForcePmfMv = parseFloat((deltaPsiMv + deltaPHEquivMv).toFixed(1));
+
+    // 6. F0F1-ATP Synthase Rotary Nanomotor Dynamics
+    const baseRpm = 180.0;
+    const drivingForceScale = Math.max(0.0, (protonMotiveForcePmfMv - 90.0) / 120.0);
+    const atpSynthaseRpm = Math.round(Math.min(1250, baseRpm + 820.0 * drivingForceScale * (linearEtr / 120.0)));
+    const atpPerSecPerComplex = parseFloat(((atpSynthaseRpm * 3.0) / 60.0).toFixed(1));
+    const totalChloroplastAtpFlux = parseFloat((linearEtr * (3.0 / 4.67)).toFixed(1));
+
+    // 7. 60-Second Multi-Trace Oscilloscope Waveform Points
+    const wavePoints = [];
+    for (let t = 0; t <= 60; t += 0.5) {
+      const pulsation = Math.sin((2 * Math.PI * t) / 12.0);
+      const instEtr = linearEtr * (1.0 + 0.06 * pulsation);
+      const instPmf = protonMotiveForcePmfMv + (4.5 * pulsation);
+      const instLumenPh = lumenPh - (0.04 * pulsation);
+      const instRpm = atpSynthaseRpm + Math.round(35 * pulsation);
+
+      wavePoints.push({
+        timeSec: t,
+        etr: parseFloat(instEtr.toFixed(1)),
+        pmfMv: parseFloat(instPmf.toFixed(1)),
+        lumenPh: parseFloat(instLumenPh.toFixed(2)),
+        rpm: instRpm
+      });
+    }
+
+    return {
+      linearEtr,
+      pqReducedRatio,
+      pqOxidizedRatio,
+      protonFluxHPerSec,
+      stromaPh,
+      lumenPh,
+      deltaPh,
+      deltaPsiMv,
+      protonMotiveForcePmfMv,
+      atpSynthaseRpm,
+      atpPerSecPerComplex,
+      totalChloroplastAtpFlux,
+      isEtrPulse,
+      wavePoints
+    };
+  }
 }
+
 
 
 

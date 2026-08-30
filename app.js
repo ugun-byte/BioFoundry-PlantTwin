@@ -380,6 +380,34 @@ const DOM = {
   btnAutoDoseIse: document.getElementById("btnAutoDoseIse"),
   btnExportIseCSV: document.getElementById("btnExportIseCSV"),
 
+  // Plant2Human Bridge Elements
+  btnPlant2HumanBridge: document.getElementById("btnPlant2HumanBridge"),
+  plant2HumanModal: document.getElementById("plant2HumanModal"),
+  p2hModalClose: document.getElementById("p2hModalClose"),
+  p2hIncomingJson: document.getElementById("p2hIncomingJson"),
+  p2hOutgoingJson: document.getElementById("p2hOutgoingJson"),
+  btnP2hFetch: document.getElementById("btnP2hFetch"),
+  btnP2hPush: document.getElementById("btnP2hPush"),
+  p2hCardLutein: document.getElementById("p2hCardLutein"),
+  p2hCardResveratrol: document.getElementById("p2hCardResveratrol"),
+  p2hCardSulforaphane: document.getElementById("p2hCardSulforaphane"),
+  p2hCardAstaxanthin: document.getElementById("p2hCardAstaxanthin"),
+
+  // Thylakoid ETC Elements
+  btnThylakoidEtcScope: document.getElementById("btnThylakoidEtcScope"),
+  thylakoidEtcModal: document.getElementById("thylakoidEtcModal"),
+  thylakoidClose: document.getElementById("thylakoidClose"),
+  thylakoidModalTitle: document.getElementById("thylakoidModalTitle"),
+  etcPmfVal: document.getElementById("etcPmfVal"),
+  etcDeltaPhBadge: document.getElementById("etcDeltaPhBadge"),
+  etcLinearEtrVal: document.getElementById("etcLinearEtrVal"),
+  etcRpmVal: document.getElementById("etcRpmVal"),
+  etcAtpFluxVal: document.getElementById("etcAtpFluxVal"),
+  thylakoidEtcCanvas: document.getElementById("thylakoidEtcCanvas"),
+  thylakoidEtcTableBody: document.getElementById("thylakoidEtcTableBody"),
+  btnPulseEtr: document.getElementById("btnPulseEtr"),
+  btnExportThylakoidCSV: document.getElementById("btnExportThylakoidCSV"),
+
   // Sub-Views
   viewOverview: document.getElementById("viewOverview"),
   viewTelemetry: document.getElementById("viewTelemetry"),
@@ -1120,6 +1148,53 @@ function bindEventListeners() {
   if (DOM.btnExportIseCSV) {
     DOM.btnExportIseCSV.addEventListener("click", exportIseDataCSV);
   }
+
+  // Plant2Human Bridge Modal
+  if (DOM.btnPlant2HumanBridge) {
+    DOM.btnPlant2HumanBridge.addEventListener("click", openPlant2HumanModal);
+  }
+  if (DOM.p2hModalClose) {
+    DOM.p2hModalClose.addEventListener("click", () => {
+      if (DOM.plant2HumanModal) DOM.plant2HumanModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnP2hFetch) {
+    DOM.btnP2hFetch.addEventListener("click", fetchPlant2HumanData);
+  }
+  if (DOM.btnP2hPush) {
+    DOM.btnP2hPush.addEventListener("click", pushPlant2HumanRecipe);
+  }
+  if (DOM.p2hCardLutein) DOM.p2hCardLutein.addEventListener("click", () => selectP2hMolecule("marigold_lutein"));
+  if (DOM.p2hCardResveratrol) DOM.p2hCardResveratrol.addEventListener("click", () => selectP2hMolecule("grape_resveratrol"));
+  if (DOM.p2hCardSulforaphane) DOM.p2hCardSulforaphane.addEventListener("click", () => selectP2hMolecule("kale_antioxidant"));
+  if (DOM.p2hCardAstaxanthin) DOM.p2hCardAstaxanthin.addEventListener("click", () => selectP2hMolecule("algae_astaxanthin"));
+
+  // Thylakoid ETC Modal
+  if (DOM.btnThylakoidEtcScope) {
+    DOM.btnThylakoidEtcScope.addEventListener("click", openThylakoidEtcModal);
+  }
+  if (DOM.thylakoidClose) {
+    DOM.thylakoidClose.addEventListener("click", () => {
+      if (DOM.thylakoidEtcModal) DOM.thylakoidEtcModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnPulseEtr) {
+    DOM.btnPulseEtr.addEventListener("click", triggerPulseEtrTest);
+  }
+  if (DOM.btnExportThylakoidCSV) {
+    DOM.btnExportThylakoidCSV.addEventListener("click", exportThylakoidDataCSV);
+  }
+
+  // Cross-Origin Window Message Listener for Plant2Human AI (localhost:3006)
+  window.addEventListener("message", (event) => {
+    if (event.data && event.data.source === "Plant2Human_AI") {
+      console.log("📥 Received Plant2Human Payload:", event.data);
+      audio.playCloudSyncSound();
+      if (event.data.cropId && profileManager.getProfile(event.data.cropId)) {
+        selectP2hMolecule(event.data.cropId);
+      }
+    }
+  });
 
   // Timeline Controls
   DOM.btnPlay.addEventListener("click", () => {
@@ -2085,6 +2160,199 @@ function exportIseDataCSV() {
   document.body.removeChild(link);
 }
 
+// ------------------------------------------------------------------------
+// Plant2Human AI (localhost:3006) Bidirectional Cloud Sync Bridge Handlers
+// ------------------------------------------------------------------------
+function openPlant2HumanModal() {
+  audio.playCloudSyncSound();
+  updatePlant2HumanJsonScreens();
+  if (DOM.plant2HumanModal) {
+    DOM.plant2HumanModal.classList.add("active");
+  }
+}
+
+function selectP2hMolecule(cropId) {
+  audio.playPulse();
+  if (profileManager.getProfile(cropId)) {
+    profileManager.setActiveProfile(cropId);
+    if (DOM.cropSelect) DOM.cropSelect.value = cropId;
+    const crop = profileManager.getActiveProfile();
+    DOM.metaTargetMolecule.textContent = `${crop.targetMolecule} (${crop.chemicalFormula})`;
+    if (plantChamber3d) plantChamber3d.setCropSpecies(crop);
+    buildParamEditor();
+    resetPlantState();
+    updatePlant2HumanJsonScreens();
+  }
+}
+window.selectP2hMolecule = selectP2hMolecule;
+
+function updatePlant2HumanJsonScreens() {
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const instantPhoto = bioEngine.calculateInstantaneousPhotosynthesis(envTele.sensors, crop);
+  const hplc = bioEngine.calculateHplcChromatogram(envTele.sensors, crop, plantState);
+  const res = aiOptimizer.searchOptimalEnvironment(crop, currentOptimizationObjective);
+
+  const incomingPayload = {
+    source: "Plant2Human_AI_OS",
+    endpoint: "http://localhost:3006/api/discovery/pipeline",
+    targetMolecule: crop.targetMolecule,
+    chemicalFormula: crop.chemicalFormula,
+    pubchemCid: crop.pubchemCid,
+    molecularWeight: crop.molecularWeight,
+    targetOrgan: "Human Cellular Receptors",
+    therapeuticIndication: crop.name.includes("메리골드") ? "황반변성(AMD) 억제 & 블루라이트 흡수" : (crop.name.includes("포도") ? "SIRT1 장수 유전자 활성화" : "Nrf2 항산화 경로 촉진"),
+    purityStandardRequired: "≥ 90.0% (Pharma Grade)"
+  };
+
+  const outgoingPayload = {
+    source: "BioFoundry_PlantTwin",
+    endpoint: "http://localhost:3007/api/recipes/optimized",
+    cropSpecies: crop.scientificName,
+    predictedLuteinYield: `${plantState.luteinConcentration.toFixed(1)} mg/g DW`,
+    hplcChromatogramPurity: `${hplc.targetPurityPercent} %`,
+    harvestDurationDays: crop.harvestDays,
+    optimalRecipe: res.optimalRecipe,
+    biologicalExplanation: res.scientificExplanation,
+    timestamp: new Date().toISOString()
+  };
+
+  if (DOM.p2hIncomingJson) DOM.p2hIncomingJson.textContent = JSON.stringify(incomingPayload, null, 2);
+  if (DOM.p2hOutgoingJson) DOM.p2hOutgoingJson.textContent = JSON.stringify(outgoingPayload, null, 2);
+}
+
+function fetchPlant2HumanData() {
+  audio.playCloudSyncSound();
+  if (DOM.btnP2hFetch) {
+    DOM.btnP2hFetch.textContent = "🔄 Plant2Human 데이터 실시간 수신 완료!";
+    DOM.btnP2hFetch.style.color = "#34d399";
+    setTimeout(() => {
+      DOM.btnP2hFetch.textContent = "⚡ Plant2Human 원료 데이터 수신 (Fetch)";
+      DOM.btnP2hFetch.style.color = "#38bdf8";
+    }, 2500);
+  }
+  updatePlant2HumanJsonScreens();
+}
+
+function pushPlant2HumanRecipe() {
+  audio.playCloudSyncSound();
+  if (DOM.btnP2hPush) {
+    DOM.btnP2hPush.textContent = "✅ 레시피 Plant2Human으로 피드백 전송 완료!";
+    DOM.btnP2hPush.style.background = "#059669";
+    setTimeout(() => {
+      DOM.btnP2hPush.textContent = "🚀 최적 레시피 Plant2Human으로 피드백 전송 (Push)";
+      DOM.btnP2hPush.style.background = "#10b981";
+    }, 2500);
+  }
+  // Try sending postMessage to opener/parent window if embedded
+  try {
+    if (window.opener) {
+      window.opener.postMessage({ source: "BioFoundry_PlantTwin", type: "RECIPE_FEEDBACK", data: DOM.p2hOutgoingJson.textContent }, "*");
+    }
+  } catch (e) {}
+}
+
+// ------------------------------------------------------------------------
+// Chloroplast Thylakoid Membrane ETC & ATP Synthase Dynamics Handlers
+// ------------------------------------------------------------------------
+let isEtrPulseActive = false;
+
+function openThylakoidEtcModal() {
+  audio.playAtpSynthaseRpmSound();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const etcData = bioEngine.calculateThylakoidEtcDynamics(envTele.sensors, crop, plantState, { etrPulse: isEtrPulseActive });
+
+  if (DOM.thylakoidModalTitle) {
+    DOM.thylakoidModalTitle.textContent = `⚡ ${crop.name}: 엽록체 틸라코이드 막 전자전달계(ETC) & ATP 합성 나노모터`;
+  }
+  if (DOM.etcPmfVal) DOM.etcPmfVal.textContent = `${etcData.protonMotiveForcePmfMv} mV`;
+  if (DOM.etcDeltaPhBadge) {
+    DOM.etcDeltaPhBadge.textContent = `● ΔpH: ${etcData.deltaPh} (Lumen pH ${etcData.lumenPh})`;
+    DOM.etcDeltaPhBadge.style.color = etcData.deltaPh > 1.8 ? "#34d399" : "#fbbf24";
+  }
+  if (DOM.etcLinearEtrVal) DOM.etcLinearEtrVal.textContent = `${etcData.linearEtr} μmol e⁻`;
+  if (DOM.etcRpmVal) DOM.etcRpmVal.textContent = `${etcData.atpSynthaseRpm} RPM`;
+  if (DOM.etcAtpFluxVal) DOM.etcAtpFluxVal.textContent = `${etcData.atpPerSecPerComplex} ATP/s/cplx`;
+
+  // ETC Complex Breakdown Table
+  const complexes = [
+    { name: "광계 II (PSII / P680)", mech: "물 광분해 (2H₂O → O₂ + 4H⁺ + 4e⁻)", trans: "4 H⁺ / 2 H₂O", prod: "O₂ 방출 + 플라스토퀴논 환원", state: "광화학 정상" },
+    { name: "시토크롬 b₆f 복합체", mech: "Q-Cycle 플라스토퀴논 산화 및 양성자 펌핑", trans: "4 H⁺ / 2 e⁻ (Q-Cycle)", prod: "플라스토시아닌(PC) 환원", state: "양성자 펌핑" },
+    { name: "광계 I (PSI / P700)", mech: "P700 여기 및 페레독신(Fd) 전자 전달", trans: "페레독신 인산화", prod: "NADP⁺ → NADPH (FNR)", state: "환원력 생성" },
+    { name: "F₀F₁-ATP Synthase", mech: "루멘 양성자 구배(pmf)에 의한 나노 로터 회전", trans: `${etcData.protonFluxHPerSec} H⁺/s 방출`, prod: `${etcData.atpPerSecPerComplex} ATP/s (${etcData.atpSynthaseRpm} RPM)`, state: "ATP 인산화" }
+  ];
+
+  if (DOM.thylakoidEtcTableBody) {
+    DOM.thylakoidEtcTableBody.innerHTML = complexes.map(c => `
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <td style="padding: 5px 8px; font-weight: 700; color: #fbbf24;">${c.name}</td>
+        <td style="padding: 5px 8px; color: #cbd5e1;">${c.mech}</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: #38bdf8;">${c.trans}</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: #34d399; font-weight: 600;">${c.prod}</td>
+        <td style="padding: 5px 8px; color: #34d399; font-weight: 600;">${c.state}</td>
+      </tr>
+    `).join("");
+  }
+
+  if (DOM.thylakoidEtcModal) {
+    DOM.thylakoidEtcModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (telemetryCharts && DOM.thylakoidEtcCanvas) {
+      telemetryCharts.renderThylakoidEtcScope(DOM.thylakoidEtcCanvas, etcData);
+    }
+  }, 60);
+}
+
+function triggerPulseEtrTest() {
+  audio.playAtpSynthaseRpmSound();
+  isEtrPulseActive = true;
+  if (DOM.btnPulseEtr) {
+    DOM.btnPulseEtr.textContent = "⚡ 포화 ETR 광펄스 조사 중! (ATP 회전 1200 RPM 돌파)";
+    DOM.btnPulseEtr.style.color = "#34d399";
+    DOM.btnPulseEtr.style.borderColor = "#34d399";
+  }
+
+  openThylakoidEtcModal();
+
+  setTimeout(() => {
+    isEtrPulseActive = false;
+    if (DOM.btnPulseEtr) {
+      DOM.btnPulseEtr.textContent = "⚡ 광계 펄스 ETR 여기 시험 (Pulse ETR)";
+      DOM.btnPulseEtr.style.color = "#fbbf24";
+      DOM.btnPulseEtr.style.borderColor = "rgba(251, 191, 36, 0.4)";
+    }
+    if (DOM.thylakoidEtcModal && DOM.thylakoidEtcModal.classList.contains("active")) {
+      openThylakoidEtcModal();
+    }
+  }, 8000);
+}
+
+function exportThylakoidDataCSV() {
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const etcData = bioEngine.calculateThylakoidEtcDynamics(envTele.sensors, crop, plantState, { etrPulse: isEtrPulseActive });
+
+  const header = `# BioFoundry PlantTwin - Chloroplast Thylakoid ETC & ATP Synthase Energetics Dataset\n` +
+    `# Crop: ${crop.name} (${crop.scientificName})\n` +
+    `# Proton Motive Force (pmf): ${etcData.protonMotiveForcePmfMv} mV | Lumen pH: ${etcData.lumenPh} (Delta pH: ${etcData.deltaPh})\n` +
+    `# Linear ETR: ${etcData.linearEtr} umol e-/m2s | ATP Synthase Speed: ${etcData.atpSynthaseRpm} RPM\n` +
+    `# ATP Generation Flux: ${etcData.atpPerSecPerComplex} ATP/s/complex | Chloroplast ATP: ${etcData.totalChloroplastAtpFlux} umol ATP/m2s\n\n` +
+    `Time_sec,Linear_ETR_umol_m2s,pmf_mV,Lumen_pH,ATP_Synthase_RPM\n` +
+    etcData.wavePoints.map(p => `${p.timeSec},${p.etr},${p.pmfMv},${p.lumenPh},${p.rpm}`).join("\n");
+
+  const blob = new Blob(["\uFEFF" + header], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `BioFoundry_Thylakoid_ETC_${crop.id}_Day${DOM.teleDay ? DOM.teleDay.textContent : '01'}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 function openElectrophysDiagnostics() {
   audio.playPulse();
   const crop = profileManager.getActiveProfile();
@@ -2589,6 +2857,22 @@ function updateActiveDiagnosticsModals(envTele, crop, plantState, instantPhoto, 
     }
     if (shouldRenderCanvas && DOM.hydroponicIseCanvas && telemetryCharts) {
       telemetryCharts.renderClosedLoopHydroponicScope(DOM.hydroponicIseCanvas, iseData);
+    }
+  }
+
+  // 12. Chloroplast Thylakoid Membrane ETC Modal
+  if (DOM.thylakoidEtcModal && DOM.thylakoidEtcModal.classList.contains("active")) {
+    const etcData = bioEngine.calculateThylakoidEtcDynamics(envTele.sensors, crop, plantState, { etrPulse: isEtrPulseActive });
+    if (DOM.etcPmfVal) DOM.etcPmfVal.textContent = `${etcData.protonMotiveForcePmfMv} mV`;
+    if (DOM.etcDeltaPhBadge) {
+      DOM.etcDeltaPhBadge.textContent = `● ΔpH: ${etcData.deltaPh} (Lumen pH ${etcData.lumenPh})`;
+      DOM.etcDeltaPhBadge.style.color = etcData.deltaPh > 1.8 ? "#34d399" : "#fbbf24";
+    }
+    if (DOM.etcLinearEtrVal) DOM.etcLinearEtrVal.textContent = `${etcData.linearEtr} μmol e⁻`;
+    if (DOM.etcRpmVal) DOM.etcRpmVal.textContent = `${etcData.atpSynthaseRpm} RPM`;
+    if (DOM.etcAtpFluxVal) DOM.etcAtpFluxVal.textContent = `${etcData.atpPerSecPerComplex} ATP/s/cplx`;
+    if (shouldRenderCanvas && DOM.thylakoidEtcCanvas && telemetryCharts) {
+      telemetryCharts.renderThylakoidEtcScope(DOM.thylakoidEtcCanvas, etcData);
     }
   }
 }

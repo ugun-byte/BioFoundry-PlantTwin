@@ -156,6 +156,82 @@ export class PlantProfileManager {
         baseLuteinConcentration: 2.5,
         spectrumSensitivity: { blue: 0.85, uvb: 1.60, farRed: 0.75 },
         ojipParams: { fo: 270, fj: 640, fi: 1250, fm: 1680, pqPool: 54, piAbs: 4.80, lhcSize: 1.30, phiPSII: 0.839 }
+      },
+
+      grape_resveratrol: {
+        id: "grape_resveratrol",
+        name: "호장근/포도 (Polygonum / Vitis)",
+        scientificName: "Polygonum cuspidatum Sieb. et Zucc.",
+        targetMolecule: "항노화 트랜스-레스베라트롤 (Resveratrol)",
+        chemicalFormula: "C₁₄H₁₂O₃",
+        pubchemCid: 445154,
+        molecularWeight: 228.24,
+        harvestDays: 48,
+        morphologyType: "tobacco",
+        leafColor: "#15803d",
+        
+        vcmax25: 78.0,
+        jmax25: 152.0,
+        rd25: 1.05,
+        ea_vcmax: 64000,
+        ea_jmax: 47000,
+        lightSaturationPoint: 620,
+        gs_max: 0.40,
+        
+        tempOpt: 23.5,
+        tempMin: 10.0,
+        tempMax: 34.0,
+        vpdOptMin: 0.80,
+        vpdOptMax: 1.25,
+        
+        sla: 26.0,
+        maxLai: 4.6,
+        k_extinction: 0.64,
+        leafPartitionRatio: 0.60,
+        stemPartitionRatio: 0.24,
+        rootPartitionRatio: 0.16,
+        
+        baseLuteinConcentration: 3.1,
+        spectrumSensitivity: { blue: 1.25, uvb: 2.45, farRed: 0.88 },
+        ojipParams: { fo: 235, fj: 570, fi: 1050, fm: 1460, pqPool: 38, piAbs: 4.60, lhcSize: 1.20, phiPSII: 0.839 }
+      },
+
+      algae_astaxanthin: {
+        id: "algae_astaxanthin",
+        name: "미세조류 헤마토코쿠스 (H. pluvialis)",
+        scientificName: "Haematococcus pluvialis",
+        targetMolecule: "초강력 항산화 아스타잔틴 (Astaxanthin)",
+        chemicalFormula: "C₄₀H₅₂O₄",
+        pubchemCid: 5281224,
+        molecularWeight: 596.84,
+        harvestDays: 21,
+        morphologyType: "spinach",
+        leafColor: "#b91c1c",
+        
+        vcmax25: 95.0,
+        jmax25: 185.0,
+        rd25: 1.4,
+        ea_vcmax: 66000,
+        ea_jmax: 49000,
+        lightSaturationPoint: 850,
+        gs_max: 0.50,
+        
+        tempOpt: 22.0,
+        tempMin: 14.0,
+        tempMax: 30.0,
+        vpdOptMin: 0.60,
+        vpdOptMax: 1.00,
+        
+        sla: 35.0,
+        maxLai: 5.5,
+        k_extinction: 0.72,
+        leafPartitionRatio: 0.85,
+        stemPartitionRatio: 0.05,
+        rootPartitionRatio: 0.10,
+        
+        baseLuteinConcentration: 5.8,
+        spectrumSensitivity: { blue: 1.40, uvb: 2.80, farRed: 0.95 },
+        ojipParams: { fo: 280, fj: 680, fi: 1220, fm: 1750, pqPool: 48, piAbs: 5.80, lhcSize: 1.50, phiPSII: 0.840 }
       }
     };
 
