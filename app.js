@@ -286,10 +286,17 @@ function initApp() {
       }
 
       if (DOM.hologramBioHud) {
-        DOM.hologramBioHud.style.left = `${data.screenX}px`;
-        DOM.hologramBioHud.style.top = `${data.screenY}px`;
+        // Clean docked positioning on top-left of viewport without jumping around during camera rotation
+        if (!DOM.hologramBioHud.style.top || DOM.hologramBioHud.style.top === "" || DOM.hologramBioHud.style.top === "auto") {
+          DOM.hologramBioHud.style.top = "68px";
+          DOM.hologramBioHud.style.left = "24px";
+        }
         DOM.hologramBioHud.style.display = "block";
       }
+    });
+
+    plantChamber3d.setEmptyClickCallback(() => {
+      if (DOM.hologramBioHud) DOM.hologramBioHud.style.display = "none";
     });
   }
 

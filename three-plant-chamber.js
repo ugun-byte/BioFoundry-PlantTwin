@@ -1061,10 +1061,20 @@ export class ThreePlantChamber {
     this.pinMarker.visible = false;
     this.scene.add(this.pinMarker);
 
-    // Click handler
+    // Click handler with drag threshold (Only triggers on clean click, NEVER on camera rotation drag)
+    let startX = 0, startY = 0;
     this.container.addEventListener("pointerdown", (e) => {
-      // Don't trigger if clicked on HUD button
-      if (e.target.closest("#hologramBioHud") || e.target.closest(".view-mode-bar") || e.target.closest(".orbit-hint")) return;
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+
+    this.container.addEventListener("pointerup", (e) => {
+      // Don't trigger if clicked on any interactive HUD elements or buttons
+      if (e.target.closest("#hologramBioHud") || e.target.closest(".chamber-hud-card") || e.target.closest(".btn-viewport-action") || e.target.closest(".viewport-reset-btn") || e.target.closest(".btn-tool-icon") || e.target.closest(".btn")) return;
+
+      // Ignore if user dragged mouse to rotate camera (distance > 5px)
+      const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
+      if (dist > 5) return;
 
       const rect = this.renderer.domElement.getBoundingClientRect();
       this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -1096,14 +1106,17 @@ export class ThreePlantChamber {
           nodeType = leafMatchIdx >= 0 ? `제 ${leafMatchIdx + 1}엽 상위 엽맥 (Leaf #${leafMatchIdx + 1})` : "엽신 광합성 조직 (Lamina Tissue)";
         }
 
-        const screenPos = this.project3DToScreen(hit.point);
         if (this.onNodeClickCallback) {
           this.onNodeClickCallback({
             nodeType,
-            point3D: hit.point,
-            screenX: screenPos.x,
-            screenY: screenPos.y
+            point3D: hit.point
           });
+        }
+      } else {
+        // Clicked on empty chamber space -> dismiss pin HUD
+        this.clearPin();
+        if (this.onEmptyClickCallback) {
+          this.onEmptyClickCallback();
         }
       }
     });
@@ -1127,6 +1140,10 @@ export class ThreePlantChamber {
 
   setNodeClickCallback(cb) {
     this.onNodeClickCallback = cb;
+  }
+
+  setEmptyClickCallback(cb) {
+    this.onEmptyClickCallback = cb;
   }
 
   resetCamera() {
