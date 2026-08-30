@@ -136,8 +136,8 @@
               <span class="slider-label" data-i18n="sliderPpfd">광량 (PPFD)</span>
               <span class="slider-unit">μmol/m²/s</span>
             </div>
-            <input type="range" id="sliderPpfd" min="0" max="1000" step="10" value="487" class="slider-input-track">
-            <span id="valPpfd" class="slider-val-badge">487</span>
+            <input type="range" id="sliderPpfd" min="0" max="1000" step="5" value="487" class="slider-input-track">
+            <input type="number" id="inputPpfd" class="slider-num-input" min="0" max="1000" step="5" value="487" title="직접 수치 입력">
           </div>
 
           <!-- 2. Photoperiod -->
@@ -150,51 +150,51 @@
               <span class="slider-unit">h</span>
             </div>
             <input type="range" id="sliderPhotoperiod" min="0" max="24" step="1" value="16" class="slider-input-track">
-            <span id="valPhotoperiod" class="slider-val-badge">16</span>
+            <input type="number" id="inputPhotoperiod" class="slider-num-input" min="0" max="24" step="1" value="16" title="직접 수치 입력">
           </div>
 
           <!-- 3. Spectrum Red -->
           <div class="slider-row">
             <div class="slider-icon"><span class="color-dot red"></span></div>
             <div class="slider-label-group">
-              <span class="slider-label" data-i18n="sliderRed">Red 분광</span>
+              <span class="slider-label" data-i18n="sliderRed">적색 분광 (Red)</span>
               <span class="slider-unit">%</span>
             </div>
             <input type="range" id="sliderRed" min="0" max="100" step="1" value="62" class="slider-input-track">
-            <span id="valRed" class="slider-val-badge">62</span>
+            <input type="number" id="inputRed" class="slider-num-input" min="0" max="100" step="1" value="62" title="직접 수치 입력">
           </div>
 
           <!-- 4. Spectrum Blue -->
           <div class="slider-row">
             <div class="slider-icon"><span class="color-dot blue"></span></div>
             <div class="slider-label-group">
-              <span class="slider-label" data-i18n="sliderBlue">Blue 분광</span>
+              <span class="slider-label" data-i18n="sliderBlue">청색 분광 (Blue)</span>
               <span class="slider-unit">%</span>
             </div>
             <input type="range" id="sliderBlue" min="0" max="100" step="1" value="18" class="slider-input-track">
-            <span id="valBlue" class="slider-val-badge">18</span>
+            <input type="number" id="inputBlue" class="slider-num-input" min="0" max="100" step="1" value="18" title="직접 수치 입력">
           </div>
 
           <!-- 5. Spectrum Green -->
           <div class="slider-row">
             <div class="slider-icon"><span class="color-dot green"></span></div>
             <div class="slider-label-group">
-              <span class="slider-label" data-i18n="sliderGreen">Green 분광</span>
+              <span class="slider-label" data-i18n="sliderGreen">녹색 분광 (Green)</span>
               <span class="slider-unit">%</span>
             </div>
             <input type="range" id="sliderGreen" min="0" max="100" step="1" value="10" class="slider-input-track">
-            <span id="valGreen" class="slider-val-badge">10</span>
+            <input type="number" id="inputGreen" class="slider-num-input" min="0" max="100" step="1" value="10" title="직접 수치 입력">
           </div>
 
           <!-- 6. Spectrum Far-Red -->
           <div class="slider-row">
             <div class="slider-icon"><span class="color-dot far-red"></span></div>
             <div class="slider-label-group">
-              <span class="slider-label" data-i18n="sliderFarRed">Far-Red 분광</span>
+              <span class="slider-label" data-i18n="sliderFarRed">원적색 분광 (Far-Red)</span>
               <span class="slider-unit">%</span>
             </div>
             <input type="range" id="sliderFarRed" min="0" max="100" step="1" value="10" class="slider-input-track">
-            <span id="valFarRed" class="slider-val-badge">10</span>
+            <input type="number" id="inputFarRed" class="slider-num-input" min="0" max="100" step="1" value="10" title="직접 수치 입력">
           </div>
 
           <!-- 7. Day Temp -->
@@ -206,8 +206,8 @@
               <span class="slider-label" data-i18n="sliderDayTemp">주간 온도</span>
               <span class="slider-unit">°C</span>
             </div>
-            <input type="range" id="sliderDayTemp" min="15" max="35" step="0.5" value="24.6" class="slider-input-track">
-            <span id="valDayTemp" class="slider-val-badge">24.6</span>
+            <input type="range" id="sliderDayTemp" min="15" max="35" step="0.1" value="24.6" class="slider-input-track">
+            <input type="number" id="inputDayTemp" class="slider-num-input" min="15" max="35" step="0.1" value="24.6" title="직접 수치 입력">
           </div>
 
           <!-- 8. Night Temp -->
@@ -219,8 +219,8 @@
               <span class="slider-label" data-i18n="sliderNightTemp">야간 온도</span>
               <span class="slider-unit">°C</span>
             </div>
-            <input type="range" id="sliderNightTemp" min="10" max="25" step="0.5" value="20.1" class="slider-input-track">
-            <span id="valNightTemp" class="slider-val-badge">20.1</span>
+            <input type="range" id="sliderNightTemp" min="10" max="25" step="0.1" value="20.1" class="slider-input-track">
+            <input type="number" id="inputNightTemp" class="slider-num-input" min="10" max="25" step="0.1" value="20.1" title="직접 수치 입력">
           </div>
 
           <!-- 9. Humidity -->
@@ -229,11 +229,11 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
             </div>
             <div class="slider-label-group">
-              <span class="slider-label" data-i18n="sliderHumidity">상대습도</span>
+              <span class="slider-label" data-i18n="sliderHumidity">상대 습도</span>
               <span class="slider-unit">%</span>
             </div>
-            <input type="range" id="sliderHumidity" min="20" max="100" step="1" value="69.2" class="slider-input-track">
-            <span id="valHumidity" class="slider-val-badge">69.2</span>
+            <input type="range" id="sliderHumidity" min="20" max="100" step="0.5" value="69.2" class="slider-input-track">
+            <input type="number" id="inputHumidity" class="slider-num-input" min="20" max="100" step="0.5" value="69.2" title="직접 수치 입력">
           </div>
 
           <!-- 10. CO2 -->
@@ -245,8 +245,8 @@
               <span class="slider-label" data-i18n="sliderCo2">CO₂ 농도</span>
               <span class="slider-unit">ppm</span>
             </div>
-            <input type="range" id="sliderCo2" min="200" max="2000" step="25" value="825" class="slider-input-track">
-            <span id="valCo2" class="slider-val-badge">825</span>
+            <input type="range" id="sliderCo2" min="200" max="2000" step="10" value="825" class="slider-input-track">
+            <input type="number" id="inputCo2" class="slider-num-input" min="200" max="2000" step="10" value="825" title="직접 수치 입력">
           </div>
 
           <!-- 11. EC -->
@@ -258,8 +258,8 @@
               <span class="slider-label" data-i18n="sliderEc">양액 전기전도도</span>
               <span class="slider-unit">mS/cm</span>
             </div>
-            <input type="range" id="sliderEc" min="0.5" max="4.0" step="0.1" value="2.31" class="slider-input-track">
-            <span id="valEc" class="slider-val-badge">2.31</span>
+            <input type="range" id="sliderEc" min="0.5" max="4.0" step="0.05" value="2.31" class="slider-input-track">
+            <input type="number" id="inputEc" class="slider-num-input" min="0.5" max="4.0" step="0.05" value="2.31" title="직접 수치 입력">
           </div>
 
           <!-- 12. UV-B Toggle Switch -->
@@ -267,7 +267,7 @@
             <div class="toggle-left">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
               <div class="slider-label-group">
-                <span class="slider-label" data-i18n="sliderUvb">UV-B 유전자 펄스</span>
+                <span class="slider-label" data-i18n="sliderUvb">UV-B 펄스</span>
                 <span class="slider-unit">μmol/m²/s</span>
               </div>
             </div>
@@ -276,7 +276,7 @@
                 <input type="checkbox" id="checkUvb">
                 <span class="switch-slider"></span>
               </label>
-              <span id="valUvb" class="slider-val-badge">1.20</span>
+              <input type="number" id="inputUvb" class="slider-num-input" min="0" max="10" step="0.1" value="1.20" title="직접 수치 입력">
             </div>
           </div>
 
@@ -294,7 +294,7 @@
                 <input type="checkbox" id="checkColdShift">
                 <span class="switch-slider"></span>
               </label>
-              <span id="valColdShift" class="slider-val-badge">2.0</span>
+              <input type="number" id="inputColdShift" class="slider-num-input" min="0" max="10" step="0.5" value="2.0" title="직접 수치 입력">
             </div>
           </div>
         </div>

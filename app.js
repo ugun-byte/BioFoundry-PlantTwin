@@ -66,33 +66,33 @@ const DOM = {
   metaAn: document.getElementById("metaAn"),
   diurnalStatusLabel: document.getElementById("diurnalStatusLabel"),
 
-  // Sliders & Toggles (13 Controls)
+  // Sliders & Number Inputs (13 Controls)
   sliderPpfd: document.getElementById("sliderPpfd"),
-  valPpfd: document.getElementById("valPpfd"),
+  inputPpfd: document.getElementById("inputPpfd"),
   sliderPhotoperiod: document.getElementById("sliderPhotoperiod"),
-  valPhotoperiod: document.getElementById("valPhotoperiod"),
+  inputPhotoperiod: document.getElementById("inputPhotoperiod"),
   sliderRed: document.getElementById("sliderRed"),
-  valRed: document.getElementById("valRed"),
+  inputRed: document.getElementById("inputRed"),
   sliderBlue: document.getElementById("sliderBlue"),
-  valBlue: document.getElementById("valBlue"),
+  inputBlue: document.getElementById("inputBlue"),
   sliderGreen: document.getElementById("sliderGreen"),
-  valGreen: document.getElementById("valGreen"),
+  inputGreen: document.getElementById("inputGreen"),
   sliderFarRed: document.getElementById("sliderFarRed"),
-  valFarRed: document.getElementById("valFarRed"),
+  inputFarRed: document.getElementById("inputFarRed"),
   sliderDayTemp: document.getElementById("sliderDayTemp"),
-  valDayTemp: document.getElementById("valDayTemp"),
+  inputDayTemp: document.getElementById("inputDayTemp"),
   sliderNightTemp: document.getElementById("sliderNightTemp"),
-  valNightTemp: document.getElementById("valNightTemp"),
+  inputNightTemp: document.getElementById("inputNightTemp"),
   sliderHumidity: document.getElementById("sliderHumidity"),
-  valHumidity: document.getElementById("valHumidity"),
+  inputHumidity: document.getElementById("inputHumidity"),
   sliderCo2: document.getElementById("sliderCo2"),
-  valCo2: document.getElementById("valCo2"),
+  inputCo2: document.getElementById("inputCo2"),
   sliderEc: document.getElementById("sliderEc"),
-  valEc: document.getElementById("valEc"),
+  inputEc: document.getElementById("inputEc"),
   checkUvb: document.getElementById("checkUvb"),
-  valUvb: document.getElementById("valUvb"),
+  inputUvb: document.getElementById("inputUvb"),
   checkColdShift: document.getElementById("checkColdShift"),
-  valColdShift: document.getElementById("valColdShift"),
+  inputColdShift: document.getElementById("inputColdShift"),
 
   // 3D Simulation Chamber & HUD
   plant3dContainer: document.getElementById("plant3dContainer"),
@@ -377,27 +377,49 @@ function bindEventListeners() {
     resetPlantState();
   });
 
-  // Sliders binding
-  const bindSlider = (slider, displayEl, callback) => {
-    if (!slider || !displayEl) return;
+  // Two-way synchronization binding for slider and direct number input
+  const bindTwoWayControl = (slider, numInput, callback) => {
+    if (!slider || !numInput) return;
+    
     slider.addEventListener("input", (e) => {
       const val = parseFloat(e.target.value);
-      displayEl.textContent = val;
+      numInput.value = val;
       callback(val);
+    });
+
+    numInput.addEventListener("input", (e) => {
+      let val = parseFloat(e.target.value);
+      if (isNaN(val)) return;
+      const min = parseFloat(slider.min);
+      const max = parseFloat(slider.max);
+      const clamped = Math.min(max, Math.max(min, val));
+      slider.value = clamped;
+      callback(clamped);
+    });
+
+    numInput.addEventListener("change", (e) => {
+      let val = parseFloat(e.target.value);
+      const min = parseFloat(slider.min);
+      const max = parseFloat(slider.max);
+      if (isNaN(val)) val = min;
+      const clamped = Math.min(max, Math.max(min, val));
+      numInput.value = clamped;
+      slider.value = clamped;
+      callback(clamped);
     });
   };
 
-  bindSlider(DOM.sliderPpfd, DOM.valPpfd, (val) => envEngine.updateSetpoints({ ppfdTarget: val }));
-  bindSlider(DOM.sliderPhotoperiod, DOM.valPhotoperiod, (val) => envEngine.updateSetpoints({ photoperiodHours: val }));
-  bindSlider(DOM.sliderRed, DOM.valRed, (val) => envEngine.updateSetpoints({ spectrum: { ...envEngine.setpoints.spectrum, red: val } }));
-  bindSlider(DOM.sliderBlue, DOM.valBlue, (val) => envEngine.updateSetpoints({ spectrum: { ...envEngine.setpoints.spectrum, blue: val } }));
-  bindSlider(DOM.sliderGreen, DOM.valGreen, (val) => envEngine.updateSetpoints({ spectrum: { ...envEngine.setpoints.spectrum, green: val } }));
-  bindSlider(DOM.sliderFarRed, DOM.valFarRed, (val) => envEngine.updateSetpoints({ spectrum: { ...envEngine.setpoints.spectrum, farRed: val } }));
-  bindSlider(DOM.sliderDayTemp, DOM.valDayTemp, (val) => envEngine.updateSetpoints({ dayTempTarget: val }));
-  bindSlider(DOM.sliderNightTemp, DOM.valNightTemp, (val) => envEngine.updateSetpoints({ nightTempTarget: val }));
-  bindSlider(DOM.sliderHumidity, DOM.valHumidity, (val) => envEngine.updateSetpoints({ humidityTarget: val }));
-  bindSlider(DOM.sliderCo2, DOM.valCo2, (val) => envEngine.updateSetpoints({ co2Target: val }));
-  bindSlider(DOM.sliderEc, DOM.valEc, (val) => envEngine.updateSetpoints({ ecTarget: val }));
+  bindTwoWayControl(DOM.sliderPpfd, DOM.inputPpfd, (val) => envEngine.updateSetpoints({ ppfdTarget: val }));
+  bindTwoWayControl(DOM.sliderPhotoperiod, DOM.inputPhotoperiod, (val) => envEngine.updateSetpoints({ photoperiodHours: val }));
+  bindTwoWayControl(DOM.sliderRed, DOM.inputRed, (val) => envEngine.updateSetpoints({ spectrum: { ...envEngine.setpoints.spectrum, red: val } }));
+  bindTwoWayControl(DOM.sliderBlue, DOM.inputBlue, (val) => envEngine.updateSetpoints({ spectrum: { ...envEngine.setpoints.spectrum, blue: val } }));
+  bindTwoWayControl(DOM.sliderGreen, DOM.inputGreen, (val) => envEngine.updateSetpoints({ spectrum: { ...envEngine.setpoints.spectrum, green: val } }));
+  bindTwoWayControl(DOM.sliderFarRed, DOM.inputFarRed, (val) => envEngine.updateSetpoints({ spectrum: { ...envEngine.setpoints.spectrum, farRed: val } }));
+  bindTwoWayControl(DOM.sliderDayTemp, DOM.inputDayTemp, (val) => envEngine.updateSetpoints({ dayTempTarget: val }));
+  bindTwoWayControl(DOM.sliderNightTemp, DOM.inputNightTemp, (val) => envEngine.updateSetpoints({ nightTempTarget: val }));
+  bindTwoWayControl(DOM.sliderHumidity, DOM.inputHumidity, (val) => envEngine.updateSetpoints({ humidityTarget: val }));
+  bindTwoWayControl(DOM.sliderCo2, DOM.inputCo2, (val) => envEngine.updateSetpoints({ co2Target: val }));
+  bindTwoWayControl(DOM.sliderEc, DOM.inputEc, (val) => envEngine.updateSetpoints({ ecTarget: val }));
 
   // Switches
   DOM.checkUvb.addEventListener("change", (e) => {
@@ -405,11 +427,25 @@ function bindEventListeners() {
     else audio.playClick();
     envEngine.updateSetpoints({ uvbActive: e.target.checked });
   });
+  if (DOM.inputUvb) {
+    DOM.inputUvb.addEventListener("change", (e) => {
+      const val = parseFloat(e.target.value) || 1.2;
+      envEngine.updateSetpoints({ uvbActive: true, uvbIntensity: val });
+      DOM.checkUvb.checked = true;
+    });
+  }
 
   DOM.checkColdShift.addEventListener("change", (e) => {
     audio.playClick();
     envEngine.updateSetpoints({ coldShiftActive: e.target.checked });
   });
+  if (DOM.inputColdShift) {
+    DOM.inputColdShift.addEventListener("change", (e) => {
+      const val = parseFloat(e.target.value) || 2.0;
+      envEngine.updateSetpoints({ coldShiftActive: true, coldShiftDelta: val });
+      DOM.checkColdShift.checked = true;
+    });
+  }
 
   // Timeline Controls
   DOM.btnPlay.addEventListener("click", () => {
@@ -748,17 +784,17 @@ function toggleAiAutoPilot() {
       photoperiodHours: rec.photoperiod
     });
 
-    // Update Sliders UI
-    DOM.sliderPpfd.value = rec.ppfd; DOM.valPpfd.textContent = rec.ppfd;
-    DOM.sliderDayTemp.value = rec.dayTemp; DOM.valDayTemp.textContent = rec.dayTemp;
-    DOM.sliderNightTemp.value = rec.nightTemp; DOM.valNightTemp.textContent = rec.nightTemp;
-    DOM.sliderCo2.value = rec.co2; DOM.valCo2.textContent = rec.co2;
-    DOM.sliderHumidity.value = rec.humidity; DOM.valHumidity.textContent = rec.humidity;
-    DOM.sliderEc.value = rec.ec; DOM.valEc.textContent = rec.ec;
-    DOM.sliderRed.value = rec.spectrum.red; DOM.valRed.textContent = rec.spectrum.red;
-    DOM.sliderBlue.value = rec.spectrum.blue; DOM.valBlue.textContent = rec.spectrum.blue;
-    DOM.sliderGreen.value = rec.spectrum.green; DOM.valGreen.textContent = rec.spectrum.green;
-    DOM.sliderFarRed.value = rec.spectrum.farRed; DOM.valFarRed.textContent = rec.spectrum.farRed;
+    // Update Sliders & Number Inputs UI
+    DOM.sliderPpfd.value = rec.ppfd; if (DOM.inputPpfd) DOM.inputPpfd.value = rec.ppfd;
+    DOM.sliderDayTemp.value = rec.dayTemp; if (DOM.inputDayTemp) DOM.inputDayTemp.value = rec.dayTemp;
+    DOM.sliderNightTemp.value = rec.nightTemp; if (DOM.inputNightTemp) DOM.inputNightTemp.value = rec.nightTemp;
+    DOM.sliderCo2.value = rec.co2; if (DOM.inputCo2) DOM.inputCo2.value = rec.co2;
+    DOM.sliderHumidity.value = rec.humidity; if (DOM.inputHumidity) DOM.inputHumidity.value = rec.humidity;
+    DOM.sliderEc.value = rec.ec; if (DOM.inputEc) DOM.inputEc.value = rec.ec;
+    DOM.sliderRed.value = rec.spectrum.red; if (DOM.inputRed) DOM.inputRed.value = rec.spectrum.red;
+    DOM.sliderBlue.value = rec.spectrum.blue; if (DOM.inputBlue) DOM.inputBlue.value = rec.spectrum.blue;
+    DOM.sliderGreen.value = rec.spectrum.green; if (DOM.inputGreen) DOM.inputGreen.value = rec.spectrum.green;
+    DOM.sliderFarRed.value = rec.spectrum.farRed; if (DOM.inputFarRed) DOM.inputFarRed.value = rec.spectrum.farRed;
     DOM.checkUvb.checked = rec.uvbActive;
     DOM.checkColdShift.checked = rec.coldShiftActive;
   } else {
