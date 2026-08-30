@@ -491,7 +491,57 @@ export class ThreePlantChamber {
       this.lateralRoots.push({ mesh: latMesh, baseLength: length, angle });
     }
 
+    this.buildRootIonStreamParticles();
     this.plantGroup.add(this.rootGroup);
+  }
+
+  buildRootIonStreamParticles() {
+    const particleCount = 120;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    this.ionParticleMeta = [];
+
+    const ionColors = [
+      new THREE.Color(0x00f2fe), // NO3- Cyan
+      new THREE.Color(0xfbbf24), // K+ Amber
+      new THREE.Color(0x10b981)  // H2PO4- Emerald
+    ];
+
+    for (let i = 0; i < particleCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 0.02 + Math.random() * 0.10;
+      const y = -0.02 - Math.random() * 0.32;
+      pos[i * 3 + 0] = Math.cos(angle) * radius;
+      pos[i * 3 + 1] = y;
+      pos[i * 3 + 2] = Math.sin(angle) * radius;
+
+      const col = ionColors[i % 3];
+      colors[i * 3 + 0] = col.r;
+      colors[i * 3 + 1] = col.g;
+      colors[i * 3 + 2] = col.b;
+
+      this.ionParticleMeta.push({
+        baseAngle: angle,
+        baseRadius: radius,
+        speed: 0.0025 + Math.random() * 0.0035,
+        ionType: i % 3
+      });
+    }
+
+    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+    const mat = new THREE.PointsMaterial({
+      size: 0.010,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending
+    });
+
+    this.rootIonStreamSystem = new THREE.Points(geo, mat);
+    this.rootGroup.add(this.rootIonStreamSystem);
   }
 
   /**
@@ -973,6 +1023,23 @@ export class ThreePlantChamber {
       this.plantGroup.rotation.x = swayX;
     }
 
+    // 5. Bio-Electric Root Ion Stream Particles Flow (Driven by Membrane Potential V_m)
+    if (this.rootIonStreamSystem && this.ionParticleMeta) {
+      const pos = this.rootIonStreamSystem.geometry.attributes.position.array;
+      const count = pos.length / 3;
+      for (let i = 0; i < count; i++) {
+        const meta = this.ionParticleMeta[i];
+        pos[i * 3 + 1] += meta.speed;
+        if (pos[i * 3 + 1] > -0.01) {
+          pos[i * 3 + 1] = -0.34;
+        }
+        meta.baseAngle += 0.025;
+        pos[i * 3 + 0] = Math.cos(meta.baseAngle) * (meta.baseRadius * (1.0 + pos[i * 3 + 1] * 0.4));
+        pos[i * 3 + 2] = Math.sin(meta.baseAngle) * (meta.baseRadius * (1.0 + pos[i * 3 + 1] * 0.4));
+      }
+      this.rootIonStreamSystem.geometry.attributes.position.needsUpdate = true;
+    }
+
     if (this.renderer && this.scene && this.camera) {
       this.renderer.render(this.scene, this.camera);
     }
@@ -1131,5 +1198,53 @@ export class ThreePlantChamber {
     };
 
     requestAnimationFrame(animateFlash);
+  }
+
+  /**
+   * Root Electrophysiology Ion Pulse Wave Animation
+   */
+  triggerIonPulseAnimation(onComplete = null) {
+    if (!this.rootGroup) return;
+    const pulseMat = this.taprootMesh ? this.taprootMesh.material : null;
+    if (!pulseMat) return;
+
+    const originalEmissive = pulseMat.emissive.getHex();
+    const originalIntensity = pulseMat.emissiveIntensity;
+
+    const start = performance.now();
+    const duration = 1200;
+    const pulseColor = new THREE.Color(0x00f2fe);
+
+    const anim = (now) => {
+      const p = (now - start) / duration;
+      if (p < 1.0) {
+        const intensity = Math.sin(p * Math.PI) * 2.2;
+        pulseMat.emissive.lerp(pulseColor, 0.4);
+        pulseMat.emissiveIntensity = 0.4 + intensity;
+
+        if (this.lateralRoots) {
+          this.lateralRoots.forEach(l => {
+            if (l.mesh && l.mesh.material) {
+              l.mesh.material.emissive.lerp(pulseColor, 0.4);
+              l.mesh.material.emissiveIntensity = 0.4 + intensity;
+            }
+          });
+        }
+        requestAnimationFrame(anim);
+      } else {
+        pulseMat.emissive.setHex(originalEmissive);
+        pulseMat.emissiveIntensity = originalIntensity;
+        if (this.lateralRoots) {
+          this.lateralRoots.forEach(l => {
+            if (l.mesh && l.mesh.material) {
+              l.mesh.material.emissive.setHex(originalEmissive);
+              l.mesh.material.emissiveIntensity = originalIntensity;
+            }
+          });
+        }
+        if (typeof onComplete === "function") onComplete();
+      }
+    };
+    requestAnimationFrame(anim);
   }
 }

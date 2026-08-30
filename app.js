@@ -203,7 +203,19 @@ const DOM = {
   ojipPhiEo: document.getElementById("ojipPhiEo"),
   ojipLegend: document.getElementById("ojipLegend"),
   ojipScopeCanvas: document.getElementById("ojipScopeCanvas"),
-  btnReMeasurePam: document.getElementById("btnReMeasurePam")
+  btnReMeasurePam: document.getElementById("btnReMeasurePam"),
+
+  // Root Electrophysiology Modal
+  btnElectrophys: document.getElementById("btnElectrophys"),
+  electrophysModal: document.getElementById("electrophysModal"),
+  epClose: document.getElementById("epClose"),
+  epVmVal: document.getElementById("epVmVal"),
+  epStateBadge: document.getElementById("epStateBadge"),
+  epPumpPct: document.getElementById("epPumpPct"),
+  epKChanPct: document.getElementById("epKChanPct"),
+  epNrtPct: document.getElementById("epNrtPct"),
+  epScopeCanvas: document.getElementById("epScopeCanvas"),
+  btnTriggerIonPulse: document.getElementById("btnTriggerIonPulse")
 };
 
 function populateCropDropdown(selectedId = null) {
@@ -780,6 +792,22 @@ function bindEventListeners() {
     DOM.btnReMeasurePam.addEventListener("click", openOJIPDiagnostics);
   }
 
+  // Root Electrophysiology Modal
+  if (DOM.btnElectrophys) {
+    DOM.btnElectrophys.addEventListener("click", openElectrophysDiagnostics);
+  }
+  if (DOM.epClose) {
+    DOM.epClose.addEventListener("click", () => {
+      if (DOM.electrophysModal) DOM.electrophysModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnTriggerIonPulse) {
+    DOM.btnTriggerIonPulse.addEventListener("click", () => {
+      if (plantChamber3d) plantChamber3d.triggerIonPulseAnimation();
+      openElectrophysDiagnostics();
+    });
+  }
+
   // Generic Modal Close
   if (DOM.genericModalClose) {
     DOM.genericModalClose.addEventListener("click", () => DOM.genericCodeModal.classList.remove("active"));
@@ -802,6 +830,44 @@ function bindEventListeners() {
       document.querySelectorAll(".modal-backdrop.active").forEach(m => m.classList.remove("active"));
     }
   });
+}
+
+function openElectrophysDiagnostics() {
+  audio.playPulse();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+
+  // 1. Trigger 3D Root Ion Pulse Wave
+  if (plantChamber3d) {
+    plantChamber3d.triggerIonPulseAnimation();
+  }
+
+  // 2. Calculate Root Electrophysiology
+  const electroData = bioEngine.calculateRootElectrophysiology(envTele.sensors, crop, plantState);
+
+  // 3. Update Metric Tiles
+  if (DOM.epModalTitle) {
+    DOM.epModalTitle.textContent = `⚡ 근권 세포막 전위(Vm) & 이온 채널 개폐: ${crop.name}`;
+  }
+  if (DOM.epVmVal) DOM.epVmVal.textContent = `${electroData.membranePotential} mV`;
+  if (DOM.epStateBadge) {
+    DOM.epStateBadge.textContent = `● ${electroData.stateLabel}`;
+    DOM.epStateBadge.style.color = electroData.stateColor;
+  }
+  if (DOM.epPumpPct) DOM.epPumpPct.textContent = `${electroData.protonPumpPct}%`;
+  if (DOM.epKChanPct) DOM.epKChanPct.textContent = `${electroData.kChannelOpen}%`;
+  if (DOM.epNrtPct) DOM.epNrtPct.textContent = `${electroData.nrtActivity}%`;
+
+  // 4. Show Modal & Render Oscilloscope
+  if (DOM.electrophysModal) {
+    DOM.electrophysModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (telemetryCharts && DOM.epScopeCanvas) {
+      telemetryCharts.renderElectrophysScope(DOM.epScopeCanvas, electroData);
+    }
+  }, 60);
 }
 
 function openOJIPDiagnostics() {

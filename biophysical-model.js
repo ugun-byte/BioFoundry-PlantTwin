@@ -317,4 +317,69 @@ export class BioPhysicalEngine {
       points
     };
   }
+
+  /**
+   * 10. Root Plasma Membrane Electrophysiology & Ion Channel Gating Model
+   * Computes Membrane Potential (V_m in mV), H+-ATPase proton pump flux,
+   * AKT1 K+ inward rectifier gating, NRT1.1 transceptor activity, and Slow Wave Potential.
+   */
+  calculateRootElectrophysiology(envParams = {}, cropProfile = {}, plantState = {}) {
+    const { ec = 2.2, airTemp = 24.0, humidity = 70.0 } = envParams;
+    const rootTemp = Math.max(12, airTemp - 2.0);
+    const pH = envParams.pH || 6.2; // Rhizosphere pH
+
+    // 1. Electrogenic H+-ATPase Proton Pump Voltage Contribution (Delta V_pump)
+    const tempPump = Math.exp(-0.5 * Math.pow((rootTemp - 23.5) / 5.0, 2));
+    const pHEffect = 1.0 / (1.0 + Math.pow(10, Math.abs(pH - 6.0) - 1.2));
+    const pumpMax = 65.0; // mV hyperpolarizing contribution
+    const deltaVpump = pumpMax * tempPump * pHEffect;
+
+    // 2. Diffusion Potential (Goldman-Hodgkin-Katz GHK approximation for Plant Root)
+    const ecRatio = Math.max(0.2, ec / 2.0);
+    const vDiff = -85.0 - 15.0 * Math.log(ecRatio);
+
+    // 3. Total Steady-State Membrane Potential (V_m in mV)
+    const Vm = vDiff - deltaVpump;
+
+    // 4. Voltage-Gated Ion Channel Open Probabilities (P_open, 0 ~ 100%)
+    const kChannelOpen = Math.min(100, Math.max(5, 100 / (1.0 + Math.exp((Vm - (-135.0)) / 12.0))));
+    const nrtActivity = Math.min(100, Math.max(10, 85.0 * tempPump * (1.0 / (1.0 + Math.exp(-1.5 * (ecRatio - 0.8))))));
+    const pmfDrive = Math.min(100, Math.max(10, (Math.abs(Vm) / 160.0) * 100.0 * pHEffect));
+    const protonPumpPct = Math.min(100, Math.max(5, (deltaVpump / pumpMax) * 100.0));
+
+    // Polarization Diagnostic Label
+    let stateLabel = "과분극 (Hyperpolarized, 왕성한 양분 흡수)";
+    let stateColor = "#10b981"; // Emerald
+    if (Vm > -110.0) {
+      stateLabel = "탈분극 (Depolarized, 이온 채널 폐쇄 스트레스)";
+      stateColor = "#f87171"; // Red
+    } else if (Vm > -135.0) {
+      stateLabel = "중간 전위 (Moderate, 정상 휴지 전위)";
+      stateColor = "#38bdf8"; // Blue
+    }
+
+    // Generate 40-point Action Potential / Slow Wave Potential (SWP) Waveform
+    const wavePoints = [];
+    const baseVm = Vm;
+    for (let i = 0; i < 40; i++) {
+      const t = i;
+      const noise = Math.sin(t * 0.45) * 1.5 + Math.cos(t * 0.9) * 0.8;
+      wavePoints.push({
+        timeSec: (i * 0.5).toFixed(1),
+        voltage: parseFloat((baseVm + noise).toFixed(1))
+      });
+    }
+
+    return {
+      membranePotential: parseFloat(Vm.toFixed(1)),
+      stateLabel,
+      stateColor,
+      protonPumpPct: Math.round(protonPumpPct),
+      kChannelOpen: Math.round(kChannelOpen),
+      nrtActivity: Math.round(nrtActivity),
+      pmfDrive: Math.round(pmfDrive),
+      rhizospherePH: parseFloat(pH.toFixed(1)),
+      wavePoints
+    };
+  }
 }

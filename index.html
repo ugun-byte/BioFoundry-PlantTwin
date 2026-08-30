@@ -344,6 +344,9 @@
           <div class="viewport-floating-header">
             <div class="viewport-title" data-i18n="chamberHeading">3D 시뮬레이션 바이오리액터</div>
             <div class="viewport-tools">
+              <button id="btnElectrophys" class="btn btn-outline" style="padding: 3px 8px; font-size: 10px; height: 26px; border-color: rgba(0, 242, 254, 0.5); color: #67e8f9; background: rgba(0, 242, 254, 0.12);" title="근권 세포막 전위(Vm) & 이온 채널 진단">
+                <span>⚡ 근권 막전위 (Vm)</span>
+              </button>
               <button id="btnPamPulse" class="btn btn-outline" style="padding: 3px 8px; font-size: 10px; height: 26px; border-color: rgba(244, 63, 94, 0.5); color: #fda4af; background: rgba(244, 63, 94, 0.12);" title="PAM 엽록소 형광 펄스 조사 & OJIP 진단">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 <span>⚡ PAM 형광 진단</span>
@@ -947,9 +950,69 @@
     </div>
   </div>
 
+  <!-- Modal 8: Root Electrophysiology & Membrane Potential Modal -->
+  <div id="electrophysModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 760px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="epModalTitle" style="color: #67e8f9; font-size: 15px;">⚡ 근권 세포막 전위 (V_m) & 이온 채널 개폐 동역학</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">GHK 수식 및 H⁺-ATPase 양성자 펌프 기반 생체 전기생리학 실시간 진단</p>
+        </div>
+        <button id="epClose" class="modal-close">✕</button>
+      </div>
+      
+      <!-- Key Electrophys Metrics -->
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+        <div class="kpi-tile" style="padding: 8px 12px; background: rgba(0, 242, 254, 0.08); border-color: rgba(0, 242, 254, 0.35);">
+          <span style="font-size: 9px; color: var(--text-muted);">세포막 전위 (Membrane Potential)</span>
+          <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 2px;">
+            <b id="epVmVal" class="kpi-big-val cyan" style="font-size: 20px;">-158.4 mV</b>
+          </div>
+          <span id="epStateBadge" style="font-size: 9px; color: #10b981; font-weight: 700; margin-top: 2px;">● 과분극 (Hyperpolarized)</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">H⁺-ATPase 프로톤 펌프</span>
+          <b id="epPumpPct" class="kpi-big-val emerald" style="font-size: 16px;">88%</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">ATP 구동 전위차 생성</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">AKT1 K⁺ 채널 개방도</span>
+          <b id="epKChanPct" class="kpi-big-val gold" style="font-size: 16px;">94%</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">전압의존성 K⁺ 유입</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">NRT1.1 질산태 친화도</span>
+          <b id="epNrtPct" class="kpi-big-val" style="color: #c084fc; font-size: 16px;">82%</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">H⁺/NO₃⁻ 동반 수송</span>
+        </div>
+      </div>
+
+      <!-- Scope Canvas Container -->
+      <div style="background: rgba(5, 10, 18, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 10px; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px; color: var(--text-muted);">
+          <span>실시간 막전위 오실로스코프 (V_m Time Series, mV)</span>
+          <span style="font-size: 10px; color: #00f2fe;">● 생체 활동전위(Action Potential) 파형</span>
+        </div>
+        <canvas id="epScopeCanvas" style="width: 100%; height: 200px; display: block;"></canvas>
+      </div>
+
+      <!-- Footer Action -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * 양액 EC와 pH가 변동하면 프로톤 펌프와 전압 개폐성 채널이 실시간으로 활성화/비활성화됩니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnTriggerIonPulse" class="btn btn-primary" style="padding: 6px 14px; font-size: 11px;">
+            ⚡ 3D 뿌리 이온 펄스 자극 인가
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="three.min.js"></script>
   <script src="OrbitControls.js"></script>
-  <script type="module" src="app.js?v=3.9"></script>
+  <script type="module" src="app.js?v=4.0"></script>
 </body>
 </html>

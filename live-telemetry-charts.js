@@ -553,4 +553,109 @@ export class LiveTelemetryCharts {
       ctx.fillText(c.step, cx - 12, cy - 8);
     });
   }
+
+  /**
+   * Root Electrophysiology Membrane Potential (V_m) & Action Potential Scope
+   */
+  renderElectrophysScope(canvas, electroData) {
+    if (!canvas || !electroData || !electroData.wavePoints) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : 560;
+    const h = rect.height > 0 ? rect.height : 220;
+
+    if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.scale(dpr, dpr);
+    }
+
+    ctx.clearRect(0, 0, w, h);
+
+    const padL = 48, padR = 20, padT = 20, padB = 30;
+    const plotW = Math.max(10, w - padL - padR);
+    const plotH = Math.max(10, h - padT - padB);
+
+    const minV = -200, maxV = -60; // mV
+
+    // 1. Hyperpolarized Optimal Absorption Zone (-180mV ~ -140mV)
+    const yOptTop = padT + ((maxV - (-140)) / (maxV - minV)) * plotH;
+    const yOptBottom = padT + ((maxV - (-180)) / (maxV - minV)) * plotH;
+    ctx.fillStyle = "rgba(16, 185, 129, 0.10)";
+    ctx.fillRect(padL, yOptTop, plotW, yOptBottom - yOptTop);
+
+    // 2. Y Grid Lines & Labels
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.font = "9px Inter, sans-serif";
+
+    const vTicks = [-200, -170, -140, -110, -80];
+    vTicks.forEach(v => {
+      const y = padT + ((maxV - v) / (maxV - minV)) * plotH;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + plotW, y);
+      ctx.stroke();
+      ctx.fillText(`${v} mV`, 6, y + 3);
+    });
+
+    // 3. Time Ticks
+    const pts = electroData.wavePoints;
+    const len = pts.length;
+    for (let i = 0; i <= 4; i++) {
+      const x = padL + (i / 4) * plotW;
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + plotH);
+      ctx.stroke();
+      ctx.fillText(`${(i * 5)}s`, x - 6, padT + plotH + 15);
+    }
+
+    // 4. Draw Glowing Action Potential Waveform
+    const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+    grad.addColorStop(0, "rgba(0, 242, 254, 0.25)");
+    grad.addColorStop(1, "rgba(0, 242, 254, 0.0)");
+
+    ctx.beginPath();
+    pts.forEach((pt, i) => {
+      const x = padL + (i / (len - 1)) * plotW;
+      const y = padT + ((maxV - pt.voltage) / (maxV - minV)) * plotH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.lineTo(padL + plotW, padT + plotH);
+    ctx.lineTo(padL, padT + plotH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Glowing Neon Stroke
+    ctx.save();
+    ctx.shadowColor = "#00f2fe";
+    ctx.shadowBlur = 8;
+    ctx.strokeStyle = "#00f2fe";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    pts.forEach((pt, i) => {
+      const x = padL + (i / (len - 1)) * plotW;
+      const y = padT + ((maxV - pt.voltage) / (maxV - minV)) * plotH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.restore();
+
+    // 5. Current Real-time Point Marker
+    const lastPt = pts[pts.length - 1];
+    const lx = padL + plotW;
+    const ly = padT + ((maxV - lastPt.voltage) / (maxV - minV)) * plotH;
+    ctx.beginPath();
+    ctx.arc(lx, ly, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = electroData.stateColor || "#10b981";
+    ctx.fill();
+  }
 }
