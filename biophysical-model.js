@@ -220,4 +220,101 @@ export class BioPhysicalEngine {
       dissolvedO2: parseFloat(dissolvedO2.toFixed(1))
     };
   }
+
+  /**
+   * 9. Chlorophyll a Fluorescence OJIP Polyphasic Transient Model (JIP-Test)
+   * Calculates dynamic fluorescence induction curve F(t) from 10 us to 1 s
+   * based on Photosystem II (PSII) acceptor side QA, Plastoquinone (PQ) pool, and PSI acceptor reduction.
+   */
+  calculateOJIPTransient(envParams = {}, cropProfile = {}, plantState = {}) {
+    const { ppfd = 450, airTemp = 24.0, humidity = 70.0 } = envParams;
+    const ojip = cropProfile.ojipParams || {
+      fo: 250,
+      fj: 600,
+      fi: 1050,
+      fm: 1500,
+      pqPool: 40,
+      piAbs: 4.5,
+      lhcSize: 1.2,
+      phiPSII: 0.832
+    };
+
+    // Environmental Stress Factors
+    const tempDeviation = Math.max(0, Math.abs(airTemp - (cropProfile.tempOpt || 24.0)) - 4.0);
+    const heatStress = Math.min(0.40, tempDeviation * 0.04);
+    const npqQuenching = Math.max(0, (ppfd - 600) / 1200) * 0.25;
+
+    // Modulated cardinal points
+    const Fo = Math.round(ojip.fo * (1.0 + heatStress * 0.45));
+    const Fm = Math.round(ojip.fm * (1.0 - heatStress * 0.35 - npqQuenching));
+    const Fv = Fm - Fo;
+    const FvFm = Math.max(0.40, Math.min(0.85, Fv / Fm));
+
+    const Fj = Math.round(ojip.fj * (1.0 + heatStress * 0.20));
+    const Fi = Math.round(ojip.fi * (1.0 - npqQuenching * 0.5));
+
+    // JIP-Test Kinetic Parameters
+    const Vj = Math.max(0.05, Math.min(0.95, (Fj - Fo) / (Fm - Fo)));
+    const Vi = Math.max(0.20, Math.min(0.98, (Fi - Fo) / (Fm - Fo)));
+    const Mo = Math.max(0.5, 4.0 * (Fj - Fo) / (Fm - Fo));
+    const Sm = (ojip.pqPool || 40) * (1.0 - heatStress * 0.5);
+    const phiPo = FvFm;
+    const psiEo = 1.0 - Vj;
+    const phiEo = phiPo * psiEo;
+    const piAbs = Math.max(0.5, ojip.piAbs * (1.0 - heatStress * 1.2 - npqQuenching));
+
+    // Generate 60 Logarithmic Time Points from 10^-5 s (10 us) to 10^0 s (1 s)
+    const points = [];
+    const numPoints = 60;
+    const logMin = -5.0; // 10^-5 s (10 us)
+    const logMax = 0.0;  // 10^0 s (1 s)
+
+    const tO = 2.0e-5;  // 20 us
+    const tJ = 2.0e-3;  // 2 ms
+    const tI = 3.0e-2;  // 30 ms
+    const tP = 3.0e-1;  // 300 ms
+
+    for (let k = 0; k < numPoints; k++) {
+      const logT = logMin + (k / (numPoints - 1)) * (logMax - logMin);
+      const t = Math.pow(10, logT);
+
+      let fVal = Fo;
+      if (t < tJ) {
+        const p = Math.max(0, (logT - (-5.0)) / (Math.log10(tJ) - (-5.0)));
+        fVal = Fo + (Fj - Fo) * Math.pow(p, 1.2);
+      } else if (t < tI) {
+        const p = (logT - Math.log10(tJ)) / (Math.log10(tI) - Math.log10(tJ));
+        fVal = Fj + (Fi - Fj) * Math.sin(p * Math.PI / 2);
+      } else {
+        const p = Math.min(1.0, (logT - Math.log10(tI)) / (Math.log10(tP) - Math.log10(tI)));
+        fVal = Fi + (Fm - Fi) * (1.0 / (1.0 + Math.exp(-5.0 * (p - 0.5))));
+      }
+
+      fVal = Math.min(Fm, Math.max(Fo, fVal));
+
+      points.push({
+        t: parseFloat(t.toExponential(3)),
+        logT: parseFloat(logT.toFixed(3)),
+        timeLabel: t < 1e-3 ? `${Math.round(t * 1e6)} μs` : (t < 1 ? `${Math.round(t * 1e3)} ms` : `${t.toFixed(1)} s`),
+        f: Math.round(fVal),
+        relV: parseFloat(((fVal - Fo) / (Fm - Fo)).toFixed(3))
+      });
+    }
+
+    return {
+      speciesId: cropProfile.id || "marigold_lutein",
+      speciesName: cropProfile.name || "작물",
+      cardinalPoints: { Fo, Fj, Fi, Fm, Fv },
+      jipMetrics: {
+        fvFm: parseFloat(FvFm.toFixed(3)),
+        vj: parseFloat(Vj.toFixed(3)),
+        vi: parseFloat(Vi.toFixed(3)),
+        phiEo: parseFloat(phiEo.toFixed(3)),
+        piAbs: parseFloat(piAbs.toFixed(2)),
+        sm: Math.round(Sm),
+        heatStressIndex: parseFloat((heatStress * 100).toFixed(1))
+      },
+      points
+    };
+  }
 }

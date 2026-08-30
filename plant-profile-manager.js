@@ -40,7 +40,8 @@ export class PlantProfileManager {
         rootPartitionRatio: 0.16,
         
         baseLuteinConcentration: 3.4,
-        spectrumSensitivity: { blue: 0.95, uvb: 1.85, farRed: 0.82 }
+        spectrumSensitivity: { blue: 0.95, uvb: 1.85, farRed: 0.82 },
+        ojipParams: { fo: 240, fj: 580, fi: 1020, fm: 1420, pqPool: 36, piAbs: 4.25, lhcSize: 1.15, phiPSII: 0.831 }
       },
 
       spinach_carotenoid: {
@@ -77,7 +78,8 @@ export class PlantProfileManager {
         rootPartitionRatio: 0.13,
         
         baseLuteinConcentration: 4.2,
-        spectrumSensitivity: { blue: 0.75, uvb: 1.45, farRed: 0.92 }
+        spectrumSensitivity: { blue: 0.75, uvb: 1.45, farRed: 0.92 },
+        ojipParams: { fo: 310, fj: 690, fi: 1180, fm: 1890, pqPool: 42, piAbs: 5.40, lhcSize: 1.45, phiPSII: 0.836 }
       },
 
       kale_antioxidant: {
@@ -114,7 +116,8 @@ export class PlantProfileManager {
         rootPartitionRatio: 0.12,
         
         baseLuteinConcentration: 3.8,
-        spectrumSensitivity: { blue: 1.10, uvb: 2.10, farRed: 0.85 }
+        spectrumSensitivity: { blue: 1.10, uvb: 2.10, farRed: 0.85 },
+        ojipParams: { fo: 220, fj: 540, fi: 960, fm: 1350, pqPool: 32, piAbs: 3.85, lhcSize: 1.05, phiPSII: 0.837 }
       },
 
       tobacco_recombinant: {
@@ -151,7 +154,8 @@ export class PlantProfileManager {
         rootPartitionRatio: 0.14,
         
         baseLuteinConcentration: 2.5,
-        spectrumSensitivity: { blue: 0.85, uvb: 1.60, farRed: 0.75 }
+        spectrumSensitivity: { blue: 0.85, uvb: 1.60, farRed: 0.75 },
+        ojipParams: { fo: 270, fj: 640, fi: 1250, fm: 1680, pqPool: 54, piAbs: 4.80, lhcSize: 1.30, phiPSII: 0.839 }
       }
     };
 

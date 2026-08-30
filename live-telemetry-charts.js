@@ -386,4 +386,171 @@ export class LiveTelemetryCharts {
     ctx.lineWidth = 1.4;
     ctx.stroke();
   }
+
+  /**
+   * Log-scale OJIP Chlorophyll a Fluorescence Induction Transient Scope (JIP-Test)
+   */
+  renderOJIPScope(canvas, primaryOJIP, comparisonOJIPList = []) {
+    if (!canvas || !primaryOJIP || !primaryOJIP.points) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : 560;
+    const h = rect.height > 0 ? rect.height : 260;
+
+    if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.scale(dpr, dpr);
+    }
+
+    ctx.clearRect(0, 0, w, h);
+
+    const padL = 48, padR = 24, padT = 24, padB = 36;
+    const plotW = Math.max(10, w - padL - padR);
+    const plotH = Math.max(10, h - padT - padB);
+
+    // 1. Draw Cyber Dark Logarithmic Grid
+    const logMin = -5.0; // 10 us (10^-5 s)
+    const logMax = 0.0;  // 1 s (10^0 s)
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1;
+
+    // Horizontal Y Grid lines
+    for (let i = 0; i <= 4; i++) {
+      const y = padT + (i / 4) * plotH;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + plotW, y);
+      ctx.stroke();
+    }
+
+    // Vertical Decadal Log Grid lines (10us, 100us, 1ms, 10ms, 100ms, 1s)
+    const decades = [
+      { log: -5, label: "10 μs" },
+      { log: -4, label: "100 μs" },
+      { log: -3, label: "1 ms" },
+      { log: -2, label: "10 ms" },
+      { log: -1, label: "100 ms" },
+      { log: 0,  label: "1 s" }
+    ];
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.font = "9px Inter, sans-serif";
+
+    decades.forEach(d => {
+      const x = padL + ((d.log - logMin) / (logMax - logMin)) * plotW;
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + plotH);
+      ctx.stroke();
+
+      ctx.fillText(d.label, x - 12, padT + plotH + 15);
+    });
+
+    // 2. Determine Max Fluorescence for scale
+    let maxF = 2200;
+    if (primaryOJIP.cardinalPoints && primaryOJIP.cardinalPoints.Fm) {
+      maxF = Math.max(maxF, primaryOJIP.cardinalPoints.Fm * 1.15);
+    }
+
+    // Y Axis Labels
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    for (let i = 0; i <= 4; i++) {
+      const val = Math.round(maxF * (1.0 - i / 4));
+      const y = padT + (i / 4) * plotH + 3;
+      ctx.fillText(String(val), 8, y);
+    }
+
+    // 3. Draw Comparison Species Dotted Overlays
+    const compColors = ["rgba(168, 85, 247, 0.55)", "rgba(56, 189, 248, 0.55)", "rgba(251, 191, 36, 0.55)"];
+    if (Array.isArray(comparisonOJIPList)) {
+      comparisonOJIPList.forEach((comp, cIdx) => {
+        if (!comp || !comp.points) return;
+        const cColor = compColors[cIdx % compColors.length];
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = cColor;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        comp.points.forEach((pt, i) => {
+          const x = padL + ((pt.logT - logMin) / (logMax - logMin)) * plotW;
+          const y = padT + plotH - (pt.f / maxF) * plotH;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
+    // 4. Draw Primary Active Species OJIP Shaded Area & Glowing Curve
+    const pts = primaryOJIP.points;
+
+    // Shaded Gradient Fill
+    const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+    grad.addColorStop(0, "rgba(244, 63, 94, 0.35)"); // 685nm crimson tint
+    grad.addColorStop(0.6, "rgba(16, 185, 129, 0.15)");
+    grad.addColorStop(1, "rgba(16, 185, 129, 0.0)");
+
+    ctx.beginPath();
+    pts.forEach((pt, i) => {
+      const x = padL + ((pt.logT - logMin) / (logMax - logMin)) * plotW;
+      const y = padT + plotH - (pt.f / maxF) * plotH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.lineTo(padL + plotW, padT + plotH);
+    ctx.lineTo(padL, padT + plotH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Glowing Neon Stroke
+    ctx.save();
+    ctx.shadowColor = "#10b981";
+    ctx.shadowBlur = 8;
+    ctx.strokeStyle = "#10b981";
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    pts.forEach((pt, i) => {
+      const x = padL + ((pt.logT - logMin) / (logMax - logMin)) * plotW;
+      const y = padT + plotH - (pt.f / maxF) * plotH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.restore();
+
+    // 5. Draw and Annotate the 4 Cardinal Points (O, J, I, P)
+    const cardinals = [
+      { step: "O (F₀)", logT: -4.70, f: primaryOJIP.cardinalPoints.Fo, color: "#38bdf8" },
+      { step: "J (Fⱼ)", logT: -2.70, f: primaryOJIP.cardinalPoints.Fj, color: "#00f2fe" },
+      { step: "I (Fᵢ)", logT: -1.52, f: primaryOJIP.cardinalPoints.Fi, color: "#c084fc" },
+      { step: "P (Fₘ)", logT: -0.52, f: primaryOJIP.cardinalPoints.Fm, color: "#f59e0b" }
+    ];
+
+    cardinals.forEach(c => {
+      const cx = padL + ((c.logT - logMin) / (logMax - logMin)) * plotW;
+      const cy = padT + plotH - (c.f / maxF) * plotH;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = c.color;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+
+      ctx.fillStyle = c.color;
+      ctx.font = "bold 10px Inter, sans-serif";
+      ctx.fillText(c.step, cx - 12, cy - 8);
+    });
+  }
 }

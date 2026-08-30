@@ -344,6 +344,10 @@
           <div class="viewport-floating-header">
             <div class="viewport-title" data-i18n="chamberHeading">3D 시뮬레이션 바이오리액터</div>
             <div class="viewport-tools">
+              <button id="btnPamPulse" class="btn btn-outline" style="padding: 3px 8px; font-size: 10px; height: 26px; border-color: rgba(244, 63, 94, 0.5); color: #fda4af; background: rgba(244, 63, 94, 0.12);" title="PAM 엽록소 형광 펄스 조사 & OJIP 진단">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span>⚡ PAM 형광 진단</span>
+              </button>
               <button id="btnCapture4K" class="btn-tool-icon" title="4K 스냅샷 캡처">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
               </button>
@@ -887,11 +891,63 @@
         <button id="btnApplyDiurnalSchedule" class="btn btn-primary" data-i18n="btnApplySchedule">스마트팜 24H 자동 운전 적용</button>
       </div>
     </div>
+  <!-- Modal 7: OJIP Chlorophyll Fluorescence Transient Diagnostic Modal -->
+  <div id="ojipModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 720px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="ojipModalTitle" style="color: #fda4af; font-size: 15px;">🔬 OJIP 엽록소 형광 유도 과도현상 (Chl-F Transient)</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">JIP-Test 기반 식물 광계II(PSII) 광화학 효율 및 양자수율 초정밀 진단</p>
+        </div>
+        <button id="ojipClose" class="modal-close">✕</button>
+      </div>
+      
+      <!-- Key JIP Metrics 4 Tiles -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">최대 광양자 수율 (Fv/Fm)</span>
+          <b id="ojipFvFm" class="kpi-big-val emerald" style="font-size: 16px;">0.832</b>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">광합성 성능지수 (PI_abs)</span>
+          <b id="ojipPiAbs" class="kpi-big-val cyan" style="font-size: 16px;">4.50</b>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">QA 환원 분율 (Vj)</span>
+          <b id="ojipVj" class="kpi-big-val" style="color: #c084fc; font-size: 16px;">0.412</b>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">전자전달 수율 (Phi_Eo)</span>
+          <b id="ojipPhiEo" class="kpi-big-val gold" style="font-size: 16px;">0.489</b>
+        </div>
+      </div>
+
+      <!-- Scope Canvas Container -->
+      <div style="background: rgba(5, 10, 18, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 10px; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px; color: var(--text-muted);">
+          <span>시간 로그스케일: 10 μs ➔ 1 s (F₀ ➔ Fⱼ ➔ Fᵢ ➔ Fₘ)</span>
+          <span id="ojipLegend" style="font-size: 10px; color: #10b981;">● 현재 작물 실시간 형광</span>
+        </div>
+        <canvas id="ojipScopeCanvas" style="width: 100%; height: 210px; display: block;"></canvas>
+      </div>
+
+      <!-- Cardinal Points Info & Trigger -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          <span style="color: #38bdf8;">O(20μs)</span> 안테나 • <span style="color: #00f2fe;">J(2ms)</span> QA환원 • <span style="color: #c084fc;">I(30ms)</span> PQ풀 • <span style="color: #f59e0b;">P(300ms)</span> 피크형광
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnReMeasurePam" class="btn btn-primary" style="padding: 6px 14px; font-size: 11px;">
+            ⚡ 3D PAM 펄스 재측정
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Scripts -->
   <script src="three.min.js"></script>
   <script src="OrbitControls.js"></script>
-  <script type="module" src="app.js?v=3.6"></script>
+  <script type="module" src="app.js?v=3.7"></script>
 </body>
 </html>

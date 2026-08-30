@@ -1069,4 +1069,67 @@ export class ThreePlantChamber {
       this.controls.update();
     }
   }
+
+  /**
+   * PAM Chlorophyll a Fluorescence Saturating Flash & 685nm Crimson Fluo Pulse
+   */
+  triggerPamFluorescenceFlash(onComplete = null) {
+    if (!this.isInitialized || this.pamFlashActive) return;
+
+    this.pamFlashActive = true;
+    const startTime = performance.now();
+    const flashDuration = 1400; // 1.4 seconds biological fluorescence induction
+    const flColor = new THREE.Color(0xf43f5e); // 685nm deep crimson chlorophyll fluorescence
+
+    const animateFlash = (now) => {
+      const elapsed = now - startTime;
+      const progress = elapsed / flashDuration;
+
+      if (progress < 1.0) {
+        // Phase A: Initial saturating actinic white pulse (0ms ~ 180ms)
+        if (progress < 0.15) {
+          const p = progress / 0.15;
+          if (this.growSpotLight) this.growSpotLight.intensity = 5.2 + (1.0 - p) * 12.0;
+          if (this.ledHaloMat) this.ledHaloMat.emissiveIntensity = 3.0 + (1.0 - p) * 6.0;
+        }
+
+        // Phase B: Chlorophyll Fluorescence Transient (Peak Fm -> Quenching decay)
+        let fluoIntensity = 0;
+        if (progress < 0.25) {
+          // O -> J -> I -> P Rise
+          fluoIntensity = Math.sin((progress / 0.25) * Math.PI / 2) * 1.8;
+        } else {
+          // P -> S -> M -> T Quenching relaxation
+          const p = (progress - 0.25) / 0.75;
+          fluoIntensity = 1.8 * Math.exp(-p * 3.5);
+        }
+
+        // Apply 685nm crimson glow to all leaves
+        if (this.leaves) {
+          this.leaves.forEach(l => {
+            if (l.mesh && l.mesh.material) {
+              l.mesh.material.emissive.lerp(flColor, 0.35);
+              l.mesh.material.emissiveIntensity = fluoIntensity;
+            }
+          });
+        }
+
+        requestAnimationFrame(animateFlash);
+      } else {
+        // Restore normal state
+        this.pamFlashActive = false;
+        if (this.leaves) {
+          this.leaves.forEach(l => {
+            if (l.mesh && l.mesh.material) {
+              l.mesh.material.emissive.setHex(0x000000);
+              l.mesh.material.emissiveIntensity = 0.0;
+            }
+          });
+        }
+        if (typeof onComplete === "function") onComplete();
+      }
+    };
+
+    requestAnimationFrame(animateFlash);
+  }
 }

@@ -190,7 +190,20 @@ const DOM = {
   schedulerModal: document.getElementById("schedulerModal"),
   schedulerClose: document.getElementById("schedulerClose"),
   btnExportDiurnalPlc: document.getElementById("btnExportDiurnalPlc"),
-  btnApplyDiurnalSchedule: document.getElementById("btnApplyDiurnalSchedule")
+  btnApplyDiurnalSchedule: document.getElementById("btnApplyDiurnalSchedule"),
+
+  // OJIP Chlorophyll Fluorescence Modal
+  btnPamPulse: document.getElementById("btnPamPulse"),
+  ojipModal: document.getElementById("ojipModal"),
+  ojipClose: document.getElementById("ojipClose"),
+  ojipModalTitle: document.getElementById("ojipModalTitle"),
+  ojipFvFm: document.getElementById("ojipFvFm"),
+  ojipPiAbs: document.getElementById("ojipPiAbs"),
+  ojipVj: document.getElementById("ojipVj"),
+  ojipPhiEo: document.getElementById("ojipPhiEo"),
+  ojipLegend: document.getElementById("ojipLegend"),
+  ojipScopeCanvas: document.getElementById("ojipScopeCanvas"),
+  btnReMeasurePam: document.getElementById("btnReMeasurePam")
 };
 
 function populateCropDropdown(selectedId = null) {
@@ -754,9 +767,66 @@ function bindEventListeners() {
     alert("🌿 스마트팜 24시간 자동 일주기 스케줄러가 활성화되었습니다!");
   });
 
+  // OJIP Chlorophyll Fluorescence Modal
+  if (DOM.btnPamPulse) {
+    DOM.btnPamPulse.addEventListener("click", openOJIPDiagnostics);
+  }
+  if (DOM.ojipClose) {
+    DOM.ojipClose.addEventListener("click", () => {
+      if (DOM.ojipModal) DOM.ojipModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnReMeasurePam) {
+    DOM.btnReMeasurePam.addEventListener("click", openOJIPDiagnostics);
+  }
+
   // Generic Modal Close
   DOM.genericModalClose.addEventListener("click", () => DOM.genericCodeModal.classList.remove("active"));
   DOM.btnGenericCopy.addEventListener("click", copyGenericModalCode);
+}
+
+function openOJIPDiagnostics() {
+  audio.playPulse();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+
+  // 1. Trigger 3D PAM Saturating Flash & Crimson Fluorescence Pulse
+  if (plantChamber3d) {
+    plantChamber3d.triggerPamFluorescenceFlash();
+  }
+
+  // 2. Calculate Active Crop OJIP Kinetic Data
+  const primaryOJIP = bioEngine.calculateOJIPTransient(envTele.sensors, crop, plantState);
+
+  // 3. Calculate Comparison Species Curves for Overlays
+  const allProfiles = profileManager.getAllProfiles();
+  const compList = allProfiles
+    .filter(p => p.id !== crop.id)
+    .map(p => bioEngine.calculateOJIPTransient(envTele.sensors, p, plantState));
+
+  // 4. Update Modal Titles and Key JIP Metrics
+  if (DOM.ojipModalTitle) {
+    DOM.ojipModalTitle.textContent = `🔬 OJIP 엽록소 형광 진단: ${crop.name}`;
+  }
+  if (DOM.ojipFvFm) DOM.ojipFvFm.textContent = primaryOJIP.jipMetrics.fvFm.toFixed(3);
+  if (DOM.ojipPiAbs) DOM.ojipPiAbs.textContent = primaryOJIP.jipMetrics.piAbs.toFixed(2);
+  if (DOM.ojipVj) DOM.ojipVj.textContent = primaryOJIP.jipMetrics.vj.toFixed(3);
+  if (DOM.ojipPhiEo) DOM.ojipPhiEo.textContent = primaryOJIP.jipMetrics.phiEo.toFixed(3);
+
+  if (DOM.ojipLegend) {
+    DOM.ojipLegend.textContent = `● ${crop.name} (실시간)`;
+  }
+
+  // 5. Show Modal & Render Scope
+  if (DOM.ojipModal) {
+    DOM.ojipModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (telemetryCharts && DOM.ojipScopeCanvas) {
+      telemetryCharts.renderOJIPScope(DOM.ojipScopeCanvas, primaryOJIP, compList);
+    }
+  }, 60);
 }
 
 function resetPlantState() {
