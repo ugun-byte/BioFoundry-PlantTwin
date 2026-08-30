@@ -1032,6 +1032,53 @@ function initHudPointerToggle() {
   }
 }
 
+// Global states for real-time derivative alarm monitoring
+let lastAnValue = null;
+let lastPpfdValue = null;
+let lastCo2Value = null;
+let alarmTimeout = null;
+let lastAlarmTime = 0;
+
+/**
+ * Trigger Flashing SCADA Red Siren Toast Alarm & Warning Log console
+ */
+function triggerSirenAlarm(title, desc) {
+  const now = Date.now();
+  if (now - lastAlarmTime < 3500) return; // throttle alerts
+  lastAlarmTime = now;
+
+  const popup = document.getElementById("sirenAlarmPopup");
+  const descEl = document.getElementById("sirenAlarmDesc");
+  if (!popup || !descEl) return;
+
+  descEl.textContent = desc;
+  popup.style.display = "block";
+
+  if (typeof audio === "object" && typeof audio.playPulse === "function") {
+    audio.playPulse(); // Play digital warning pulse beep
+  }
+
+  // Write to SCADA system warning logs
+  const logConsole = document.getElementById("scadaAlarmLogs");
+  if (logConsole) {
+    if (logConsole.innerHTML.includes("이상 미분 수치 발생 시")) {
+      logConsole.innerHTML = "";
+    }
+    const timestamp = new Date().toISOString().split("T")[1].substring(0, 8);
+    const logLine = `<div style="margin-bottom:6px; border-bottom: 1px solid rgba(244,63,94,0.12); padding-bottom:4px;">
+      <span style="color:#f43f5e; font-weight:700;">[🚨 ${timestamp} ALERT]</span>
+      <span style="color:#fff; font-weight:600;">${title}</span> - ${desc}
+    </div>`;
+    logConsole.innerHTML = logLine + logConsole.innerHTML;
+    logConsole.scrollTop = 0;
+  }
+
+  if (alarmTimeout) clearTimeout(alarmTimeout);
+  alarmTimeout = setTimeout(() => {
+    popup.style.display = "none";
+  }, 4500);
+}
+
 // Global states for Leaf and Root dynamic pointer visibility and minimization
 let isLeafPointerVisible = true;
 let isRootPointerVisible = true;
@@ -3923,6 +3970,27 @@ function simulationLoop(now) {
       : (envTele.simulatedDay < 28 ? "stageVegetative" : "stageFlowering");
     DOM.teleStage.textContent = i18n.t(stageKey);
     DOM.timelineSlider.value = envTele.simulatedDay;
+    // 10b. Real-Time Derivative Alarm Checks
+    if (lastAnValue !== null && dtRealSeconds > 0.001) {
+      const diffAn = (instantPhoto.netAn - lastAnValue) / dtRealSeconds;
+      const diffPpfd = (envTele.sensors.ppfd - lastPpfdValue) / dtRealSeconds;
+      const diffCo2 = (envTele.sensors.co2 - lastCo2Value) / dtRealSeconds;
+
+      // Thresholds: An derivative absolute > 8.0, PPFD absolute > 350.0, CO2 absolute > 150.0
+      if (Math.abs(diffAn) > 8.0) {
+        const dir = diffAn > 0 ? "급상승" : "급감";
+        triggerSirenAlarm("광합성 탄소동화율(An) 급변 감지", `광합성 속도(An) ${dir}! (변화율: ${diffAn.toFixed(2)} μmol/m²/s²)`);
+      } else if (Math.abs(diffPpfd) > 350.0) {
+        const dir = diffPpfd > 0 ? "급상승" : "급감";
+        triggerSirenAlarm("조명 PPFD 조도 급변 감지", `조도(PPFD) ${dir}! (변화율: ${diffPpfd.toFixed(1)} μmol/m²/s²)`);
+      } else if (Math.abs(diffCo2) > 150.0) {
+        const dir = diffCo2 > 0 ? "급상승" : "급감";
+        triggerSirenAlarm("이산화탄소(CO₂) 농도 급변 감지", `농도(CO₂) ${dir}! (변화율: ${diffCo2.toFixed(1)} ppm/s)`);
+      }
+    }
+    lastAnValue = instantPhoto.netAn;
+    lastPpfdValue = envTele.sensors.ppfd;
+    lastCo2Value = envTele.sensors.co2;
 
     // 11. Push Telemetry Point to Oscilloscopes & Sparklines
     if (telemetryCharts) {

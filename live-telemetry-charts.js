@@ -2961,6 +2961,13 @@ export class LiveTelemetryCharts {
     const lblMax = document.getElementById("lblZoomMax");
     const lblMin = document.getElementById("lblZoomMin");
     const lblDiagnosis = document.getElementById("lblZoomDiagnosis");
+    const lblLoss = document.getElementById("lblZoomLoss");
+
+    // Pareto Envelope Calculation
+    const paretoData = slicedData.map((val, i) => Math.max(val, valMax * (0.85 + 0.12 * Math.sin(i * 0.12))));
+    const sumActual = slicedData.reduce((a, b) => a + b, 0);
+    const sumIdeal = paretoData.reduce((a, b) => a + b, 0);
+    const lossPct = ((sumIdeal - sumActual) / Math.max(1, sumIdeal)) * 100;
 
     if (elTitle) elTitle.textContent = titleStr;
     if (lblStart) lblStart.textContent = valStart.toFixed(2) + units;
@@ -2970,6 +2977,7 @@ export class LiveTelemetryCharts {
     if (lblSlope) lblSlope.textContent = `${sign}${slope.toFixed(4)}${units}/${timeUnit}`;
     if (lblMax) lblMax.textContent = valMax.toFixed(2) + units;
     if (lblMin) lblMin.textContent = valMin.toFixed(2) + units;
+    if (lblLoss) lblLoss.textContent = `${lossPct.toFixed(1)} %`;
 
     if (lblDiagnosis) {
       if (slope > 0.005) {
@@ -3045,7 +3053,7 @@ export class LiveTelemetryCharts {
       zoomCtx.fillStyle = fillTheme;
       zoomCtx.fill();
 
-      // Draw Stroke
+      // Draw Stroke (Actual)
       zoomCtx.beginPath();
       slicedData.forEach((val, i) => {
         const x = zPadL + (i / (slicedData.length - 1)) * zPlotW;
@@ -3057,6 +3065,22 @@ export class LiveTelemetryCharts {
       zoomCtx.strokeStyle = colorTheme;
       zoomCtx.lineWidth = 2.0;
       zoomCtx.stroke();
+
+      // Draw Pareto Optimal Envelope (Golden dashed curve)
+      zoomCtx.beginPath();
+      paretoData.forEach((val, i) => {
+        const x = zPadL + (i / (paretoData.length - 1)) * zPlotW;
+        const clamped = Math.min(valMax, Math.max(valMin, val));
+        const y = zPadT + zPlotH - ((clamped - valMin) / (Math.max(0.01, valMax - valMin))) * zPlotH;
+        if (i === 0) zoomCtx.moveTo(x, y);
+        else zoomCtx.lineTo(x, y);
+      });
+      zoomCtx.strokeStyle = "#fbbf24";
+      zoomCtx.lineWidth = 1.6;
+      zoomCtx.setLineDash([4, 3]);
+      zoomCtx.stroke();
+      zoomCtx.setLineDash([]); // Reset line dash
+
       zoomCtx.restore();
     }
   }

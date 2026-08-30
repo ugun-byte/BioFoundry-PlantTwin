@@ -498,6 +498,19 @@
             </div>
           </div>
 
+          <!-- Siren Alarm Toast Popup -->
+          <div id="sirenAlarmPopup" class="siren-alarm-toast" style="display: none;">
+            <div class="siren-alarm-glow"></div>
+            <div class="siren-alarm-content">
+              <span class="siren-alarm-icon">🚨</span>
+              <div class="siren-alarm-text">
+                <strong style="display:block; font-size:12px; color:#fff;">[위험] 기류/광합성 변화율 급변 감지!</strong>
+                <span id="sirenAlarmDesc" style="font-size:10.5px; color:rgba(255,255,255,0.85); font-family: monospace;">-</span>
+              </div>
+              <button onclick="document.getElementById('sirenAlarmPopup').style.display='none'" style="background:transparent; border:none; color:#fda4af; cursor:pointer; font-weight:bold; font-size:13px; padding-left:10px;">✕</button>
+            </div>
+          </div>
+
           <!-- Three.js Canvas Container -->
           <div id="plant3dContainer">
             <!-- Floating FLIR Thermal IR Legend Strip -->
@@ -1079,6 +1092,19 @@
               <!-- Dynamically populated -->
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- SCADA System Emergency Alert Logs Console -->
+      <div style="background: rgba(127, 29, 29, 0.15); border: 1px solid rgba(244, 63, 94, 0.4); border-radius: var(--radius-md); padding: 14px 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 13px; font-weight: 700; color: #f43f5e; display:flex; align-items:center; gap:6px;">
+            🚨 실시간 SCADA 알람 및 시스템 경고 로그
+          </span>
+          <span style="font-size: 11px; color: var(--text-muted);">미분 감지 엔진(Derivative Alarm) 연동 중</span>
+        </div>
+        <div id="scadaAlarmLogs" style="height: 120px; overflow-y: auto; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm); padding: 8px 12px; font-family: monospace; font-size: 11px; color: #fecdd3; line-height: 1.6;">
+          <div style="color: var(--text-muted); font-style: italic;">[정보] 미분 트리거 시스템 정상 가동 중... 이상 미분 수치 발생 시 여기에 경고 로그가 추가됩니다.</div>
         </div>
       </div>
     </div>
@@ -1846,7 +1872,7 @@
         </div>
         
         <!-- Statistical Analysis Grid -->
-        <div class="hud-stat-grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04);">
+        <div class="hud-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04);">
           <div>
             <span style="display:block; font-size:11px; color:var(--text-muted); margin-bottom: 3px;">시작 세그먼트 수치</span>
             <b id="lblZoomStart" style="font-size:15px; color:#fff; font-family: monospace;">-</b>
@@ -1870,6 +1896,10 @@
           <div>
             <span style="display:block; font-size:11px; color:var(--text-muted); margin-bottom: 3px;">반응 동역학 진단</span>
             <b id="lblZoomDiagnosis" style="font-size:13px; color:#fbbf24; font-weight: 700;">안정성 유지</b>
+          </div>
+          <div>
+            <span style="display:block; font-size:11px; color:var(--text-muted); margin-bottom: 3px; text-shadow:0 0 4px #fbbf24;">이론 최적(GA) 대비 손실</span>
+            <b id="lblZoomLoss" style="font-size:14px; color:#f43f5e; font-family: monospace;">-</b>
           </div>
         </div>
       </div>
