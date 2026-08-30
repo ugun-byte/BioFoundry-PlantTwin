@@ -515,6 +515,38 @@
             </div>
           </div>
 
+          <!-- Real-Time Dynamic 3D Plant Target Leader Lines SVG Overlay -->
+          <svg id="hudLeaderLineSvg" class="hud-leader-lines-layer">
+            <defs>
+              <filter id="cyanLeaderGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <filter id="emeraldLeaderGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            <!-- 1. Leaf Tissue Target Anchor & Leader Line -->
+            <path id="leafLeaderLine" d="M0,0 L0,0" stroke="#00f2fe" stroke-width="1.8" stroke-dasharray="5 3" fill="none" filter="url(#cyanLeaderGlow)" />
+            <circle id="leafTargetDot" cx="-100" cy="-100" r="4" fill="#ffffff" stroke="#00f2fe" stroke-width="2.2" filter="url(#cyanLeaderGlow)" />
+            <circle id="leafTargetPulse" class="hud-pin-pulse" cx="-100" cy="-100" r="7.5" fill="none" stroke="#00f2fe" stroke-width="1.4" opacity="0.75" />
+            <circle id="leafCardAttachDot" cx="-100" cy="-100" r="3" fill="#00f2fe" />
+
+            <!-- 2. Root/Rhizosphere Target Anchor & Leader Line -->
+            <path id="rootLeaderLine" d="M0,0 L0,0" stroke="#10b981" stroke-width="1.8" stroke-dasharray="5 3" fill="none" filter="url(#emeraldLeaderGlow)" />
+            <circle id="rootTargetDot" cx="-100" cy="-100" r="4" fill="#ffffff" stroke="#10b981" stroke-width="2.2" filter="url(#emeraldLeaderGlow)" />
+            <circle id="rootTargetPulse" class="hud-pin-pulse" cx="-100" cy="-100" r="7.5" fill="none" stroke="#10b981" stroke-width="1.4" opacity="0.75" />
+            <circle id="rootCardAttachDot" cx="-100" cy="-100" r="3" fill="#10b981" />
+          </svg>
+
           <!-- Glassmorphic HUD Card 1: 엽면 생체 분석 -->
           <div id="hudLeafCard" class="chamber-hud-card leaf-pos">
             <div class="hud-card-header">

@@ -1029,33 +1029,29 @@ input:checked + .switch-slider:before {
   z-index: 35;
 }
 
+.hud-leader-lines-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 24;
+  overflow: visible;
+}
+
+@keyframes hudPinPulseAnim {
+  0% { r: 5px; opacity: 0.85; }
+  50% { r: 9.5px; opacity: 0.25; }
+  100% { r: 5px; opacity: 0.85; }
+}
+
+.hud-pin-pulse {
+  animation: hudPinPulseAnim 2.2s infinite ease-in-out;
+}
+
 .chamber-hud-card.leaf-pos {
   top: 75px;
   right: 14px;
-}
-
-.chamber-hud-card.leaf-pos::before {
-  content: '';
-  position: absolute;
-  left: -24px;
-  top: 48%;
-  width: 24px;
-  height: 1px;
-  background: var(--cyan-accent);
-  box-shadow: 0 0 6px var(--cyan-accent);
-}
-
-.chamber-hud-card.leaf-pos::after {
-  content: '';
-  position: absolute;
-  left: -30px;
-  top: calc(48% - 3px);
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 1.5px solid var(--cyan-accent);
-  box-shadow: 0 0 8px var(--cyan-accent);
 }
 
 .chamber-hud-card.root-pos {
@@ -1063,30 +1059,6 @@ input:checked + .switch-slider:before {
   right: 14px;
   border-color: rgba(16, 185, 129, 0.45);
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.75), 0 0 14px rgba(16, 185, 129, 0.2);
-}
-
-.chamber-hud-card.root-pos::before {
-  content: '';
-  position: absolute;
-  left: -24px;
-  top: 48%;
-  width: 24px;
-  height: 1px;
-  background: var(--emerald-primary);
-  box-shadow: 0 0 6px var(--emerald-primary);
-}
-
-.chamber-hud-card.root-pos::after {
-  content: '';
-  position: absolute;
-  left: -30px;
-  top: calc(48% - 3px);
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 1.5px solid var(--emerald-primary);
-  box-shadow: 0 0 8px var(--emerald-primary);
 }
 
 /* Mini Bio-HUD v2.1 Widget */

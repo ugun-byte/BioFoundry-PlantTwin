@@ -1297,6 +1297,44 @@ export class ThreePlantChamber {
     }
   }
 
+  get3dScreenPosition(worldPos) {
+    if (!this.camera || !this.renderer || !this.container) return null;
+    const v = worldPos.clone();
+    v.project(this.camera);
+    const rect = this.container.getBoundingClientRect();
+    const x = ((v.x + 1) / 2) * rect.width;
+    const y = ((-v.y + 1) / 2) * rect.height;
+    const isVisible = v.z < 1.0;
+    return { x, y, isVisible };
+  }
+
+  getPlantAnchorPoints() {
+    let leafWorld = new THREE.Vector3(0.06, 0.65, 0.04);
+    if (this.leaves && this.leaves.length > 0) {
+      // Find active visible leaf in canopy
+      const targetLeaf = this.leaves.find(l => l.mesh && l.mesh.visible) || this.leaves[0];
+      if (targetLeaf && targetLeaf.mesh) {
+        targetLeaf.mesh.getWorldPosition(leafWorld);
+      }
+    } else if (this.stemMesh) {
+      this.stemMesh.getWorldPosition(leafWorld);
+      leafWorld.y += 0.25;
+    }
+
+    let rootWorld = new THREE.Vector3(0.0, 0.35, 0.0);
+    if (this.taprootMesh) {
+      this.taprootMesh.getWorldPosition(rootWorld);
+      rootWorld.y += 0.05;
+    } else if (this.rootGroup) {
+      this.rootGroup.getWorldPosition(rootWorld);
+    }
+
+    return {
+      leafScreen: this.get3dScreenPosition(leafWorld),
+      rootScreen: this.get3dScreenPosition(rootWorld)
+    };
+  }
+
   setupRaycasting() {
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();

@@ -892,6 +892,9 @@ function makeElementDraggable(cardEl, containerEl) {
 
     cardEl.style.left = `${newLeft}px`;
     cardEl.style.top = `${newTop}px`;
+
+    // Real-time zero-latency leader line tracking while dragging
+    updateHudLeaderLines();
   };
 
   const onPointerUp = () => {
@@ -903,6 +906,132 @@ function makeElementDraggable(cardEl, containerEl) {
   };
 
   cardEl.addEventListener("pointerdown", onPointerDown);
+}
+
+/**
+ * Real-Time Dynamic Leader Lines Connecting 3D Plant Tissues to Floating HUD Cards
+ */
+function updateHudLeaderLines() {
+  if (!plantChamber3d || typeof plantChamber3d.getPlantAnchorPoints !== "function") return;
+  const svg = document.getElementById("hudLeaderLineSvg");
+  const leafCard = document.getElementById("hudLeafCard");
+  const rootCard = document.getElementById("hudRootCard");
+  const viewportCard = document.querySelector(".viewport-card");
+
+  if (!svg || !viewportCard) return;
+
+  const anchors = plantChamber3d.getPlantAnchorPoints();
+  const vpRect = viewportCard.getBoundingClientRect();
+
+  // Helper to calculate smart segmented leader line path from 3D projected point to card edge
+  const computeLeaderPath = (tx, ty, cardEl) => {
+    if (!cardEl || cardEl.style.display === "none") return null;
+    const cardRect = cardEl.getBoundingClientRect();
+    const cLeft = cardRect.left - vpRect.left;
+    const cRight = cardRect.right - vpRect.left;
+    const cTop = cardRect.top - vpRect.top;
+    const cBottom = cardRect.bottom - vpRect.top;
+    const cMidY = cTop + cardRect.height / 2;
+
+    let attachX, attachY, elbowX;
+    if (tx < cLeft - 15) {
+      // Plant is to the left of the HUD card -> connect to card's left-center edge
+      attachX = cLeft;
+      attachY = cMidY;
+      elbowX = tx + (attachX - tx) * 0.50;
+    } else if (tx > cRight + 15) {
+      // Plant is to the right of the HUD card -> connect to card's right-center edge
+      attachX = cRight;
+      attachY = cMidY;
+      elbowX = tx + (attachX - tx) * 0.50;
+    } else {
+      // Card is directly above or below the target point
+      attachX = (cLeft + cRight) / 2;
+      attachY = ty < cTop ? cTop : cBottom;
+      elbowX = attachX;
+    }
+
+    const d = `M ${tx.toFixed(1)} ${ty.toFixed(1)} L ${elbowX.toFixed(1)} ${attachY.toFixed(1)} L ${attachX.toFixed(1)} ${attachY.toFixed(1)}`;
+    return { d, attachX, attachY };
+  };
+
+  // 1. Update 3D Leaf Tissue Leader Line
+  const leafLine = document.getElementById("leafLeaderLine");
+  const leafDot = document.getElementById("leafTargetDot");
+  const leafPulse = document.getElementById("leafTargetPulse");
+  const leafCardDot = document.getElementById("leafCardAttachDot");
+
+  if (anchors && anchors.leafScreen && anchors.leafScreen.isVisible && leafCard) {
+    const tx = anchors.leafScreen.x;
+    const ty = anchors.leafScreen.y;
+    const pathInfo = computeLeaderPath(tx, ty, leafCard);
+
+    if (pathInfo) {
+      if (leafLine) {
+        leafLine.setAttribute("d", pathInfo.d);
+        leafLine.style.display = "";
+      }
+      if (leafDot) {
+        leafDot.setAttribute("cx", tx);
+        leafDot.setAttribute("cy", ty);
+        leafDot.style.display = "";
+      }
+      if (leafPulse) {
+        leafPulse.setAttribute("cx", tx);
+        leafPulse.setAttribute("cy", ty);
+        leafPulse.style.display = "";
+      }
+      if (leafCardDot) {
+        leafCardDot.setAttribute("cx", pathInfo.attachX);
+        leafCardDot.setAttribute("cy", pathInfo.attachY);
+        leafCardDot.style.display = "";
+      }
+    }
+  } else {
+    if (leafLine) leafLine.style.display = "none";
+    if (leafDot) leafDot.style.display = "none";
+    if (leafPulse) leafPulse.style.display = "none";
+    if (leafCardDot) leafCardDot.style.display = "none";
+  }
+
+  // 2. Update 3D Root Zone Leader Line
+  const rootLine = document.getElementById("rootLeaderLine");
+  const rootDot = document.getElementById("rootTargetDot");
+  const rootPulse = document.getElementById("rootTargetPulse");
+  const rootCardDot = document.getElementById("rootCardAttachDot");
+
+  if (anchors && anchors.rootScreen && anchors.rootScreen.isVisible && rootCard) {
+    const tx = anchors.rootScreen.x;
+    const ty = anchors.rootScreen.y;
+    const pathInfo = computeLeaderPath(tx, ty, rootCard);
+
+    if (pathInfo) {
+      if (rootLine) {
+        rootLine.setAttribute("d", pathInfo.d);
+        rootLine.style.display = "";
+      }
+      if (rootDot) {
+        rootDot.setAttribute("cx", tx);
+        rootDot.setAttribute("cy", ty);
+        rootDot.style.display = "";
+      }
+      if (rootPulse) {
+        rootPulse.setAttribute("cx", tx);
+        rootPulse.setAttribute("cy", ty);
+        rootPulse.style.display = "";
+      }
+      if (rootCardDot) {
+        rootCardDot.setAttribute("cx", pathInfo.attachX);
+        rootCardDot.setAttribute("cy", pathInfo.attachY);
+        rootCardDot.style.display = "";
+      }
+    }
+  } else {
+    if (rootLine) rootLine.style.display = "none";
+    if (rootDot) rootDot.style.display = "none";
+    if (rootPulse) rootPulse.style.display = "none";
+    if (rootCardDot) rootCardDot.style.display = "none";
+  }
 }
 
 /**
@@ -3641,6 +3770,9 @@ function simulationLoop(now) {
     // 13. Real-Time Dynamic Synchronous Diagnostics Modals Updater
     updateActiveDiagnosticsModals(envTele, crop, plantState, instantPhoto, ionUptake, sapFlowData, now);
   }
+
+  // 14. Real-Time Dynamic 3D Plant Target Leader Lines & Pin Tracker (Runs 60FPS whether running or paused)
+  updateHudLeaderLines();
 
   requestAnimationFrame(simulationLoop);
 }
