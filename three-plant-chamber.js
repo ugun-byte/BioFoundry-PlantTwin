@@ -228,6 +228,19 @@ export class ThreePlantChamber {
     topTrim.position.y = -0.07;
     topCapGroup.add(topTrim);
 
+    // 4 Ceiling Humidification Misting Nozzles (Matching Mockup Image)
+    this.topNozzles = [];
+    for (let i = 0; i < 4; i++) {
+      const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
+      const noz = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.025, 0.035, 0.08, 16),
+        chromeMat
+      );
+      noz.position.set(Math.cos(angle) * 0.72, -0.06, Math.sin(angle) * 0.72);
+      topCapGroup.add(noz);
+      this.topNozzles.push(noz);
+    }
+
     // Circular LED Halo Ring Luminaire (Matching Mockup)
     const ledHaloGeo = new THREE.TorusGeometry(0.68, 0.045, 16, 64);
     this.ledHaloMat = new THREE.MeshStandardMaterial({
@@ -272,23 +285,37 @@ export class ThreePlantChamber {
   }
 
   buildPhysicsParticles() {
-    // 1. Canopy Humid Misting Particles
-    const mistCount = 90;
+    // 1. 4 Ceiling Downward Misting Sprays from 4 Nozzles (Matching Mockup Image)
+    const mistCount = 240;
     const mistGeo = new THREE.BufferGeometry();
     const mistPos = new Float32Array(mistCount * 3);
+    this.mistVelocities = [];
 
+    const nozzleAngles = [Math.PI / 4, 3 * Math.PI / 4, 5 * Math.PI / 4, 7 * Math.PI / 4];
     for (let i = 0; i < mistCount; i++) {
-      mistPos[i * 3 + 0] = (Math.random() - 0.5) * 0.9;
-      mistPos[i * 3 + 1] = 0.5 + Math.random() * 1.2;
-      mistPos[i * 3 + 2] = (Math.random() - 0.5) * 0.9;
+      const nIdx = i % 4;
+      const angle = nozzleAngles[nIdx];
+      const nozzleX = Math.cos(angle) * 0.72;
+      const nozzleZ = Math.sin(angle) * 0.72;
+      const spread = Math.random();
+
+      mistPos[i * 3 + 0] = nozzleX + (Math.random() - 0.5) * 0.45 * spread;
+      mistPos[i * 3 + 1] = 2.18 - spread * 1.35;
+      mistPos[i * 3 + 2] = nozzleZ + (Math.random() - 0.5) * 0.45 * spread;
+
+      this.mistVelocities.push({
+        nIdx,
+        speed: 0.007 + Math.random() * 0.011,
+        angle: angle
+      });
     }
 
     mistGeo.setAttribute('position', new THREE.BufferAttribute(mistPos, 3));
     const mistMat = new THREE.PointsMaterial({
-      color: 0x38ef7d,
-      size: 0.022,
+      color: 0xffffff,
+      size: 0.024,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.5,
       blending: THREE.AdditiveBlending
     });
     this.mistSystem = new THREE.Points(mistGeo, mistMat);
@@ -848,13 +875,25 @@ export class ThreePlantChamber {
 
     if (this.controls) this.controls.update();
 
-    // 1. Canopy Mist Vapor Particles
-    if (this.mistSystem) {
+    // 1. Ceiling Nozzle Downward Mist Cone Vapor Particles
+    if (this.mistSystem && this.mistVelocities) {
       const pos = this.mistSystem.geometry.attributes.position.array;
-      for (let i = 0; i < pos.length / 3; i++) {
-        pos[i * 3 + 1] += 0.006;
-        pos[i * 3 + 0] += Math.sin(this.time + i) * 0.0015;
-        if (pos[i * 3 + 1] > 2.2) pos[i * 3 + 1] = 0.5;
+      const count = pos.length / 3;
+      const nozzleAngles = [Math.PI / 4, 3 * Math.PI / 4, 5 * Math.PI / 4, 7 * Math.PI / 4];
+
+      for (let i = 0; i < count; i++) {
+        const vel = this.mistVelocities[i];
+        pos[i * 3 + 1] -= vel.speed;
+        pos[i * 3 + 0] += Math.sin(this.time * 2.0 + i) * 0.0015;
+        pos[i * 3 + 2] += Math.cos(this.time * 2.0 + i) * 0.0015;
+
+        // Reset particle back at ceiling nozzle
+        if (pos[i * 3 + 1] < 0.75) {
+          const angle = nozzleAngles[vel.nIdx];
+          pos[i * 3 + 0] = Math.cos(angle) * 0.72 + (Math.random() - 0.5) * 0.08;
+          pos[i * 3 + 1] = 2.18;
+          pos[i * 3 + 2] = Math.sin(angle) * 0.72 + (Math.random() - 0.5) * 0.08;
+        }
       }
       this.mistSystem.geometry.attributes.position.needsUpdate = true;
     }

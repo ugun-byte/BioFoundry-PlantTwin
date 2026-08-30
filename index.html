@@ -364,16 +364,16 @@
             <div class="hud-card-header">
               <div style="display:flex; align-items:center; gap:5px;">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path></svg>
-                <span data-i18n="hudLeafHeader">엽면 생체 분석</span>
+                <span>LEAF ANALYSIS</span>
               </div>
               <span class="hud-drag-handle" title="드래그하여 이동">⋮⋮</span>
             </div>
             <div class="hud-stat-grid">
-              <span data-i18n="hudChl">엽록소 a/b</span>
+              <span>Chl a/b</span>
               <b id="hudChlAb">3.21</b>
-              <span data-i18n="hudGs">기공전도도</span>
+              <span>Stomatal Cond.</span>
               <b id="hudStomatalGs">0.36 mol m⁻² s⁻¹</b>
-              <span data-i18n="hudNpq">비광화학 소광</span>
+              <span>NPQ</span>
               <b id="hudNpq">1.28</b>
             </div>
           </div>
@@ -383,18 +383,24 @@
             <div class="hud-card-header emerald">
               <div style="display:flex; align-items:center; gap:5px;">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                <span data-i18n="hudRootHeader">근권 환경 분석</span>
+                <span>ROOT ZONE</span>
               </div>
               <span class="hud-drag-handle" title="드래그하여 이동">⋮⋮</span>
             </div>
             <div class="hud-stat-grid">
-              <span data-i18n="hudRootRh">근권 습도</span>
+              <span>RH</span>
               <b id="hudRootRh">98.7 %</b>
-              <span data-i18n="hudRootTemp">근권 수온</span>
+              <span>Temp</span>
               <b id="hudRootTemp">22.1 °C</b>
-              <span data-i18n="hudRootO2">용존 산소(O₂)</span>
+              <span>O₂</span>
               <b id="hudRootO2">21.3 %</b>
             </div>
+          </div>
+
+          <!-- Mini Bio-HUD v2.1 Badge inside Viewport (Matching Mockup) -->
+          <div class="bio-hud-mini-pill">
+            <span>Bio-HUD v2.1</span>
+            <svg width="22" height="11" viewBox="0 0 24 12" fill="none" stroke="var(--cyan-accent)" stroke-width="1.8"><polyline points="0,10 5,5 11,8 17,2 24,7"></polyline></svg>
           </div>
 
           <!-- Dynamic Raycasting Bio-HUD Pin (Preserved) -->
@@ -416,15 +422,15 @@
             </div>
           </div>
 
-          <!-- Bottom Viewport Tip -->
-          <div class="viewport-bottom-tip" data-i18n="viewportTip">
-            👆 마우스 드래그: 회전 • 휠: 줌 • R: 리셋 • 잎/뿌리 클릭: 생체 HUD
+          <!-- Bottom Viewport Tip & Reset Button -->
+          <div class="viewport-bottom-tip">
+            👆 Click + drag to rotate • Scroll to zoom • R to reset
           </div>
 
           <!-- Reset Camera Button -->
           <button id="btnResetCamera" class="viewport-reset-btn">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
-            <span data-i18n="btnResetCamera">카메라 리셋</span>
+            <span>Reset Camera</span>
           </button>
         </div>
 
