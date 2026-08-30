@@ -42,23 +42,23 @@ export class ThreePlantChamber {
     const w = this.container.clientWidth || 800;
     const h = this.container.clientHeight || 480;
 
-    // 1. Scene with luminous cleanroom deep cyan-slate atmosphere
+    // 1. Scene with pristine dark studio slate background matching mockup
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x101f2f);
-    this.scene.fog = new THREE.FogExp2(0x101f2f, 0.035);
+    this.scene.background = new THREE.Color(0x090e15);
+    this.scene.fog = new THREE.FogExp2(0x090e15, 0.035);
 
     // 2. Camera
-    this.camera = new THREE.PerspectiveCamera(38, w / h, 0.1, 50);
-    this.camera.position.set(0, 1.3, 3.2);
+    this.camera = new THREE.PerspectiveCamera(36, w / h, 0.1, 50);
+    this.camera.position.set(0, 1.25, 3.4);
 
-    // 3. High-End WebGL Renderer with crisp bright exposure
+    // 3. High-End WebGL Renderer with ACES Tone Mapping
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     this.renderer.setSize(w, h);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.32;
+    this.renderer.toneMappingExposure = 1.25;
 
     const oldCanvas = this.container.querySelector("canvas");
     if (oldCanvas) oldCanvas.remove();
@@ -69,10 +69,10 @@ export class ThreePlantChamber {
       this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
       this.controls.dampingFactor = 0.06;
-      this.controls.target.set(0, 0.65, 0);
+      this.controls.target.set(0, 0.72, 0);
       this.controls.maxPolarAngle = Math.PI / 2 - 0.02;
-      this.controls.minDistance = 1.2;
-      this.controls.maxDistance = 5.5;
+      this.controls.minDistance = 1.4;
+      this.controls.maxDistance = 5.0;
     }
 
     window.addEventListener("resize", () => this.onResize());
@@ -94,89 +94,95 @@ export class ThreePlantChamber {
   }
 
   buildBioreactorChamber() {
-    // 1. Hexagonal Base Pedestal
-    const baseGeo = new THREE.CylinderGeometry(1.6, 1.8, 0.18, 6);
+    const chamberGroup = new THREE.Group();
+
+    // 1. Heavy Titanium Base Plinth (Pedestal)
+    const baseGeo = new THREE.CylinderGeometry(1.28, 1.38, 0.16, 48);
     const baseMat = new THREE.MeshStandardMaterial({
-      color: 0x162838,
-      metalness: 0.8,
+      color: 0x141b24,
+      metalness: 0.85,
       roughness: 0.25
     });
     this.basePedestal = new THREE.Mesh(baseGeo, baseMat);
-    this.basePedestal.position.y = 0.09;
+    this.basePedestal.position.y = 0.08;
     this.basePedestal.receiveShadow = true;
-    this.scene.add(this.basePedestal);
+    chamberGroup.add(this.basePedestal);
 
-    // Neon Cyan Ring on base
-    const neonRingGeo = new THREE.TorusGeometry(1.55, 0.015, 16, 64);
-    const neonRingMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
-    const neonRing = new THREE.Mesh(neonRingGeo, neonRingMat);
-    neonRing.rotation.x = Math.PI / 2;
-    neonRing.position.y = 0.18;
-    this.scene.add(neonRing);
+    // Base Polished Chrome Bezel Ring
+    const baseTrimGeo = new THREE.TorusGeometry(1.30, 0.022, 16, 64);
+    const chromeMat = new THREE.MeshStandardMaterial({
+      color: 0x64748b,
+      metalness: 0.95,
+      roughness: 0.15
+    });
+    const baseTrim = new THREE.Mesh(baseTrimGeo, chromeMat);
+    baseTrim.rotation.x = Math.PI / 2;
+    baseTrim.position.y = 0.16;
+    chamberGroup.add(baseTrim);
 
     // Clean Cyber Grid Floor
-    const grid = new THREE.GridHelper(12, 24, 0x00f2fe, 0x0f293d);
-    grid.position.y = 0.0;
-    this.scene.add(grid);
+    const grid = new THREE.GridHelper(10, 20, 0x10b981, 0x111e2e);
+    grid.position.y = 0.001;
+    chamberGroup.add(grid);
 
-    // 2. Hydroponic Culture Basin (Transparent Aeroponic Glass Observation Pod)
-    const basinGroup = new THREE.Group();
-    basinGroup.position.set(0, 0.32, 0);
-
-    // Translucent Glass Basin Body
-    const potGlassGeo = new THREE.CylinderGeometry(0.55, 0.42, 0.32, 32);
-    const potGlassMat = new THREE.MeshPhysicalMaterial({
-      color: 0x0c2438,
+    // 2. Full Cylindrical Transparent Glass Bioreactor Capsule
+    const glassGeo = new THREE.CylinderGeometry(1.14, 1.14, 2.05, 48, 1, true);
+    const glassMat = new THREE.MeshPhysicalMaterial({
+      color: 0xf8fafc,
       transparent: true,
-      opacity: 0.38,
-      roughness: 0.12,
-      metalness: 0.2,
-      transmission: 0.75,
-      ior: 1.45
+      opacity: 0.18,
+      roughness: 0.03,
+      metalness: 0.05,
+      transmission: 0.92,
+      ior: 1.48,
+      reflectivity: 0.75,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04,
+      side: THREE.DoubleSide
     });
-    const potGlass = new THREE.Mesh(potGlassGeo, potGlassMat);
-    basinGroup.add(potGlass);
+    this.glassCapsule = new THREE.Mesh(glassGeo, glassMat);
+    this.glassCapsule.position.y = 1.22;
+    chamberGroup.add(this.glassCapsule);
 
-    // Inner Glowing Nutrient Fluid Reservoir at bottom
-    const liquidGeo = new THREE.CylinderGeometry(0.44, 0.40, 0.08, 32);
-    const liquidMat = new THREE.MeshStandardMaterial({
-      color: 0x059669,
-      roughness: 0.1,
-      transparent: true,
-      opacity: 0.7,
-      emissive: 0x059669,
-      emissiveIntensity: 0.35
-    });
-    const liquid = new THREE.Mesh(liquidGeo, liquidMat);
-    liquid.position.y = -0.11;
-    basinGroup.add(liquid);
-
-    // Cyber Strut Brackets on Pot Exterior
-    const strutMat = new THREE.MeshStandardMaterial({ color: 0x162838, metalness: 0.8, roughness: 0.3 });
+    // Vertical Structural Chrome Struts (4 Columns on Cylinder Exterior)
     for (let i = 0; i < 4; i++) {
-      const angle = (i / 4) * Math.PI * 2;
-      const strut = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.34, 0.04), strutMat);
-      strut.position.set(Math.cos(angle) * 0.52, 0, Math.sin(angle) * 0.52);
-      strut.rotation.y = angle;
-      basinGroup.add(strut);
+      const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
+      const strut = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.015, 0.015, 2.05, 12),
+        chromeMat
+      );
+      strut.position.set(Math.cos(angle) * 1.15, 1.22, Math.sin(angle) * 1.15);
+      chamberGroup.add(strut);
     }
 
-    // Glowing Nutrient Fluid Level Indicator Ring
-    const fluidRingGeo = new THREE.TorusGeometry(0.56, 0.018, 16, 48);
-    const fluidRingMat = new THREE.MeshBasicMaterial({ color: 0x38ef7d });
-    const fluidRing = new THREE.Mesh(fluidRingGeo, fluidRingMat);
-    fluidRing.rotation.x = Math.PI / 2;
-    fluidRing.position.y = 0.08;
-    basinGroup.add(fluidRing);
+    // 3. Middle Floating Hydroponic / Aeroponic Collar Plate
+    const collarGroup = new THREE.Group();
+    collarGroup.position.set(0, 0.48, 0);
 
-    // Top Net Cup Collar
-    const collarGeo = new THREE.CylinderGeometry(0.24, 0.18, 0.08, 24);
-    const collarMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
-    const collar = new THREE.Mesh(collarGeo, collarMat);
-    collar.position.y = 0.16;
-    basinGroup.add(collar);
+    const plateGeo = new THREE.CylinderGeometry(1.12, 1.12, 0.05, 48);
+    const plateMat = new THREE.MeshStandardMaterial({
+      color: 0x0f172a,
+      metalness: 0.8,
+      roughness: 0.4
+    });
+    const plate = new THREE.Mesh(plateGeo, plateMat);
+    collarGroup.add(plate);
 
-    // 4 Miniature Aeroponic Misting Nozzles
+    // Perforated Net Collar Ring
+    const netCollarGeo = new THREE.CylinderGeometry(0.24, 0.18, 0.06, 24);
+    const netCollarMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+    const netCollar = new THREE.Mesh(netCollarGeo, netCollarMat);
+    netCollar.position.y = 0.03;
+    collarGroup.add(netCollar);
+
+    // Glowing Aeroponic Basin Fluid Indicator Ring
+    const basinRingGeo = new THREE.TorusGeometry(1.13, 0.012, 16, 48);
+    const basinRingMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+    const basinRing = new THREE.Mesh(basinRingGeo, basinRingMat);
+    basinRing.rotation.x = Math.PI / 2;
+    collarGroup.add(basinRing);
+
+    // 4 Miniature Aeroponic Misting Nozzles in Root Basin
     this.mistingNozzles = [];
     for (let i = 0; i < 4; i++) {
       const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
@@ -184,66 +190,84 @@ export class ThreePlantChamber {
         new THREE.CylinderGeometry(0.015, 0.02, 0.04, 12),
         new THREE.MeshStandardMaterial({ color: 0x00f2fe, metalness: 0.9, roughness: 0.1 })
       );
-      noz.position.set(Math.cos(angle) * 0.36, 0.12, Math.sin(angle) * 0.36);
-      noz.rotation.z = Math.cos(angle) * 0.7;
-      noz.rotation.x = Math.sin(angle) * 0.7;
-      basinGroup.add(noz);
+      noz.position.set(Math.cos(angle) * 0.45, -0.06, Math.sin(angle) * 0.45);
+      noz.rotation.z = Math.cos(angle) * 0.6;
+      noz.rotation.x = Math.sin(angle) * 0.6;
+      collarGroup.add(noz);
       this.mistingNozzles.push(noz);
     }
 
-    this.scene.add(basinGroup);
+    // Lower Nutrient Fluid Layer at base
+    const liquidGeo = new THREE.CylinderGeometry(1.10, 1.10, 0.06, 48);
+    const liquidMat = new THREE.MeshStandardMaterial({
+      color: 0x059669,
+      roughness: 0.15,
+      transparent: true,
+      opacity: 0.6,
+      emissive: 0x059669,
+      emissiveIntensity: 0.25
+    });
+    const liquid = new THREE.Mesh(liquidGeo, liquidMat);
+    liquid.position.y = -0.36;
+    collarGroup.add(liquid);
 
-    // 3. Top LED Luminaire Array Fixture
+    chamberGroup.add(collarGroup);
+
+    // 4. Top Titanium Cap & Circular LED Halo Array
     const topCapGroup = new THREE.Group();
-    topCapGroup.position.set(0, 2.6, 0);
+    topCapGroup.position.set(0, 2.25, 0);
 
-    const fixtureGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.08, 6);
-    const fixtureMat = new THREE.MeshStandardMaterial({ color: 0x111e2b, metalness: 0.8, roughness: 0.3 });
-    const fixture = new THREE.Mesh(fixtureGeo, fixtureMat);
-    topCapGroup.add(fixture);
+    const topFixtureGeo = new THREE.CylinderGeometry(1.24, 1.24, 0.14, 48);
+    const topFixture = new THREE.Mesh(topFixtureGeo, baseMat);
+    topCapGroup.add(topFixture);
 
-    // LED emitter bars
-    this.ledDiodes = [];
-    for (let i = 0; i < 6; i++) {
-      const angle = (i / 6) * Math.PI * 2;
-      const barGeo = new THREE.BoxGeometry(0.06, 0.02, 0.45);
-      const barMat = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        emissive: 0xffffff,
-        emissiveIntensity: 0.6
-      });
-      const bar = new THREE.Mesh(barGeo, barMat);
-      bar.position.set(Math.cos(angle) * 0.55, -0.04, Math.sin(angle) * 0.55);
-      bar.rotation.y = angle;
-      topCapGroup.add(bar);
-      this.ledDiodes.push(bar);
-    }
-    this.scene.add(topCapGroup);
+    // Top Chrome Trim Ring
+    const topTrimGeo = new THREE.TorusGeometry(1.25, 0.02, 16, 64);
+    const topTrim = new THREE.Mesh(topTrimGeo, chromeMat);
+    topTrim.rotation.x = Math.PI / 2;
+    topTrim.position.y = -0.07;
+    topCapGroup.add(topTrim);
 
-    // 4. Real-time Physical Light Sources
-    this.ambientLight = new THREE.AmbientLight(0x325980, 1.45);
+    // Circular LED Halo Ring Luminaire (Matching Mockup)
+    const ledHaloGeo = new THREE.TorusGeometry(0.68, 0.045, 16, 64);
+    this.ledHaloMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0xffffff,
+      emissiveIntensity: 2.8,
+      roughness: 0.2
+    });
+    this.ledHaloMesh = new THREE.Mesh(ledHaloGeo, this.ledHaloMat);
+    this.ledHaloMesh.rotation.x = Math.PI / 2;
+    this.ledHaloMesh.position.y = -0.06;
+    topCapGroup.add(this.ledHaloMesh);
+
+    chamberGroup.add(topCapGroup);
+    this.scene.add(chamberGroup);
+
+    // 5. Realistic Physical Lighting
+    this.ambientLight = new THREE.AmbientLight(0x1e293b, 1.6);
     this.scene.add(this.ambientLight);
 
-    // Main Top LED Grow Spotlight
-    this.growSpotLight = new THREE.SpotLight(0xfffaed, 4.6);
-    this.growSpotLight.position.set(0, 2.55, 0);
+    // Downward Spotlight through Halo Ring
+    this.growSpotLight = new THREE.SpotLight(0xfffaed, 5.0);
+    this.growSpotLight.position.set(0, 2.22, 0);
     this.growSpotLight.angle = Math.PI / 3.0;
-    this.growSpotLight.penumbra = 0.5;
-    this.growSpotLight.decay = 1.5;
-    this.growSpotLight.distance = 5.0;
+    this.growSpotLight.penumbra = 0.55;
+    this.growSpotLight.decay = 1.3;
+    this.growSpotLight.distance = 4.5;
     this.growSpotLight.castShadow = true;
     this.growSpotLight.shadow.mapSize.width = 1024;
     this.growSpotLight.shadow.mapSize.height = 1024;
     this.growSpotLight.shadow.bias = -0.0005;
     this.scene.add(this.growSpotLight);
 
-    // Luminous Cyan/Emerald Fill Lights
-    this.sideFillLight = new THREE.PointLight(0x00f2fe, 0.95, 6);
-    this.sideFillLight.position.set(1.8, 1.5, 1.8);
+    // Fill Lighting
+    this.sideFillLight = new THREE.PointLight(0x00f2fe, 0.8, 5);
+    this.sideFillLight.position.set(1.6, 1.4, 1.6);
     this.scene.add(this.sideFillLight);
 
-    this.accentGoldLight = new THREE.PointLight(0xffd32a, 0.7, 5);
-    this.accentGoldLight.position.set(-1.8, 1.2, -1.2);
+    this.accentGoldLight = new THREE.PointLight(0x10b981, 0.6, 5);
+    this.accentGoldLight.position.set(-1.6, 1.1, -1.4);
     this.scene.add(this.accentGoldLight);
   }
 
@@ -705,21 +729,23 @@ export class ThreePlantChamber {
       const spectrumColor = new THREE.Color(r, g, b);
 
       this.growSpotLight.color.lerp(spectrumColor, 0.1);
-      this.growSpotLight.intensity = (sensors.ppfd / 800) * 4.8;
+      this.growSpotLight.intensity = (sensors.ppfd / 800) * 5.2;
 
-      this.ledDiodes.forEach((diode) => {
-        diode.material.color.lerp(spectrumColor, 0.1);
-      });
+      if (this.ledHaloMat) {
+        this.ledHaloMat.emissive.lerp(spectrumColor, 0.1);
+        this.ledHaloMat.emissiveIntensity = Math.min(3.5, (sensors.ppfd / 800) * 3.2 + 0.4);
+      }
 
-      this.ambientLight.color.setHex(0x325980);
-      this.ambientLight.intensity = 1.45;
+      this.ambientLight.color.setHex(0x1e293b);
+      this.ambientLight.intensity = 1.6;
     } else {
       this.growSpotLight.intensity = 0.2;
-      this.ledDiodes.forEach((diode) => {
-        diode.material.color.setHex(0x0f283d);
-      });
-      this.ambientLight.color.setHex(0x0b1d2e);
-      this.ambientLight.intensity = 0.45;
+      if (this.ledHaloMat) {
+        this.ledHaloMat.emissive.setHex(0x0f283d);
+        this.ledHaloMat.emissiveIntensity = 0.25;
+      }
+      this.ambientLight.color.setHex(0x090e15);
+      this.ambientLight.intensity = 0.5;
     }
 
     // 2. Mist opacity

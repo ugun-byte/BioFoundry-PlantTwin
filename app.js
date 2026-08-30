@@ -378,12 +378,23 @@ function bindEventListeners() {
   });
 
   // Two-way synchronization binding for slider and direct number input
+  const updateSliderFill = (slider) => {
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 100;
+    const val = parseFloat(slider.value) || min;
+    const pct = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
+    slider.style.setProperty("--slider-pct", `${pct}%`);
+  };
+
   const bindTwoWayControl = (slider, numInput, callback) => {
     if (!slider || !numInput) return;
+    updateSliderFill(slider);
     
     slider.addEventListener("input", (e) => {
       const val = parseFloat(e.target.value);
       numInput.value = val;
+      updateSliderFill(slider);
       callback(val);
     });
 
@@ -394,6 +405,7 @@ function bindEventListeners() {
       const max = parseFloat(slider.max);
       const clamped = Math.min(max, Math.max(min, val));
       slider.value = clamped;
+      updateSliderFill(slider);
       callback(clamped);
     });
 
@@ -405,6 +417,7 @@ function bindEventListeners() {
       const clamped = Math.min(max, Math.max(min, val));
       numInput.value = clamped;
       slider.value = clamped;
+      updateSliderFill(slider);
       callback(clamped);
     });
   };

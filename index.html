@@ -136,7 +136,10 @@
               <span class="slider-label" data-i18n="sliderPpfd">광량 (PPFD)</span>
               <span class="slider-unit">μmol/m²/s</span>
             </div>
-            <input type="range" id="sliderPpfd" min="0" max="1000" step="5" value="487" class="slider-input-track">
+            <div class="slider-track-wrap">
+              <input type="range" id="sliderPpfd" min="0" max="1000" step="5" value="487" class="slider-input-track">
+              <div class="slider-minmax-row"><span>0</span><span>1000</span></div>
+            </div>
             <input type="number" id="inputPpfd" class="slider-num-input" min="0" max="1000" step="5" value="487" title="직접 수치 입력">
           </div>
 
@@ -149,7 +152,10 @@
               <span class="slider-label" data-i18n="sliderPhotoperiod">일장 (광주기)</span>
               <span class="slider-unit">h</span>
             </div>
-            <input type="range" id="sliderPhotoperiod" min="0" max="24" step="1" value="16" class="slider-input-track">
+            <div class="slider-track-wrap">
+              <input type="range" id="sliderPhotoperiod" min="0" max="24" step="1" value="16" class="slider-input-track">
+              <div class="slider-minmax-row"><span>0</span><span>24</span></div>
+            </div>
             <input type="number" id="inputPhotoperiod" class="slider-num-input" min="0" max="24" step="1" value="16" title="직접 수치 입력">
           </div>
 
@@ -160,7 +166,10 @@
               <span class="slider-label" data-i18n="sliderRed">적색 분광 (Red)</span>
               <span class="slider-unit">%</span>
             </div>
-            <input type="range" id="sliderRed" min="0" max="100" step="1" value="62" class="slider-input-track">
+            <div class="slider-track-wrap">
+              <input type="range" id="sliderRed" min="0" max="100" step="1" value="62" class="slider-input-track">
+              <div class="slider-minmax-row"><span>0</span><span>100</span></div>
+            </div>
             <input type="number" id="inputRed" class="slider-num-input" min="0" max="100" step="1" value="62" title="직접 수치 입력">
           </div>
 
@@ -171,7 +180,10 @@
               <span class="slider-label" data-i18n="sliderBlue">청색 분광 (Blue)</span>
               <span class="slider-unit">%</span>
             </div>
-            <input type="range" id="sliderBlue" min="0" max="100" step="1" value="18" class="slider-input-track">
+            <div class="slider-track-wrap">
+              <input type="range" id="sliderBlue" min="0" max="100" step="1" value="18" class="slider-input-track">
+              <div class="slider-minmax-row"><span>0</span><span>100</span></div>
+            </div>
             <input type="number" id="inputBlue" class="slider-num-input" min="0" max="100" step="1" value="18" title="직접 수치 입력">
           </div>
 
@@ -182,7 +194,10 @@
               <span class="slider-label" data-i18n="sliderGreen">녹색 분광 (Green)</span>
               <span class="slider-unit">%</span>
             </div>
-            <input type="range" id="sliderGreen" min="0" max="100" step="1" value="10" class="slider-input-track">
+            <div class="slider-track-wrap">
+              <input type="range" id="sliderGreen" min="0" max="100" step="1" value="10" class="slider-input-track">
+              <div class="slider-minmax-row"><span>0</span><span>100</span></div>
+            </div>
             <input type="number" id="inputGreen" class="slider-num-input" min="0" max="100" step="1" value="10" title="직접 수치 입력">
           </div>
 
@@ -193,7 +208,10 @@
               <span class="slider-label" data-i18n="sliderFarRed">원적색 분광 (Far-Red)</span>
               <span class="slider-unit">%</span>
             </div>
-            <input type="range" id="sliderFarRed" min="0" max="100" step="1" value="10" class="slider-input-track">
+            <div class="slider-track-wrap">
+              <input type="range" id="sliderFarRed" min="0" max="100" step="1" value="10" class="slider-input-track">
+              <div class="slider-minmax-row"><span>0</span><span>100</span></div>
+            </div>
             <input type="number" id="inputFarRed" class="slider-num-input" min="0" max="100" step="1" value="10" title="직접 수치 입력">
           </div>
 
@@ -206,7 +224,10 @@
               <span class="slider-label" data-i18n="sliderDayTemp">주간 온도</span>
               <span class="slider-unit">°C</span>
             </div>
-            <input type="range" id="sliderDayTemp" min="15" max="35" step="0.1" value="24.6" class="slider-input-track">
+            <div class="slider-track-wrap">
+              <input type="range" id="sliderDayTemp" min="15" max="35" step="0.1" value="24.6" class="slider-input-track">
+              <div class="slider-minmax-row"><span>15</span><span>35</span></div>
+            </div>
             <input type="number" id="inputDayTemp" class="slider-num-input" min="15" max="35" step="0.1" value="24.6" title="직접 수치 입력">
           </div>
 
@@ -219,7 +240,10 @@
               <span class="slider-label" data-i18n="sliderNightTemp">야간 온도</span>
               <span class="slider-unit">°C</span>
             </div>
-            <input type="range" id="sliderNightTemp" min="10" max="25" step="0.1" value="20.1" class="slider-input-track">
+            <div class="slider-track-wrap">
+              <input type="range" id="sliderNightTemp" min="10" max="25" step="0.1" value="20.1" class="slider-input-track">
+              <div class="slider-minmax-row"><span>10</span><span>25</span></div>
+            </div>
             <input type="number" id="inputNightTemp" class="slider-num-input" min="10" max="25" step="0.1" value="20.1" title="직접 수치 입력">
           </div>
 
@@ -232,7 +256,10 @@
               <span class="slider-label" data-i18n="sliderHumidity">상대 습도</span>
               <span class="slider-unit">%</span>
             </div>
-            <input type="range" id="sliderHumidity" min="20" max="100" step="0.5" value="69.2" class="slider-input-track">
+            <div class="slider-track-wrap">
+              <input type="range" id="sliderHumidity" min="20" max="100" step="0.5" value="69.2" class="slider-input-track">
+              <div class="slider-minmax-row"><span>20</span><span>100</span></div>
+            </div>
             <input type="number" id="inputHumidity" class="slider-num-input" min="20" max="100" step="0.5" value="69.2" title="직접 수치 입력">
           </div>
 
@@ -245,7 +272,10 @@
               <span class="slider-label" data-i18n="sliderCo2">CO₂ 농도</span>
               <span class="slider-unit">ppm</span>
             </div>
-            <input type="range" id="sliderCo2" min="200" max="2000" step="10" value="825" class="slider-input-track">
+            <div class="slider-track-wrap">
+              <input type="range" id="sliderCo2" min="200" max="2000" step="10" value="825" class="slider-input-track">
+              <div class="slider-minmax-row"><span>200</span><span>2000</span></div>
+            </div>
             <input type="number" id="inputCo2" class="slider-num-input" min="200" max="2000" step="10" value="825" title="직접 수치 입력">
           </div>
 
@@ -258,7 +288,10 @@
               <span class="slider-label" data-i18n="sliderEc">양액 전기전도도</span>
               <span class="slider-unit">mS/cm</span>
             </div>
-            <input type="range" id="sliderEc" min="0.5" max="4.0" step="0.05" value="2.31" class="slider-input-track">
+            <div class="slider-track-wrap">
+              <input type="range" id="sliderEc" min="0.5" max="4.0" step="0.05" value="2.31" class="slider-input-track">
+              <div class="slider-minmax-row"><span>0.5</span><span>4.0</span></div>
+            </div>
             <input type="number" id="inputEc" class="slider-num-input" min="0.5" max="4.0" step="0.05" value="2.31" title="직접 수치 입력">
           </div>
 
