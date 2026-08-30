@@ -891,15 +891,15 @@ export class LiveTelemetryCharts {
     ctx.fillStyle = "rgba(4, 11, 20, 0.95)";
     ctx.fillRect(0, 0, w, h);
 
-    const padL = 50 * dpr;
-    const padR = 25 * dpr;
-    const padT = 30 * dpr;
-    const padB = 35 * dpr;
+    const padL = 60 * dpr;
+    const padR = 30 * dpr;
+    const padT = 36 * dpr;
+    const padB = 42 * dpr;
     const plotW = w - padL - padR;
     const plotH = h - padT - padB;
 
     // Grid lines
-    ctx.strokeStyle = "rgba(6, 182, 212, 0.1)";
+    ctx.strokeStyle = "rgba(6, 182, 212, 0.15)";
     ctx.lineWidth = 1 * dpr;
     for (let wl = 400; wl <= 900; wl += 100) {
       const x = padL + ((wl - 400) / 500) * plotW;
@@ -908,9 +908,9 @@ export class LiveTelemetryCharts {
       ctx.lineTo(x, padT + plotH);
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-      ctx.font = `${9 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`${wl}nm`, x - 12 * dpr, padT + plotH + 16 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${wl}nm`, x - 16 * dpr, padT + plotH + 20 * dpr);
     }
 
     // Reflectance Y-axis
@@ -921,19 +921,19 @@ export class LiveTelemetryCharts {
       ctx.lineTo(padL + plotW, y);
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-      ctx.font = `${9 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`${(r * 100).toFixed(0)}%`, 12 * dpr, y + 3 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${(r * 100).toFixed(0)}%`, 14 * dpr, y + 4 * dpr);
     }
 
     // Visible Spectrum Color Gradient Bar along X-axis
     const specGrad = ctx.createLinearGradient(padL, 0, padL + (300 / 500) * plotW, 0);
-    specGrad.addColorStop(0.0, "rgba(59, 130, 246, 0.35)");  // Blue 400nm
-    specGrad.addColorStop(0.35, "rgba(16, 185, 129, 0.35)"); // Green 550nm
-    specGrad.addColorStop(0.7, "rgba(239, 68, 68, 0.35)");   // Red 680nm
-    specGrad.addColorStop(1.0, "rgba(168, 85, 247, 0.35)");  // NIR 750nm+
+    specGrad.addColorStop(0.0, "rgba(59, 130, 246, 0.45)");  // Blue 400nm
+    specGrad.addColorStop(0.35, "rgba(16, 185, 129, 0.45)"); // Green 550nm
+    specGrad.addColorStop(0.7, "rgba(239, 68, 68, 0.45)");   // Red 680nm
+    specGrad.addColorStop(1.0, "rgba(168, 85, 247, 0.45)");  // NIR 750nm+
     ctx.fillStyle = specGrad;
-    ctx.fillRect(padL, padT + plotH + 3 * dpr, plotW, 4 * dpr);
+    ctx.fillRect(padL, padT + plotH + 4 * dpr, plotW, 5 * dpr);
 
     // 2. Plot Hyperspectral Curve
     const curve = hsData.spectralCurve || [];
@@ -960,7 +960,7 @@ export class LiveTelemetryCharts {
       ctx.shadowColor = "#06b6d4";
       ctx.shadowBlur = 10 * dpr;
       ctx.strokeStyle = "#22d3ee";
-      ctx.lineWidth = 2.5 * dpr;
+      ctx.lineWidth = 2.8 * dpr;
       ctx.beginPath();
       curve.forEach((pt, i) => {
         const x = padL + ((pt.wavelength - 400) / 500) * plotW;
@@ -975,8 +975,8 @@ export class LiveTelemetryCharts {
       const redEdgeX = padL + ((705 - 400) / 500) * plotW;
       const redEdgeY = padT + (1.0 - 0.42) * plotH;
       ctx.fillStyle = "#fbbf24";
-      ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText("⚡ Red Edge Transition", redEdgeX + 8 * dpr, redEdgeY - 6 * dpr);
+      ctx.font = `bold ${13 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText("⚡ Red Edge Transition", redEdgeX + 8 * dpr, redEdgeY - 8 * dpr);
     }
   }
 
@@ -1003,17 +1003,17 @@ export class LiveTelemetryCharts {
     ctx.fillStyle = "rgba(4, 11, 20, 0.95)";
     ctx.fillRect(0, 0, w, h);
 
-    const padL = 50 * dpr;
-    const padR = 25 * dpr;
-    const padT = 25 * dpr;
-    const padB = 30 * dpr;
+    const padL = 60 * dpr;
+    const padR = 30 * dpr;
+    const padT = 30 * dpr;
+    const padB = 38 * dpr;
     const plotW = w - padL - padR;
     const plotH = h - padT - padB;
     const centerY = padT + plotH / 2;
 
-    ctx.strokeStyle = "rgba(236, 72, 153, 0.1)";
+    ctx.strokeStyle = "rgba(236, 72, 153, 0.15)";
     ctx.lineWidth = 1 * dpr;
-    for (let x = padL; x <= padL + plotW; x += 55 * dpr) {
+    for (let x = padL; x <= padL + plotW; x += 65 * dpr) {
       ctx.beginPath();
       ctx.moveTo(x, padT);
       ctx.lineTo(x, padT + plotH);
@@ -1022,21 +1022,21 @@ export class LiveTelemetryCharts {
     ctx.beginPath();
     ctx.moveTo(padL, centerY);
     ctx.lineTo(padL + plotW, centerY);
-    ctx.strokeStyle = "rgba(236, 72, 153, 0.25)";
+    ctx.strokeStyle = "rgba(236, 72, 153, 0.35)";
     ctx.stroke();
 
     // Time Axis Labels
-    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-    ctx.font = `${9 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("0 ms (Trigger)", padL, padT + plotH + 16 * dpr);
-    ctx.fillText("25 ms", padL + plotW * 0.25, padT + plotH + 16 * dpr);
-    ctx.fillText("50 ms", padL + plotW * 0.5, padT + plotH + 16 * dpr);
-    ctx.fillText("75 ms", padL + plotW * 0.75, padT + plotH + 16 * dpr);
-    ctx.fillText("100 ms (Sampling Window)", padL + plotW - 90 * dpr, padT + plotH + 16 * dpr);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+    ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("0 ms (Trigger)", padL, padT + plotH + 20 * dpr);
+    ctx.fillText("25 ms", padL + plotW * 0.25, padT + plotH + 20 * dpr);
+    ctx.fillText("50 ms", padL + plotW * 0.5, padT + plotH + 20 * dpr);
+    ctx.fillText("75 ms", padL + plotW * 0.75, padT + plotH + 20 * dpr);
+    ctx.fillText("100 ms (Sampling Window)", padL + plotW - 120 * dpr, padT + plotH + 20 * dpr);
 
-    ctx.fillText("+1.0 V", 12 * dpr, padT + 8 * dpr);
-    ctx.fillText("0.0 V", 15 * dpr, centerY + 3 * dpr);
-    ctx.fillText("-1.0 V", 15 * dpr, padT + plotH - 2 * dpr);
+    ctx.fillText("+1.0 V", 14 * dpr, padT + 10 * dpr);
+    ctx.fillText("0.0 V", 18 * dpr, centerY + 4 * dpr);
+    ctx.fillText("-1.0 V", 16 * dpr, padT + plotH - 2 * dpr);
 
     // 2. Synthesize High-Frequency Ultrasonic Waveform
     const numPoints = 280;
@@ -1047,7 +1047,7 @@ export class LiveTelemetryCharts {
     ctx.shadowColor = "#ec4899";
     ctx.shadowBlur = 10 * dpr;
     ctx.strokeStyle = "#f472b6";
-    ctx.lineWidth = 2.2 * dpr;
+    ctx.lineWidth = 2.5 * dpr;
     ctx.beginPath();
 
     for (let i = 0; i < numPoints; i++) {
@@ -1068,8 +1068,8 @@ export class LiveTelemetryCharts {
 
     // Amplitude Peak Marker
     ctx.fillStyle = "#ec4899";
-    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText(`⚡ Cavitation Burst Peak: ${uaeData.peakFreqKhz || 62.5} kHz (${uaeData.amplitudeDb || 38} dB_AE)`, padL + 15 * dpr, padT + 18 * dpr);
+    ctx.font = `bold ${13 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`⚡ Cavitation Burst Peak: ${uaeData.peakFreqKhz || 62.5} kHz (${uaeData.amplitudeDb || 38} dB_AE)`, padL + 15 * dpr, padT + 20 * dpr);
   }
 
   /**
@@ -1095,17 +1095,17 @@ export class LiveTelemetryCharts {
     ctx.fillStyle = "rgba(4, 11, 20, 0.96)";
     ctx.fillRect(0, 0, w, h);
 
-    const padL = 55 * dpr;
-    const padR = 25 * dpr;
-    const padT = 32 * dpr;
-    const padB = 35 * dpr;
+    const padL = 65 * dpr;
+    const padR = 30 * dpr;
+    const padT = 38 * dpr;
+    const padB = 42 * dpr;
     const plotW = w - padL - padR;
     const plotH = h - padT - padB;
     const maxMau = 950.0;
     const maxTimeMin = 22.0;
 
     // Time X-Axis Grid Lines (every 2.0 min)
-    ctx.strokeStyle = "rgba(234, 179, 8, 0.08)";
+    ctx.strokeStyle = "rgba(234, 179, 8, 0.12)";
     ctx.lineWidth = 1 * dpr;
     for (let t = 0; t <= maxTimeMin; t += 2.0) {
       const x = padL + (t / maxTimeMin) * plotW;
@@ -1114,9 +1114,9 @@ export class LiveTelemetryCharts {
       ctx.lineTo(x, padT + plotH);
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-      ctx.font = `${9 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`${t.toFixed(0)} min`, x - 10 * dpr, padT + plotH + 16 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${t.toFixed(0)} min`, x - 12 * dpr, padT + plotH + 20 * dpr);
     }
 
     // Absorbance Y-Axis (0 to 800 mAU)
@@ -1127,9 +1127,9 @@ export class LiveTelemetryCharts {
       ctx.lineTo(padL + plotW, y);
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-      ctx.font = `${9 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`${m} mAU`, 10 * dpr, y + 3 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${m} mAU`, 12 * dpr, y + 4 * dpr);
     }
 
     // 2. Render Shaded Peak Areas
@@ -1140,9 +1140,9 @@ export class LiveTelemetryCharts {
 
       // Peak Drop Line
       ctx.save();
-      ctx.setLineDash([2 * dpr, 2 * dpr]);
-      ctx.strokeStyle = p.isTarget ? "rgba(251, 191, 36, 0.6)" : "rgba(255, 255, 255, 0.2)";
-      ctx.lineWidth = 1 * dpr;
+      ctx.setLineDash([3 * dpr, 3 * dpr]);
+      ctx.strokeStyle = p.isTarget ? "rgba(251, 191, 36, 0.75)" : "rgba(255, 255, 255, 0.3)";
+      ctx.lineWidth = 1.2 * dpr;
       ctx.beginPath();
       ctx.moveTo(peakX, peakY);
       ctx.lineTo(peakX, padT + plotH);
@@ -1151,16 +1151,16 @@ export class LiveTelemetryCharts {
 
       // Peak Tag Badge
       ctx.fillStyle = p.isTarget ? "#fbbf24" : (p.color || "#38bdf8");
-      ctx.font = `bold ${(p.isTarget ? 10.5 : 9) * dpr}px 'Inter', sans-serif`;
+      ctx.font = `bold ${(p.isTarget ? 13.5 : 12) * dpr}px 'Inter', sans-serif`;
       const badgeText = p.isTarget ? `★ ${p.name.split(' ')[0]} (${p.rt}m)` : `${p.name.split(' ')[0]} (${p.rt}m)`;
-      ctx.fillText(badgeText, peakX - 20 * dpr, Math.max(padT - 6 * dpr, peakY - 8 * dpr));
+      ctx.fillText(badgeText, peakX - 25 * dpr, Math.max(padT - 8 * dpr, peakY - 10 * dpr));
     });
 
     // 3. Draw Continuous Chromatogram Baseline & Absorbance Curve
     const curve = hplcData.chromatogramCurve || [];
     if (curve.length > 0) {
       const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
-      grad.addColorStop(0, "rgba(234, 179, 8, 0.35)");
+      grad.addColorStop(0, "rgba(234, 179, 8, 0.4)");
       grad.addColorStop(1, "rgba(234, 179, 8, 0.0)");
 
       ctx.beginPath();
@@ -1179,9 +1179,9 @@ export class LiveTelemetryCharts {
       // Stroke Chromatogram Trace
       ctx.save();
       ctx.shadowColor = "#eab308";
-      ctx.shadowBlur = 8 * dpr;
+      ctx.shadowBlur = 10 * dpr;
       ctx.strokeStyle = "#facc15";
-      ctx.lineWidth = 2.2 * dpr;
+      ctx.lineWidth = 2.6 * dpr;
       ctx.beginPath();
       curve.forEach((pt, i) => {
         const x = padL + (pt.timeMin / maxTimeMin) * plotW;
@@ -1195,8 +1195,8 @@ export class LiveTelemetryCharts {
 
     // Detector & Method Info Header
     ctx.fillStyle = "#fef08a";
-    ctx.font = `bold ${9.5 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText(`UV/Vis λ=450nm | Flow: 1.0 mL/min | Column: C18 (250x4.6mm)`, padL + 10 * dpr, padT + 12 * dpr);
+    ctx.font = `bold ${13 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`UV/Vis λ=450nm | Flow: 1.0 mL/min | Column: C18 (250x4.6mm)`, padL + 12 * dpr, padT + 14 * dpr);
   }
 
   /**
@@ -1222,11 +1222,11 @@ export class LiveTelemetryCharts {
     ctx.fillStyle = "rgba(4, 11, 20, 0.96)";
     ctx.fillRect(0, 0, w, h);
 
-    const padL = 45 * dpr;
-    const padR = 20 * dpr;
-    const padT = 30 * dpr;
-    const padB = 32 * dpr;
-    const midGap = 35 * dpr;
+    const padL = 55 * dpr;
+    const padR = 25 * dpr;
+    const padT = 38 * dpr;
+    const padB = 40 * dpr;
+    const midGap = 40 * dpr;
     const singlePlotW = (w - padL - padR - midGap) / 2;
     const plotH = h - padT - padB;
 
@@ -1239,7 +1239,7 @@ export class LiveTelemetryCharts {
     const maxImag = maxReal * 0.45;
 
     // Grid lines for Nyquist
-    ctx.strokeStyle = "rgba(139, 92, 246, 0.1)";
+    ctx.strokeStyle = "rgba(139, 92, 246, 0.15)";
     ctx.lineWidth = 1 * dpr;
     for (let r = 0; r <= maxReal; r += 1000) {
       const x = padL + (r / maxReal) * singlePlotW;
@@ -1248,9 +1248,9 @@ export class LiveTelemetryCharts {
       ctx.lineTo(x, padT + plotH);
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-      ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`${r}Ω`, x - 8 * dpr, padT + plotH + 14 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${r}Ω`, x - 10 * dpr, padT + plotH + 18 * dpr);
     }
     for (let im = 0; im <= maxImag; im += 400) {
       const y = padT + ((maxImag - im) / maxImag) * plotH;
@@ -1259,23 +1259,23 @@ export class LiveTelemetryCharts {
       ctx.lineTo(padL + singlePlotW, y);
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-      ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`${im}Ω`, padL - 32 * dpr, y + 3 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${im}Ω`, padL - 40 * dpr, y + 4 * dpr);
     }
 
     // Pane 1 Title
     ctx.fillStyle = "#c084fc";
-    ctx.font = `bold ${9.5 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("① Nyquist Cole-Cole Arc (Z' vs -Z'')", padL, padT - 10 * dpr);
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① Nyquist Cole-Cole Arc (Z' vs -Z'')", padL, padT - 12 * dpr);
 
     // Plot Nyquist Depressed Arc
     if (sweep.length > 0) {
       ctx.save();
       ctx.shadowColor = "#a855f7";
-      ctx.shadowBlur = 8 * dpr;
+      ctx.shadowBlur = 10 * dpr;
       ctx.strokeStyle = "#c084fc";
-      ctx.lineWidth = 2.4 * dpr;
+      ctx.lineWidth = 2.8 * dpr;
       ctx.beginPath();
       sweep.forEach((pt, i) => {
         const x = padL + (pt.zReal / maxReal) * singlePlotW;
@@ -1292,10 +1292,10 @@ export class LiveTelemetryCharts {
       const baseLineY = padT + plotH;
 
       ctx.fillStyle = "#38bdf8";
-      ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`R_inf`, rInfX - 6 * dpr, baseLineY - 6 * dpr);
+      ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`R_inf`, rInfX - 8 * dpr, baseLineY - 8 * dpr);
       ctx.fillStyle = "#fbbf24";
-      ctx.fillText(`R_0=Re`, r0X - 10 * dpr, baseLineY - 6 * dpr);
+      ctx.fillText(`R_0=Re`, r0X - 12 * dpr, baseLineY - 8 * dpr);
 
       // Apex Characteristic Frequency Marker
       const fcPt = sweep[Math.floor(sweep.length / 2)];
@@ -1303,12 +1303,12 @@ export class LiveTelemetryCharts {
         const apexX = padL + (fcPt.zReal / maxReal) * singlePlotW;
         const apexY = padT + ((maxImag - Math.min(maxImag, fcPt.zImag)) / maxImag) * plotH;
         ctx.beginPath();
-        ctx.arc(apexX, apexY, 4 * dpr, 0, Math.PI * 2);
+        ctx.arc(apexX, apexY, 5 * dpr, 0, Math.PI * 2);
         ctx.fillStyle = "#f43f5e";
         ctx.fill();
         ctx.fillStyle = "#fecdd3";
-        ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
-        ctx.fillText(`fc=${eisData.characteristicFreqKhz}kHz`, apexX + 6 * dpr, apexY - 4 * dpr);
+        ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
+        ctx.fillText(`fc=${eisData.characteristicFreqKhz}kHz`, apexX + 8 * dpr, apexY - 6 * dpr);
       }
     }
 
@@ -1318,7 +1318,7 @@ export class LiveTelemetryCharts {
     const pane2L = padL + singlePlotW + midGap;
 
     // Grid lines for Bode Log Frequency (10Hz to 1MHz)
-    ctx.strokeStyle = "rgba(6, 182, 212, 0.1)";
+    ctx.strokeStyle = "rgba(6, 182, 212, 0.15)";
     ctx.lineWidth = 1 * dpr;
     const logDecades = [
       { log: 1, label: "10Hz" },
@@ -1336,9 +1336,9 @@ export class LiveTelemetryCharts {
       ctx.lineTo(x, padT + plotH);
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-      ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(d.label, x - 10 * dpr, padT + plotH + 14 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(d.label, x - 12 * dpr, padT + plotH + 18 * dpr);
     });
 
     // Phase angle Y-axis (0 to -60 deg)
@@ -1349,23 +1349,23 @@ export class LiveTelemetryCharts {
       ctx.lineTo(pane2L + singlePlotW, y);
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-      ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`${deg}°`, pane2L - 25 * dpr, y + 3 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${deg}°`, pane2L - 32 * dpr, y + 4 * dpr);
     }
 
     // Pane 2 Title
     ctx.fillStyle = "#22d3ee";
-    ctx.font = `bold ${9.5 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("② Bode Phase Angle vs Frequency (10Hz ~ 1MHz)", pane2L, padT - 10 * dpr);
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② Bode Phase Angle vs Frequency (10Hz ~ 1MHz)", pane2L, padT - 12 * dpr);
 
     // Plot Bode Phase Curve
     if (sweep.length > 0) {
       ctx.save();
       ctx.shadowColor = "#06b6d4";
-      ctx.shadowBlur = 8 * dpr;
+      ctx.shadowBlur = 10 * dpr;
       ctx.strokeStyle = "#22d3ee";
-      ctx.lineWidth = 2.4 * dpr;
+      ctx.lineWidth = 2.8 * dpr;
       ctx.beginPath();
       sweep.forEach((pt, i) => {
         const x = pane2L + ((pt.logFreq - 1.0) / 5.0) * singlePlotW;
@@ -1419,8 +1419,8 @@ export class LiveTelemetryCharts {
 
     // Title
     ctx.fillStyle = "#38bdf8";
-    ctx.font = `bold ${9.5 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("① 세포 분열주기 래디얼 휠 (G1 → S → G2 → M)", padL, padT - 10 * dpr);
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① 세포 분열주기 래디얼 휠 (G1 → S → G2 → M)", padL, padT - 12 * dpr);
 
     const phases = meristemData.phaseDistribution || [];
     let startAngle = -Math.PI / 2;
@@ -1436,7 +1436,7 @@ export class LiveTelemetryCharts {
 
       ctx.fillStyle = p.color;
       ctx.fill();
-      ctx.strokeStyle = "rgba(15, 23, 42, 0.9)";
+      ctx.strokeStyle = "rgba(15, 23, 42, 0.95)";
       ctx.lineWidth = 2 * dpr;
       ctx.stroke();
 
@@ -1447,7 +1447,7 @@ export class LiveTelemetryCharts {
       const ly = centerY + Math.sin(midAngle) * labelR;
 
       ctx.fillStyle = "#ffffff";
-      ctx.font = `bold ${9 * dpr}px 'Inter', sans-serif`;
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(p.phase, lx, ly);
@@ -1459,28 +1459,28 @@ export class LiveTelemetryCharts {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "#38bdf8";
-    ctx.font = `bold ${11 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText(`${meristemData.totalCycleHours}h`, centerX, centerY - 5 * dpr);
-    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-    ctx.font = `${8 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText(`MI ${meristemData.mitoticIndexPct}%`, centerX, centerY + 8 * dpr);
+    ctx.font = `bold ${15 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`${meristemData.totalCycleHours}h`, centerX, centerY - 6 * dpr);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`MI ${meristemData.mitoticIndexPct}%`, centerX, centerY + 10 * dpr);
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
 
     // Legend on the right side of Pane 1
-    const legendX = padL + singlePlotW * 0.78;
+    const legendX = padL + singlePlotW * 0.74;
     phases.forEach((p, idx) => {
-      const ly = padT + 25 * dpr + idx * 24 * dpr;
+      const ly = padT + 28 * dpr + idx * 28 * dpr;
       ctx.fillStyle = p.color;
-      ctx.fillRect(legendX, ly - 8 * dpr, 8 * dpr, 8 * dpr);
+      ctx.fillRect(legendX, ly - 10 * dpr, 10 * dpr, 10 * dpr);
 
       ctx.fillStyle = "#e2e8f0";
-      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`${p.phase}: ${p.hours}h`, legendX + 12 * dpr, ly);
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${p.phase}: ${p.hours}h`, legendX + 14 * dpr, ly);
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-      ctx.font = `${7.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(p.regulator, legendX + 12 * dpr, ly + 10 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+      ctx.font = `${10.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(p.regulator, legendX + 14 * dpr, ly + 12 * dpr);
     });
 
     // ==========================================================
@@ -1489,7 +1489,7 @@ export class LiveTelemetryCharts {
     const pane2L = padL + singlePlotW + midGap;
 
     // Grid lines for Radial Distance (0 to 200 um)
-    ctx.strokeStyle = "rgba(6, 182, 212, 0.1)";
+    ctx.strokeStyle = "rgba(6, 182, 212, 0.15)";
     ctx.lineWidth = 1 * dpr;
     for (let r = 0; r <= 200; r += 50) {
       const x = pane2L + (r / 200.0) * singlePlotW;
@@ -1498,15 +1498,15 @@ export class LiveTelemetryCharts {
       ctx.lineTo(x, padT + plotH);
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-      ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`${r}μm`, x - 8 * dpr, padT + plotH + 14 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${r}μm`, x - 10 * dpr, padT + plotH + 18 * dpr);
     }
 
     // Title & Subtitle
     ctx.fillStyle = "#22d3ee";
-    ctx.font = `bold ${9.5 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("② SAM 공간 호르몬 구배 (옥신 IAA vs 사이토키닌 CK)", pane2L, padT - 10 * dpr);
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② SAM 공간 호르몬 구배 (옥신 IAA vs 사이토키닌 CK)", pane2L, padT - 12 * dpr);
 
     const grad = meristemData.spatialGradient || [];
     if (grad.length > 0) {
@@ -1515,8 +1515,8 @@ export class LiveTelemetryCharts {
       ctx.save();
       ctx.strokeStyle = "#38bdf8";
       ctx.shadowColor = "#38bdf8";
-      ctx.shadowBlur = 6 * dpr;
-      ctx.lineWidth = 2 * dpr;
+      ctx.shadowBlur = 8 * dpr;
+      ctx.lineWidth = 2.6 * dpr;
       ctx.beginPath();
       grad.forEach((pt, i) => {
         const x = pane2L + (pt.radiusUm / 200.0) * singlePlotW;
@@ -1532,8 +1532,8 @@ export class LiveTelemetryCharts {
       ctx.save();
       ctx.strokeStyle = "#fbbf24";
       ctx.shadowColor = "#fbbf24";
-      ctx.shadowBlur = 6 * dpr;
-      ctx.lineWidth = 2 * dpr;
+      ctx.shadowBlur = 8 * dpr;
+      ctx.lineWidth = 2.6 * dpr;
       ctx.beginPath();
       grad.forEach((pt, i) => {
         const x = pane2L + (pt.radiusUm / 200.0) * singlePlotW;
@@ -1546,10 +1546,10 @@ export class LiveTelemetryCharts {
 
       // Curve Labels
       ctx.fillStyle = "#38bdf8";
-      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`● 사이토키닌 CK (정단 CZ 피크)`, pane2L + 10 * dpr, padT + 15 * dpr);
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`● 사이토키닌 CK (정단 CZ 피크)`, pane2L + 12 * dpr, padT + 18 * dpr);
       ctx.fillStyle = "#fbbf24";
-      ctx.fillText(`● 옥신 IAA (엽원기 PZ 피크)`, pane2L + 10 * dpr, padT + 28 * dpr);
+      ctx.fillText(`● 옥신 IAA (엽원기 PZ 피크)`, pane2L + 12 * dpr, padT + 34 * dpr);
     }
   }
 
@@ -1565,12 +1565,12 @@ export class LiveTelemetryCharts {
 
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    const w = rect.width || 800;
-    const h = rect.height || 220;
-
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    ctx.scale(dpr, dpr);
+    const w = (rect.width > 0 ? rect.width : 780) * dpr;
+    const h = (rect.height > 0 ? rect.height : 230) * dpr;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
 
     ctx.clearRect(0, 0, w, h);
 
@@ -1581,11 +1581,11 @@ export class LiveTelemetryCharts {
     const midX = w * 0.42;
 
     // Divider Line
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
     ctx.lineWidth = 1 * dpr;
     ctx.beginPath();
-    ctx.moveTo(midX, 10);
-    ctx.lineTo(midX, h - 10);
+    ctx.moveTo(midX, 10 * dpr);
+    ctx.lineTo(midX, h - 10 * dpr);
     ctx.stroke();
 
     // ==========================================
@@ -1596,8 +1596,8 @@ export class LiveTelemetryCharts {
     const centerY = h * 0.52;
 
     ctx.fillStyle = "#34d399";
-    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("① 공변세포 칼슘 형광(Fluo-4) & 채널 동역학", 14 * dpr, 18 * dpr);
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① 공변세포 칼슘 형광(Fluo-4) & 채널 동역학", 14 * dpr, 20 * dpr);
 
     const ca2Val = abaData.cytosolicCa2nM || 120.0;
     const ost1Pct = abaData.ost1KinaseActivityPct || 10.0;
@@ -1605,44 +1605,44 @@ export class LiveTelemetryCharts {
 
     // Calcium glow intensity (0.1 ~ 0.95)
     const caIntensity = Math.min(1.0, (ca2Val - 70.0) / 800.0);
-    const poreOpeningHalf = Math.max(2, (apertureUm / 12.0) * 26);
+    const poreOpeningHalf = Math.max(2 * dpr, (apertureUm / 12.0) * 26 * dpr);
 
     // Left Guard Cell
     ctx.save();
-    ctx.translate(centerX - poreOpeningHalf - 22, centerY);
+    ctx.translate(centerX - poreOpeningHalf - 22 * dpr, centerY);
     ctx.beginPath();
-    ctx.ellipse(0, 0, 20, 52, -0.15, 0, 2 * Math.PI);
+    ctx.ellipse(0, 0, 20 * dpr, 52 * dpr, -0.15, 0, 2 * Math.PI);
     ctx.fillStyle = `rgba(16, 185, 129, ${0.25 + caIntensity * 0.55})`;
     ctx.fill();
     ctx.strokeStyle = `rgba(52, 211, 153, ${0.4 + caIntensity * 0.6})`;
-    ctx.lineWidth = 2 * dpr;
+    ctx.lineWidth = 2.4 * dpr;
     ctx.shadowColor = "#34d399";
     ctx.shadowBlur = (4 + caIntensity * 16) * dpr;
     ctx.stroke();
 
     // Vacuole inside Left Guard Cell
     ctx.beginPath();
-    ctx.ellipse(0, 0, 10, 32, -0.15, 0, 2 * Math.PI);
+    ctx.ellipse(0, 0, 10 * dpr, 32 * dpr, -0.15, 0, 2 * Math.PI);
     ctx.fillStyle = "rgba(56, 189, 248, 0.25)";
     ctx.fill();
     ctx.restore();
 
     // Right Guard Cell
     ctx.save();
-    ctx.translate(centerX + poreOpeningHalf + 22, centerY);
+    ctx.translate(centerX + poreOpeningHalf + 22 * dpr, centerY);
     ctx.beginPath();
-    ctx.ellipse(0, 0, 20, 52, 0.15, 0, 2 * Math.PI);
+    ctx.ellipse(0, 0, 20 * dpr, 52 * dpr, 0.15, 0, 2 * Math.PI);
     ctx.fillStyle = `rgba(16, 185, 129, ${0.25 + caIntensity * 0.55})`;
     ctx.fill();
     ctx.strokeStyle = `rgba(52, 211, 153, ${0.4 + caIntensity * 0.6})`;
-    ctx.lineWidth = 2 * dpr;
+    ctx.lineWidth = 2.4 * dpr;
     ctx.shadowColor = "#34d399";
     ctx.shadowBlur = (4 + caIntensity * 16) * dpr;
     ctx.stroke();
 
     // Vacuole inside Right Guard Cell
     ctx.beginPath();
-    ctx.ellipse(0, 0, 10, 32, 0.15, 0, 2 * Math.PI);
+    ctx.ellipse(0, 0, 10 * dpr, 32 * dpr, 0.15, 0, 2 * Math.PI);
     ctx.fillStyle = "rgba(56, 189, 248, 0.25)";
     ctx.fill();
     ctx.restore();
@@ -1650,43 +1650,43 @@ export class LiveTelemetryCharts {
     // Stomatal Pore Aperture Gap
     ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
     ctx.beginPath();
-    ctx.ellipse(centerX, centerY, Math.max(1, poreOpeningHalf), 42, 0, 0, 2 * Math.PI);
+    ctx.ellipse(centerX, centerY, Math.max(1 * dpr, poreOpeningHalf), 42 * dpr, 0, 0, 2 * Math.PI);
     ctx.fill();
 
     // Channel Efflux Indicators
     if (ost1Pct > 35.0) {
       // SLAC1 Anion Efflux (Cl-, Malate2-) Orange arrows
       ctx.fillStyle = "#f97316";
-      ctx.font = `bold ${8 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText("◀ SLAC1 (Cl⁻/Mal²⁻ 유출)", centerX - 85, centerY - 28);
+      ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText("◀ SLAC1 (Cl⁻/Mal²⁻ 유출)", centerX - 100 * dpr, centerY - 32 * dpr);
 
       // GORK K+ Efflux Cyan arrows
       ctx.fillStyle = "#00f2fe";
-      ctx.fillText("GORK (K⁺ 유출) ▶", centerX + 30, centerY + 36);
+      ctx.fillText("GORK (K⁺ 유출) ▶", centerX + 35 * dpr, centerY + 38 * dpr);
     }
 
     // Status Label below Left Pane
-    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
-    ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
     ctx.textAlign = "center";
-    ctx.fillText(`기공 폭: ${apertureUm}μm | Vm: ${abaData.currentVmMv}mV | [Ca²⁺]: ${Math.round(ca2Val)}nM`, centerX, h - 12 * dpr);
+    ctx.fillText(`기공 폭: ${apertureUm}μm | Vm: ${abaData.currentVmMv}mV | [Ca²⁺]: ${Math.round(ca2Val)}nM`, centerX, h - 14 * dpr);
     ctx.textAlign = "left";
 
     // ==========================================
     // RIGHT PANE: 60-Second Multi-Trace Oscilloscope
     // ==========================================
-    const rightL = midX + 18;
-    const rightW = w - rightL - 18;
-    const plotT = 32;
-    const plotH = h - 60;
+    const rightL = midX + 18 * dpr;
+    const rightW = w - rightL - 18 * dpr;
+    const plotT = 36 * dpr;
+    const plotH = h - 68 * dpr;
 
     ctx.fillStyle = "#fbbf24";
-    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("② 60초 분자 파동 스코프 ([Ca²⁺]cyt, SLAC1 전류, 막전위 Vm)", rightL, 18 * dpr);
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② 60초 분자 파동 스코프 ([Ca²⁺]cyt, SLAC1 전류, 막전위 Vm)", rightL, 20 * dpr);
 
     // Horizontal Grid Lines
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1 * dpr;
     for (let y = plotT; y <= plotT + plotH; y += plotH / 4) {
       ctx.beginPath(); ctx.moveTo(rightL, y); ctx.lineTo(rightL + rightW, y); ctx.stroke();
     }
@@ -1695,9 +1695,9 @@ export class LiveTelemetryCharts {
     for (let s = 0; s <= 60; s += 15) {
       const x = rightL + (s / 60.0) * rightW;
       ctx.beginPath(); ctx.moveTo(x, plotT); ctx.lineTo(x, plotT + plotH); ctx.stroke();
-      ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
-      ctx.font = `${8 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`${s}s`, x - 6 * dpr, plotT + plotH + 14 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+      ctx.font = `bold ${11 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${s}s`, x - 8 * dpr, plotT + plotH + 18 * dpr);
     }
 
     const wavePoints = abaData.wavePoints || [];
@@ -1706,8 +1706,8 @@ export class LiveTelemetryCharts {
       ctx.save();
       ctx.strokeStyle = "#34d399";
       ctx.shadowColor = "#34d399";
-      ctx.shadowBlur = 6 * dpr;
-      ctx.lineWidth = 2 * dpr;
+      ctx.shadowBlur = 8 * dpr;
+      ctx.lineWidth = 2.4 * dpr;
       ctx.beginPath();
       wavePoints.forEach((pt, i) => {
         const x = rightL + (pt.timeSec / 60.0) * rightW;
@@ -1723,8 +1723,8 @@ export class LiveTelemetryCharts {
       ctx.save();
       ctx.strokeStyle = "#00f2fe";
       ctx.shadowColor = "#00f2fe";
-      ctx.shadowBlur = 4 * dpr;
-      ctx.lineWidth = 1.5 * dpr;
+      ctx.shadowBlur = 6 * dpr;
+      ctx.lineWidth = 1.8 * dpr;
       ctx.beginPath();
       wavePoints.forEach((pt, i) => {
         const x = rightL + (pt.timeSec / 60.0) * rightW;
@@ -1740,8 +1740,8 @@ export class LiveTelemetryCharts {
       ctx.save();
       ctx.strokeStyle = "#f97316";
       ctx.shadowColor = "#f97316";
-      ctx.shadowBlur = 4 * dpr;
-      ctx.lineWidth = 1.5 * dpr;
+      ctx.shadowBlur = 6 * dpr;
+      ctx.lineWidth = 1.8 * dpr;
       ctx.beginPath();
       wavePoints.forEach((pt, i) => {
         const x = rightL + (pt.timeSec / 60.0) * rightW;
@@ -1755,14 +1755,14 @@ export class LiveTelemetryCharts {
 
       // Oscilloscope Legend Pills
       ctx.fillStyle = "#34d399";
-      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`● [Ca²⁺]cyt (${Math.round(ca2Val)} nM)`, rightL + 8 * dpr, plotT + 14 * dpr);
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`● [Ca²⁺]cyt (${Math.round(ca2Val)} nM)`, rightL + 8 * dpr, plotT + 16 * dpr);
 
       ctx.fillStyle = "#00f2fe";
-      ctx.fillText(`● Vm 탈분극 (${abaData.currentVmMv} mV)`, rightL + 125 * dpr, plotT + 14 * dpr);
+      ctx.fillText(`● Vm 탈분극 (${abaData.currentVmMv} mV)`, rightL + 150 * dpr, plotT + 16 * dpr);
 
       ctx.fillStyle = "#f97316";
-      ctx.fillText(`● SLAC1 전류 (${abaData.slac1AnionCurrentPicoA} pA)`, rightL + 250 * dpr, plotT + 14 * dpr);
+      ctx.fillText(`● SLAC1 전류 (${abaData.slac1AnionCurrentPicoA} pA)`, rightL + 300 * dpr, plotT + 16 * dpr);
     }
   }
 
@@ -1778,12 +1778,12 @@ export class LiveTelemetryCharts {
 
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    const w = rect.width || 800;
-    const h = rect.height || 220;
-
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    ctx.scale(dpr, dpr);
+    const w = (rect.width > 0 ? rect.width : 780) * dpr;
+    const h = (rect.height > 0 ? rect.height : 230) * dpr;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
 
     ctx.clearRect(0, 0, w, h);
 
@@ -1794,19 +1794,19 @@ export class LiveTelemetryCharts {
     const midX = w * 0.44;
 
     // Divider Line
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
     ctx.lineWidth = 1 * dpr;
     ctx.beginPath();
-    ctx.moveTo(midX, 10);
-    ctx.lineTo(midX, h - 10);
+    ctx.moveTo(midX, 10 * dpr);
+    ctx.lineTo(midX, h - 10 * dpr);
     ctx.stroke();
 
     // ==========================================
     // LEFT PANE: Closed-Loop Fluid Circuit Flow
     // ==========================================
     ctx.fillStyle = "#38bdf8";
-    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("① 스마트 양액 100% 폐쇄 재순환 루프 (Closed-Loop)", 14 * dpr, 18 * dpr);
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① 스마트 양액 100% 폐쇄 재순환 루프 (Closed-Loop)", 14 * dpr, 20 * dpr);
 
     const leftW = midX;
     const cx = leftW * 0.5;
@@ -1817,15 +1817,15 @@ export class LiveTelemetryCharts {
     ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
     ctx.lineWidth = 3 * dpr;
     ctx.setLineDash([6 * dpr, 4 * dpr]);
-    ctx.strokeRect(30, 36, leftW - 60, h - 72);
+    ctx.strokeRect(30 * dpr, 36 * dpr, leftW - 60 * dpr, h - 72 * dpr);
     ctx.restore();
 
     // Circuit Nodes (4 Key Stations)
     const nodes = [
-      { name: "혼합 탱크 (Mixing Tank)", sub: `EC ${iseData.targetEc || 2.2} / pH ${iseData.targetPh || 5.85}`, x: 30, y: 36, color: "#38bdf8" },
-      { name: "식물 근권 배지 (Rhizosphere)", sub: "6대 이온 차등 흡수", x: leftW - 30, y: 36, color: "#10b981" },
-      { name: "배액 집수정 (Drain Tank)", sub: `EC ${iseData.drainageEc || 1.8} / pH ${iseData.drainagePh || 6.1}`, x: leftW - 30, y: h - 36, color: "#fbbf24" },
-      { name: "6-ISE 센서 & UV 살균기", sub: `회수율 ${iseData.waterRecoveryRatePct || 94.8}%`, x: 30, y: h - 36, color: "#a855f7" }
+      { name: "혼합 탱크 (Mixing Tank)", sub: `EC ${iseData.targetEc || 2.2} / pH ${iseData.targetPh || 5.85}`, x: 30 * dpr, y: 36 * dpr, color: "#38bdf8" },
+      { name: "식물 근권 배지 (Rhizosphere)", sub: "6대 이온 차등 흡수", x: leftW - 30 * dpr, y: 36 * dpr, color: "#10b981" },
+      { name: "배액 집수정 (Drain Tank)", sub: `EC ${iseData.drainageEc || 1.8} / pH ${iseData.drainagePh || 6.1}`, x: leftW - 30 * dpr, y: h - 36 * dpr, color: "#fbbf24" },
+      { name: "6-ISE 센서 & UV 살균기", sub: `회수율 ${iseData.waterRecoveryRatePct || 94.8}%`, x: 30 * dpr, y: h - 36 * dpr, color: "#a855f7" }
     ];
 
     nodes.forEach(n => {
@@ -1835,49 +1835,49 @@ export class LiveTelemetryCharts {
       ctx.fill();
 
       ctx.fillStyle = "#fff";
-      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
       ctx.textAlign = n.x < cx ? "left" : "right";
-      ctx.fillText(n.name, n.x + (n.x < cx ? 10 * dpr : -10 * dpr), n.y - 2 * dpr);
+      ctx.fillText(n.name, n.x + (n.x < cx ? 12 * dpr : -12 * dpr), n.y - 2 * dpr);
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
-      ctx.font = `${7.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(n.sub, n.x + (n.x < cx ? 10 * dpr : -10 * dpr), n.y + 9 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `${10.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(n.sub, n.x + (n.x < cx ? 12 * dpr : -12 * dpr), n.y + 12 * dpr);
     });
 
     // Center Badge: Dosing & Water Savings
     ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
     ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
-    ctx.lineWidth = 1 * dpr;
+    ctx.lineWidth = 1.5 * dpr;
     ctx.beginPath();
-    ctx.roundRect(cx - 65, cy - 24, 130, 48, 6);
+    ctx.roundRect(cx - 80 * dpr, cy - 28 * dpr, 160 * dpr, 56 * dpr, 6 * dpr);
     ctx.fill();
     ctx.stroke();
 
     ctx.textAlign = "center";
     ctx.fillStyle = "#38bdf8";
-    ctx.font = `bold ${9 * dpr}px 'Inter', sans-serif`;
+    ctx.font = `bold ${13 * dpr}px 'Inter', sans-serif`;
     ctx.fillText("💧 94.8% 순환 회수", cx, cy - 8 * dpr);
 
     ctx.fillStyle = "#34d399";
-    ctx.font = `bold ${8 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText(`일일 절수: ${iseData.dailyWaterSavedLiters || 1.42}L | 비료: -38.5%`, cx, cy + 5 * dpr);
+    ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`일일 절수: ${iseData.dailyWaterSavedLiters || 1.42}L | 비료: -38.5%`, cx, cy + 7 * dpr);
 
     ctx.fillStyle = iseData.isAutoDosed ? "#10b981" : "#fbbf24";
-    ctx.font = `${7.5 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText(iseData.isAutoDosed ? "● 정밀 자동 보정 완료 (Dosed)" : "● ISE 피드백 보정 대기 중", cx, cy + 16 * dpr);
+    ctx.font = `bold ${11 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(iseData.isAutoDosed ? "● 정밀 자동 보정 완료 (Dosed)" : "● ISE 피드백 보정 대기 중", cx, cy + 20 * dpr);
 
     // ==========================================
     // RIGHT PANE: 6-Ion Comparative Supply vs Drain Chart
     // ==========================================
-    const rightL = midX + 18;
-    const rightW = w - rightL - 18;
-    const plotT = 36;
-    const plotH = h - 65;
+    const rightL = midX + 18 * dpr;
+    const rightW = w - rightL - 18 * dpr;
+    const plotT = 40 * dpr;
+    const plotH = h - 72 * dpr;
 
     ctx.textAlign = "left";
     ctx.fillStyle = "#fbbf24";
-    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("② 6대 이온 공급 목표 vs 배액 농도 & ISE 전위(mV)", rightL, 18 * dpr);
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② 6대 이온 공급 목표 vs 배액 농도 & ISE 전위(mV)", rightL, 20 * dpr);
 
     const sensors = iseData.sensors || [];
     const barGroupW = rightW / Math.max(1, sensors.length);
@@ -1885,15 +1885,15 @@ export class LiveTelemetryCharts {
 
     sensors.forEach((s, idx) => {
       const gx = rightL + idx * barGroupW;
-      const colW = Math.min(18, barGroupW * 0.35);
+      const colW = Math.min(22 * dpr, barGroupW * 0.36);
 
       // Target Supply Bar (Translucent Background)
       const targetH = (s.target_mm / maxVal) * plotH;
       const targetY = plotT + plotH - targetH;
-      ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
-      ctx.fillRect(gx + 4, targetY, colW, targetH);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
-      ctx.strokeRect(gx + 4, targetY, colW, targetH);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.fillRect(gx + 4 * dpr, targetY, colW, targetH);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.strokeRect(gx + 4 * dpr, targetY, colW, targetH);
 
       // Drainage Actual Bar (Color Gradient)
       const drainH = (s.drain_mm / maxVal) * plotH;
@@ -1902,32 +1902,32 @@ export class LiveTelemetryCharts {
       grad.addColorStop(0, s.color);
       grad.addColorStop(1, "rgba(0,0,0,0.3)");
       ctx.fillStyle = grad;
-      ctx.fillRect(gx + 4 + colW + 2, drainY, colW, drainH);
+      ctx.fillRect(gx + 6 * dpr + colW, drainY, colW, drainH);
       ctx.strokeStyle = s.color;
-      ctx.strokeRect(gx + 4 + colW + 2, drainY, colW, drainH);
+      ctx.strokeRect(gx + 6 * dpr + colW, drainY, colW, drainH);
 
       // Value text above bars
       ctx.fillStyle = s.color;
-      ctx.font = `bold ${7.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`${s.drain_mm}`, gx + 4 + colW + 2, drainY - 3 * dpr);
+      ctx.font = `bold ${11 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${s.drain_mm}`, gx + 6 * dpr + colW, drainY - 4 * dpr);
 
       // Ion Symbol Label
       ctx.fillStyle = "#fff";
-      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
       ctx.textAlign = "center";
-      ctx.fillText(s.symbol, gx + colW + 5, plotT + plotH + 12 * dpr);
+      ctx.fillText(s.symbol, gx + colW + 6 * dpr, plotT + plotH + 16 * dpr);
 
       // ISE Potential readout below
-      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-      ctx.font = `${7.5 * dpr}px monospace`;
-      ctx.fillText(`${s.electrodePotentialMv}mV`, gx + colW + 5, plotT + plotH + 22 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `bold ${10.5 * dpr}px monospace`;
+      ctx.fillText(`${s.electrodePotentialMv}mV`, gx + colW + 6 * dpr, plotT + plotH + 28 * dpr);
       ctx.textAlign = "left";
     });
 
     // Chart Legend
-    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.font = `${8 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("■ 공급 목표 (Target) | ■ 배액 실측 (Drain ISE)", rightL, plotT - 6 * dpr);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.font = `bold ${11 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("■ 공급 목표 (Target) | ■ 배액 실측 (Drain ISE)", rightL, plotT - 8 * dpr);
   }
 
   /**
@@ -1942,12 +1942,12 @@ export class LiveTelemetryCharts {
 
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    const w = rect.width || 800;
-    const h = rect.height || 220;
-
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    ctx.scale(dpr, dpr);
+    const w = (rect.width > 0 ? rect.width : 780) * dpr;
+    const h = (rect.height > 0 ? rect.height : 230) * dpr;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
 
     ctx.clearRect(0, 0, w, h);
 
@@ -1958,109 +1958,109 @@ export class LiveTelemetryCharts {
     const midX = w * 0.45;
 
     // Divider Line
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
     ctx.lineWidth = 1 * dpr;
     ctx.beginPath();
-    ctx.moveTo(midX, 10);
-    ctx.lineTo(midX, h - 10);
+    ctx.moveTo(midX, 10 * dpr);
+    ctx.lineTo(midX, h - 10 * dpr);
     ctx.stroke();
 
     // ==========================================
     // LEFT PANE: Thylakoid Membrane Complexes Diagram
     // ==========================================
     ctx.fillStyle = "#34d399";
-    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("① 틸라코이드 막 전자전달계(ETC) & ATP 합성 나노모터", 14 * dpr, 18 * dpr);
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① 틸라코이드 막 전자전달계(ETC) & ATP 합성 나노모터", 14 * dpr, 20 * dpr);
 
     const leftW = midX;
     const membraneY = h * 0.52;
 
     // Lipid Bilayer Double Band
     ctx.fillStyle = "rgba(16, 185, 129, 0.18)";
-    ctx.fillRect(20, membraneY - 10, leftW - 40, 20);
+    ctx.fillRect(20 * dpr, membraneY - 12 * dpr, leftW - 40 * dpr, 24 * dpr);
     ctx.strokeStyle = "rgba(52, 211, 153, 0.4)";
-    ctx.lineWidth = 1.5 * dpr;
-    ctx.strokeRect(20, membraneY - 10, leftW - 40, 20);
+    ctx.lineWidth = 2 * dpr;
+    ctx.strokeRect(20 * dpr, membraneY - 12 * dpr, leftW - 40 * dpr, 24 * dpr);
 
     // Compartment Labels
-    ctx.fillStyle = "rgba(56, 189, 248, 0.7)";
-    ctx.font = `bold ${8 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("스트로마 (Stroma pH 7.85)", 24, membraneY - 18);
+    ctx.fillStyle = "rgba(56, 189, 248, 0.85)";
+    ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("스트로마 (Stroma pH 7.85)", 24 * dpr, membraneY - 20 * dpr);
 
-    ctx.fillStyle = "rgba(251, 191, 36, 0.7)";
-    ctx.fillText(`루멘 (Lumen pH ${etcData.lumenPh || 5.85}) - 산성화`, 24, membraneY + 28);
+    ctx.fillStyle = "rgba(251, 191, 36, 0.85)";
+    ctx.fillText(`루멘 (Lumen pH ${etcData.lumenPh || 5.85}) - 산성화`, 24 * dpr, membraneY + 34 * dpr);
 
     // 4 Protein Complexes along membrane
     const complexes = [
-      { name: "PSII", sub: "2H₂O→O₂", x: 65, color: "#10b981", shape: "rect" },
-      { name: "Cyt b₆f", sub: "Q-Cycle 4H⁺", x: 135, color: "#38bdf8", shape: "rect" },
-      { name: "PSI", sub: "P700→Fd", x: 205, color: "#a855f7", shape: "rect" },
-      { name: "ATP Synthase", sub: `${etcData.atpSynthaseRpm || 840} RPM`, x: 285, color: "#fbbf24", shape: "rotor" }
+      { name: "PSII", sub: "2H₂O→O₂", x: 70 * dpr, color: "#10b981", shape: "rect" },
+      { name: "Cyt b₆f", sub: "Q-Cycle 4H⁺", x: 150 * dpr, color: "#38bdf8", shape: "rect" },
+      { name: "PSI", sub: "P700→Fd", x: 230 * dpr, color: "#a855f7", shape: "rect" },
+      { name: "ATP Synthase", sub: `${etcData.atpSynthaseRpm || 840} RPM`, x: 310 * dpr, color: "#fbbf24", shape: "rotor" }
     ];
 
     complexes.forEach(c => {
       ctx.fillStyle = c.color;
       ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 1 * dpr;
+      ctx.lineWidth = 1.2 * dpr;
 
       if (c.shape === "rect") {
         ctx.beginPath();
-        ctx.roundRect(c.x - 22, membraneY - 20, 44, 40, 4);
+        ctx.roundRect(c.x - 25 * dpr, membraneY - 24 * dpr, 50 * dpr, 48 * dpr, 4 * dpr);
         ctx.fill();
         ctx.stroke();
 
         ctx.fillStyle = "#fff";
-        ctx.font = `bold ${8 * dpr}px 'Inter', sans-serif`;
+        ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
         ctx.textAlign = "center";
-        ctx.fillText(c.name, c.x, membraneY - 2);
+        ctx.fillText(c.name, c.x, membraneY - 2 * dpr);
 
         ctx.fillStyle = "rgba(0,0,0,0.85)";
-        ctx.font = `${7 * dpr}px 'Inter', sans-serif`;
-        ctx.fillText(c.sub, c.x, membraneY + 10);
+        ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+        ctx.fillText(c.sub, c.x, membraneY + 12 * dpr);
       } else {
         // Rotating F0F1 ATP Synthase Rotor
         ctx.beginPath();
-        ctx.arc(c.x, membraneY - 14, 15 * dpr, 0, 2 * Math.PI);
+        ctx.arc(c.x, membraneY - 16 * dpr, 18 * dpr, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
 
         // Stalk & F0 base in membrane
-        ctx.fillRect(c.x - 6, membraneY - 2, 12, 22);
+        ctx.fillRect(c.x - 7 * dpr, membraneY - 2 * dpr, 14 * dpr, 24 * dpr);
 
         ctx.fillStyle = "#000";
-        ctx.font = `bold ${7.5 * dpr}px 'Inter', sans-serif`;
+        ctx.font = `bold ${10.5 * dpr}px 'Inter', sans-serif`;
         ctx.textAlign = "center";
-        ctx.fillText("F₁ Rotor", c.x, membraneY - 16);
-        ctx.fillText(`${etcData.atpSynthaseRpm || 840}RPM`, c.x, membraneY - 6);
+        ctx.fillText("F₁ Rotor", c.x, membraneY - 18 * dpr);
+        ctx.fillText(`${etcData.atpSynthaseRpm || 840}RPM`, c.x, membraneY - 6 * dpr);
 
         // Proton cascade arrow into Stroma
         ctx.fillStyle = "#fbbf24";
-        ctx.font = `bold ${8 * dpr}px 'Inter', sans-serif`;
-        ctx.fillText("▲ H⁺ 방출 (ATP 생성)", c.x, membraneY - 34);
+        ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+        ctx.fillText("▲ H⁺ 방출 (ATP 생성)", c.x, membraneY - 38 * dpr);
       }
     });
 
     // Subtitle Footer in Left Pane
     ctx.textAlign = "left";
-    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
-    ctx.font = `${8 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText(`ETR: ${etcData.linearEtr || 88.5} μmol e⁻ | pmf: ${etcData.protonMotiveForcePmfMv || 192.4} mV | ATP: ${etcData.atpPerSecPerComplex || 42.0} ATP/s`, 20, h - 10 * dpr);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.font = `bold ${11.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText(`ETR: ${etcData.linearEtr || 88.5} μmol e⁻ | pmf: ${etcData.protonMotiveForcePmfMv || 192.4} mV | ATP: ${etcData.atpPerSecPerComplex || 42.0} ATP/s`, 20 * dpr, h - 12 * dpr);
 
     // ==========================================
     // RIGHT PANE: 60-Second Multi-Trace Oscilloscope
     // ==========================================
-    const rightL = midX + 18;
-    const rightW = w - rightL - 18;
-    const plotT = 36;
-    const plotH = h - 65;
+    const rightL = midX + 18 * dpr;
+    const rightW = w - rightL - 18 * dpr;
+    const plotT = 40 * dpr;
+    const plotH = h - 72 * dpr;
 
     ctx.fillStyle = "#fbbf24";
-    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("② 60초 광에너지 대사 스코프 (pmf, ETR, 루멘 pH, ATP RPM)", rightL, 18 * dpr);
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② 60초 광에너지 대사 스코프 (pmf, ETR, 루멘 pH, ATP RPM)", rightL, 20 * dpr);
 
     // Horizontal Grid Lines
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1 * dpr;
     for (let y = plotT; y <= plotT + plotH; y += plotH / 4) {
       ctx.beginPath(); ctx.moveTo(rightL, y); ctx.lineTo(rightL + rightW, y); ctx.stroke();
     }
@@ -2069,9 +2069,9 @@ export class LiveTelemetryCharts {
     for (let s = 0; s <= 60; s += 15) {
       const x = rightL + (s / 60.0) * rightW;
       ctx.beginPath(); ctx.moveTo(x, plotT); ctx.lineTo(x, plotT + plotH); ctx.stroke();
-      ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
-      ctx.font = `${8 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`${s}s`, x - 6 * dpr, plotT + plotH + 14 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+      ctx.font = `bold ${11 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${s}s`, x - 8 * dpr, plotT + plotH + 18 * dpr);
     }
 
     const wavePoints = etcData.wavePoints || [];
@@ -2080,12 +2080,11 @@ export class LiveTelemetryCharts {
       ctx.save();
       ctx.strokeStyle = "#fbbf24";
       ctx.shadowColor = "#fbbf24";
-      ctx.shadowBlur = 6 * dpr;
-      ctx.lineWidth = 2 * dpr;
+      ctx.shadowBlur = 8 * dpr;
+      ctx.lineWidth = 2.4 * dpr;
       ctx.beginPath();
       wavePoints.forEach((pt, i) => {
         const x = rightL + (pt.timeSec / 60.0) * rightW;
-        // pmf ranges 140 to 240 mV
         const norm = Math.max(0.0, Math.min(1.0, (pt.pmfMv - 140.0) / 100.0));
         const y = plotT + plotH - (norm * plotH);
         if (i === 0) ctx.moveTo(x, y);
@@ -2098,12 +2097,11 @@ export class LiveTelemetryCharts {
       ctx.save();
       ctx.strokeStyle = "#38bdf8";
       ctx.shadowColor = "#38bdf8";
-      ctx.shadowBlur = 4 * dpr;
-      ctx.lineWidth = 1.5 * dpr;
+      ctx.shadowBlur = 6 * dpr;
+      ctx.lineWidth = 1.8 * dpr;
       ctx.beginPath();
       wavePoints.forEach((pt, i) => {
         const x = rightL + (pt.timeSec / 60.0) * rightW;
-        // ETR ranges 0 to 180
         const norm = Math.max(0.0, Math.min(1.0, pt.etr / 180.0));
         const y = plotT + plotH - (norm * plotH);
         if (i === 0) ctx.moveTo(x, y);
@@ -2116,12 +2114,11 @@ export class LiveTelemetryCharts {
       ctx.save();
       ctx.strokeStyle = "#c084fc";
       ctx.shadowColor = "#c084fc";
-      ctx.shadowBlur = 4 * dpr;
-      ctx.lineWidth = 1.5 * dpr;
+      ctx.shadowBlur = 6 * dpr;
+      ctx.lineWidth = 1.8 * dpr;
       ctx.beginPath();
       wavePoints.forEach((pt, i) => {
         const x = rightL + (pt.timeSec / 60.0) * rightW;
-        // RPM ranges 0 to 1400
         const norm = Math.max(0.0, Math.min(1.0, pt.rpm / 1400.0));
         const y = plotT + plotH - (norm * plotH);
         if (i === 0) ctx.moveTo(x, y);
@@ -2132,14 +2129,14 @@ export class LiveTelemetryCharts {
 
       // Oscilloscope Legend Pills
       ctx.fillStyle = "#fbbf24";
-      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
-      ctx.fillText(`● pmf (${etcData.protonMotiveForcePmfMv} mV)`, rightL + 8 * dpr, plotT + 14 * dpr);
+      ctx.font = `bold ${12 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`● pmf (${etcData.protonMotiveForcePmfMv} mV)`, rightL + 8 * dpr, plotT + 16 * dpr);
 
       ctx.fillStyle = "#38bdf8";
-      ctx.fillText(`● ETR (${etcData.linearEtr} μmol e⁻)`, rightL + 120 * dpr, plotT + 14 * dpr);
+      ctx.fillText(`● ETR (${etcData.linearEtr} μmol e⁻)`, rightL + 140 * dpr, plotT + 16 * dpr);
 
       ctx.fillStyle = "#c084fc";
-      ctx.fillText(`● ATP RPM (${etcData.atpSynthaseRpm} RPM)`, rightL + 240 * dpr, plotT + 14 * dpr);
+      ctx.fillText(`● ATP RPM (${etcData.atpSynthaseRpm} RPM)`, rightL + 280 * dpr, plotT + 16 * dpr);
     }
   }
 
@@ -2155,12 +2152,13 @@ export class LiveTelemetryCharts {
 
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    const w = rect.width || 800;
-    const h = rect.height || 220;
+    const w = (rect.width > 0 ? rect.width : 780) * dpr;
+    const h = (rect.height > 0 ? rect.height : 230) * dpr;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
 
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
 
     // Dark Background
@@ -2170,34 +2168,34 @@ export class LiveTelemetryCharts {
     const midX = w * 0.42;
 
     // Divider Line
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
     ctx.lineWidth = 1 * dpr;
     ctx.beginPath();
-    ctx.moveTo(midX, 10);
-    ctx.lineTo(midX, h - 10);
+    ctx.moveTo(midX, 10 * dpr);
+    ctx.lineTo(midX, h - 10 * dpr);
     ctx.stroke();
 
     // ==========================================
     // LEFT PANE: Industrial PLC Rack Simulator
     // ==========================================
     ctx.fillStyle = "#38bdf8";
-    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("① 산업용 PLC 게이트웨이 랙 (LS / Siemens Modbus-TCP)", 14 * dpr, 18 * dpr);
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① 산업용 PLC 게이트웨이 랙 (LS / Siemens Modbus-TCP)", 14 * dpr, 20 * dpr);
 
-    const rackX = 20;
-    const rackY = 32;
-    const rackW = midX - 40;
-    const rackH = h - 48;
+    const rackX = 20 * dpr;
+    const rackY = 36 * dpr;
+    const rackW = midX - 40 * dpr;
+    const rackH = h - 56 * dpr;
 
     // Rack Chassis
     ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
     ctx.fillRect(rackX, rackY, rackW, rackH);
     ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
-    ctx.lineWidth = 1.5 * dpr;
+    ctx.lineWidth = 1.8 * dpr;
     ctx.strokeRect(rackX, rackY, rackW, rackH);
 
     // 4 Slots: Power, CPU, Modbus-TCP, IO Relay
-    const slotW = (rackW - 10) / 4;
+    const slotW = (rackW - 10 * dpr) / 4;
     const slots = [
       { name: "PSU", sub: "24V DC", led: "#34d399", label: "PWR" },
       { name: "CPU", sub: "XGT-500", led: "#34d399", label: "RUN" },
@@ -2206,82 +2204,82 @@ export class LiveTelemetryCharts {
     ];
 
     slots.forEach((s, idx) => {
-      const sx = rackX + 5 + idx * slotW;
-      const sy = rackY + 5;
-      const sw = slotW - 5;
-      const sh = rackH - 10;
+      const sx = rackX + 5 * dpr + idx * slotW;
+      const sy = rackY + 5 * dpr;
+      const sw = slotW - 5 * dpr;
+      const sh = rackH - 10 * dpr;
 
       ctx.fillStyle = "rgba(30, 41, 59, 0.85)";
       ctx.fillRect(sx, sy, sw, sh);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.lineWidth = 1 * dpr;
       ctx.strokeRect(sx, sy, sw, sh);
 
       // Slot Title
       ctx.fillStyle = "#fff";
-      ctx.font = `bold ${8 * dpr}px 'Inter', sans-serif`;
+      ctx.font = `bold ${11 * dpr}px 'Inter', sans-serif`;
       ctx.textAlign = "center";
-      ctx.fillText(s.name, sx + sw / 2, sy + 14 * dpr);
+      ctx.fillText(s.name, sx + sw / 2, sy + 16 * dpr);
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-      ctx.font = `${6.5 * dpr}px monospace`;
-      ctx.fillText(s.sub, sx + sw / 2, sy + 24 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = `bold ${9.5 * dpr}px monospace`;
+      ctx.fillText(s.sub, sx + sw / 2, sy + 28 * dpr);
 
       // Status LED
       ctx.fillStyle = s.led;
       ctx.beginPath();
-      ctx.arc(sx + sw / 2, sy + 38 * dpr, 4 * dpr, 0, 2 * Math.PI);
+      ctx.arc(sx + sw / 2, sy + 44 * dpr, 5 * dpr, 0, 2 * Math.PI);
       ctx.fill();
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-      ctx.font = `${7 * dpr}px monospace`;
-      ctx.fillText(s.label, sx + sw / 2, sy + 50 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.font = `bold ${10 * dpr}px monospace`;
+      ctx.fillText(s.label, sx + sw / 2, sy + 58 * dpr);
     });
 
     // Subtitle Footer
     ctx.textAlign = "left";
-    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-    ctx.font = `${7.5 * dpr}px monospace`;
-    ctx.fillText("Modbus Link: 127.0.0.1:502 | Unit ID: 0x01 | Poll: 100ms", rackX + 4, rackY + rackH + 12 * dpr);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.font = `bold ${10.5 * dpr}px monospace`;
+    ctx.fillText("Modbus Link: 127.0.0.1:502 | Unit ID: 0x01 | Poll: 100ms", rackX + 4 * dpr, rackY + rackH + 16 * dpr);
 
     // ==========================================
     // RIGHT PANE: Packet Stream Trace Terminal
     // ==========================================
-    const rightL = midX + 18;
-    const rightW = w - rightL - 18;
+    const rightL = midX + 18 * dpr;
+    const rightW = w - rightL - 18 * dpr;
 
     ctx.fillStyle = "#34d399";
-    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
-    ctx.fillText("② 실시간 Modbus-TCP / MQTT 패킷 트레이서 (Hex Stream)", rightL, 18 * dpr);
+    ctx.font = `bold ${13.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② 실시간 Modbus-TCP / MQTT 패킷 트레이서 (Hex Stream)", rightL, 20 * dpr);
 
     const packets = iotBridge.getPacketStreamHistory();
     packets.slice(0, 5).forEach((p, idx) => {
-      const cardY = 32 + idx * 34;
+      const cardY = 36 * dpr + idx * 36 * dpr;
       const isTx = p.direction === "TX";
 
-      ctx.fillStyle = isTx ? "rgba(14, 165, 233, 0.12)" : "rgba(16, 185, 129, 0.12)";
-      ctx.strokeStyle = isTx ? "rgba(56, 189, 248, 0.3)" : "rgba(52, 211, 153, 0.3)";
-      ctx.lineWidth = 1;
+      ctx.fillStyle = isTx ? "rgba(14, 165, 233, 0.15)" : "rgba(16, 185, 129, 0.15)";
+      ctx.strokeStyle = isTx ? "rgba(56, 189, 248, 0.35)" : "rgba(52, 211, 153, 0.35)";
+      ctx.lineWidth = 1 * dpr;
       ctx.beginPath();
-      ctx.roundRect(rightL, cardY, rightW, 30, 3);
+      ctx.roundRect(rightL, cardY, rightW, 32 * dpr, 4 * dpr);
       ctx.fill();
       ctx.stroke();
 
       // Direction Badge
       ctx.fillStyle = isTx ? "#38bdf8" : "#34d399";
-      ctx.font = `bold ${8 * dpr}px monospace`;
-      ctx.fillText(`[${p.direction}] ${p.timestamp}`, rightL + 6, cardY + 11 * dpr);
+      ctx.font = `bold ${11 * dpr}px monospace`;
+      ctx.fillText(`[${p.direction}] ${p.timestamp}`, rightL + 8 * dpr, cardY + 13 * dpr);
 
       ctx.fillStyle = "#fbbf24";
-      ctx.fillText(`${p.funcCode} (${p.addr})`, rightL + 115 * dpr, cardY + 11 * dpr);
+      ctx.fillText(`${p.funcCode} (${p.addr})`, rightL + 135 * dpr, cardY + 13 * dpr);
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-      ctx.fillText(`${p.latencyMs}ms`, rightL + rightW - 35 * dpr, cardY + 11 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+      ctx.fillText(`${p.latencyMs}ms`, rightL + rightW - 45 * dpr, cardY + 13 * dpr);
 
       // Hex Payload Dump Line
-      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-      ctx.font = `${7 * dpr}px monospace`;
-      ctx.fillText(p.hexDump.length > 55 ? p.hexDump.slice(0, 55) + "..." : p.hexDump, rightL + 6, cardY + 23 * dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.font = `${10 * dpr}px monospace`;
+      ctx.fillText(p.hexDump.length > 55 ? p.hexDump.slice(0, 55) + "..." : p.hexDump, rightL + 8 * dpr, cardY + 26 * dpr);
     });
   }
 
