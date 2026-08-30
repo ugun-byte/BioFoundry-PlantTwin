@@ -1827,6 +1827,55 @@
     </div>
   </div>
 
+  <!-- Modal 9b: Scope Selection Segment Zoom & Mathematical Analysis Modal -->
+  <div id="scopeZoomModal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 680px; width: 90%; background: rgba(5, 12, 22, 0.94); border: 1.5px solid rgba(0, 242, 254, 0.4); box-shadow: 0 0 25px rgba(0, 242, 254, 0.25);">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; margin-bottom: 16px;">
+        <div class="modal-title-group">
+          <h3 id="scopeZoomTitle" style="color: var(--cyan-accent); font-size: 18px; font-weight: 800; display:flex; align-items:center; gap:8px;">
+            📊 구간 확대 스냅샷 & 생체 반응 속도 분석
+          </h3>
+          <p style="font-size: 12.5px; color: var(--text-secondary); margin-top: 4px;">드래그로 지정한 시계열 구간의 상세 곡선과 수학적 미분 분석(변화율 및 수율 반응성) 데이터입니다.</p>
+        </div>
+        <button id="btnScopeZoomClose" class="modal-close">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
+        <!-- Zoom Graph Canvas Container -->
+        <div style="position: relative; width: 100%; height: 200px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden;">
+          <canvas id="scopeZoomCanvas" style="width: 100%; height: 100%; display: block; position: absolute; top: 0; left: 0;"></canvas>
+        </div>
+        
+        <!-- Statistical Analysis Grid -->
+        <div class="hud-stat-grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04);">
+          <div>
+            <span style="display:block; font-size:11px; color:var(--text-muted); margin-bottom: 3px;">시작 세그먼트 수치</span>
+            <b id="lblZoomStart" style="font-size:15px; color:#fff; font-family: monospace;">-</b>
+          </div>
+          <div>
+            <span style="display:block; font-size:11px; color:var(--text-muted); margin-bottom: 3px;">종료 세그먼트 수치</span>
+            <b id="lblZoomEnd" style="font-size:15px; color:#fff; font-family: monospace;">-</b>
+          </div>
+          <div>
+            <span style="display:block; font-size:11px; color:var(--text-muted); margin-bottom: 3px; text-shadow:0 0 4px var(--cyan-accent);">평균 변화율 (Δ/sec)</span>
+            <b id="lblZoomSlope" style="font-size:15px; color:var(--cyan-accent); font-family: monospace;">-</b>
+          </div>
+          <div>
+            <span style="display:block; font-size:11px; color:var(--text-muted); margin-bottom: 3px;">구간 최고점 (Peak)</span>
+            <b id="lblZoomMax" style="font-size:14px; color:#34d399; font-family: monospace;">-</b>
+          </div>
+          <div>
+            <span style="display:block; font-size:11px; color:var(--text-muted); margin-bottom: 3px;">구간 최저점 (Min)</span>
+            <b id="lblZoomMin" style="font-size:14px; color:#f87171; font-family: monospace;">-</b>
+          </div>
+          <div>
+            <span style="display:block; font-size:11px; color:var(--text-muted); margin-bottom: 3px;">반응 동역학 진단</span>
+            <b id="lblZoomDiagnosis" style="font-size:13px; color:#fbbf24; font-weight: 700;">안정성 유지</b>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal 10: Xylem Sap Flow & Hydraulic Transpiration Oscilloscope Modal -->
   <div id="sapFlowModal" class="modal-backdrop">
     <div class="modal-content" style="width: 1080px; max-width: 95vw;">

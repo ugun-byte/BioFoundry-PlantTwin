@@ -42,6 +42,9 @@ export class LiveTelemetryCharts {
       fvfm: []
     };
 
+    this.dragInfo = { active: false, startX: 0, currentX: 0, canvasKey: null };
+    this.setupDragZoom();
+
     window.addEventListener("resize", () => {
       this.resizeAll();
     });
@@ -71,8 +74,14 @@ export class LiveTelemetryCharts {
 
     canvas.width = Math.floor(w * dpr);
     canvas.height = Math.floor(h * dpr);
+    
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(dpr, dpr);
+    
+    // Enable high-DPI antialiasing and smooth image rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    
     canvas.dispW = w;
     canvas.dispH = h;
   }
@@ -174,6 +183,20 @@ export class LiveTelemetryCharts {
 
     // Draw Channel 1: An (Emerald)
     this.drawLineSeries(ctx, seriesAn, 40.0, padL, padT, plotW, plotH, "#34d399", "rgba(52, 211, 153, 0.10)");
+
+    // Draw Drag-to-Zoom Selection Overlay Box
+    if (this.dragInfo && this.dragInfo.active && this.dragInfo.canvasKey === "photoScope") {
+      const drag = this.dragInfo;
+      const x1 = Math.min(drag.startX, drag.currentX);
+      const dragW = Math.abs(drag.startX - drag.currentX);
+      ctx.save();
+      ctx.fillStyle = "rgba(0, 242, 254, 0.14)";
+      ctx.fillRect(x1, padT, dragW, plotH);
+      ctx.strokeStyle = "rgba(0, 242, 254, 0.45)";
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(x1, padT, dragW, plotH);
+      ctx.restore();
+    }
   }
 
   /**
@@ -234,6 +257,20 @@ export class LiveTelemetryCharts {
 
     // Draw Channel 1: Flux (Emerald)
     this.drawLineSeries(ctx, seriesFlux, 25.0, padL, padT, plotW, plotH, "#34d399", "rgba(52, 211, 153, 0.10)");
+
+    // Draw Drag-to-Zoom Selection Overlay Box
+    if (this.dragInfo && this.dragInfo.active && this.dragInfo.canvasKey === "luteinScope") {
+      const drag = this.dragInfo;
+      const x1 = Math.min(drag.startX, drag.currentX);
+      const dragW = Math.abs(drag.startX - drag.currentX);
+      ctx.save();
+      ctx.fillStyle = "rgba(16, 185, 129, 0.14)";
+      ctx.fillRect(x1, padT, dragW, plotH);
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.45)";
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(x1, padT, dragW, plotH);
+      ctx.restore();
+    }
   }
 
   getScaledSeries(historyArr, baselineVal, maxVal) {
@@ -302,18 +339,18 @@ export class LiveTelemetryCharts {
     ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
     ctx.lineWidth = 1;
 
-    // Horizontal grid lines (5 rows)
+    // Horizontal grid lines (5 rows) - pixel aligned to 0.5px
     for (let i = 0; i <= 4; i++) {
-      const y = padT + (i / 4) * plotH;
+      const y = Math.floor(padT + (i / 4) * plotH) + 0.5;
       ctx.beginPath();
       ctx.moveTo(padL, y);
       ctx.lineTo(padL + plotW, y);
       ctx.stroke();
     }
 
-    // Vertical grid lines (6 cols)
+    // Vertical grid lines (6 cols) - pixel aligned to 0.5px
     for (let i = 0; i <= 6; i++) {
-      const x = padL + (i / 6) * plotW;
+      const x = Math.floor(padL + (i / 6) * plotW) + 0.5;
       ctx.beginPath();
       ctx.moveTo(x, padT);
       ctx.lineTo(x, padT + plotH);
@@ -2794,6 +2831,233 @@ export class LiveTelemetryCharts {
 
       ctx.fillStyle = "#c084fc";
       ctx.fillText(`● 대사 부하 (${crisprData.biomassPenaltyPct}%)`, rightL + 340 * dpr, plotT + 16 * dpr);
+    }
+  }
+
+  setupDragZoom() {
+    const bindEvents = (canvas, key) => {
+      if (!canvas) return;
+
+      canvas.addEventListener("pointerdown", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.clientX - rect.left;
+        const padL = 36;
+        const padR = 44;
+        const w = rect.width;
+        const plotW = w - padL - padR;
+
+        // Ensure user is clicking within the plot grid bounds
+        if (clientX >= padL && clientX <= padL + plotW) {
+          canvas.setPointerCapture(e.pointerId);
+          this.dragInfo.active = true;
+          this.dragInfo.startX = clientX;
+          this.dragInfo.currentX = clientX;
+          this.dragInfo.canvasKey = key;
+        }
+      });
+
+      canvas.addEventListener("pointermove", (e) => {
+        if (!this.dragInfo.active || this.dragInfo.canvasKey !== key) return;
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.clientX - rect.left;
+        const padL = 36;
+        const padR = 44;
+        const w = rect.width;
+        const plotW = w - padL - padR;
+
+        this.dragInfo.currentX = Math.max(padL, Math.min(padL + plotW, clientX));
+        this.renderAll();
+      });
+
+      canvas.addEventListener("pointerup", (e) => {
+        if (!this.dragInfo.active || this.dragInfo.canvasKey !== key) return;
+        canvas.releasePointerCapture(e.pointerId);
+        
+        const startX = this.dragInfo.startX;
+        const endX = this.dragInfo.currentX;
+        this.dragInfo.active = false;
+        this.renderAll();
+
+        const dragDistance = Math.abs(startX - endX);
+        if (dragDistance > 12) {
+          this.triggerZoomAnalysis(key, startX, endX);
+        }
+      });
+
+      canvas.addEventListener("pointercancel", (e) => {
+        if (this.dragInfo.active && this.dragInfo.canvasKey === key) {
+          canvas.releasePointerCapture(e.pointerId);
+          this.dragInfo.active = false;
+          this.renderAll();
+        }
+      });
+    };
+
+    bindEvents(this.canvases.photoScope, "photoScope");
+    bindEvents(this.canvases.luteinScope, "luteinScope");
+  }
+
+  triggerZoomAnalysis(key, startX, endX) {
+    const canvas = this.canvases[key];
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const padL = 36;
+    const plotW = rect.width - 80;
+
+    let x1 = Math.min(startX, endX);
+    let x2 = Math.max(startX, endX);
+
+    const r1 = Math.max(0, Math.min(1, (x1 - padL) / plotW));
+    const r2 = Math.max(0, Math.min(1, (x2 - padL) / plotW));
+
+    let rawSeries = [];
+    let titleStr = "";
+    let units = "";
+    let colorTheme = "#00f2fe";
+    let fillTheme = "rgba(0, 242, 254, 0.1)";
+    let maxVal = 40.0;
+
+    if (key === "photoScope") {
+      rawSeries = this.getScaledSeries(this.history.an, 18.0, 40.0);
+      titleStr = "📊 광합성 수율 속도(An) 세그먼트 현황";
+      units = " μmol/m²/s";
+      colorTheme = "#34d399";
+      fillTheme = "rgba(52, 211, 153, 0.12)";
+      maxVal = 40.0;
+    } else {
+      rawSeries = this.getScaledSeries(this.history.luteinFlux, 14.5, 25.0);
+      titleStr = "📊 Lutein 대사 합성 속도(Flux) 세그먼트 현황";
+      units = " mg/m²/h";
+      colorTheme = "#c084fc";
+      fillTheme = "rgba(192, 132, 252, 0.12)";
+      maxVal = 25.0;
+    }
+
+    const len = rawSeries.length;
+    const idx1 = Math.floor(r1 * (len - 1));
+    const idx2 = Math.ceil(r2 * (len - 1));
+    const slicedData = rawSeries.slice(idx1, idx2 + 1);
+
+    if (slicedData.length < 2) return;
+
+    const valStart = slicedData[0];
+    const valEnd = slicedData[slicedData.length - 1];
+    const valMin = Math.min(...slicedData);
+    const valMax = Math.max(...slicedData);
+
+    const delta = valEnd - valStart;
+    const dt = (idx2 - idx1) || 1;
+    const slope = delta / dt;
+
+    let timeUnit = "sec";
+    if (this.timeScale === "24h") timeUnit = "30min";
+    else if (this.timeScale === "42d") timeUnit = "day";
+
+    // Set textual stats
+    const elTitle = document.getElementById("scopeZoomTitle");
+    const lblStart = document.getElementById("lblZoomStart");
+    const lblEnd = document.getElementById("lblZoomEnd");
+    const lblSlope = document.getElementById("lblZoomSlope");
+    const lblMax = document.getElementById("lblZoomMax");
+    const lblMin = document.getElementById("lblZoomMin");
+    const lblDiagnosis = document.getElementById("lblZoomDiagnosis");
+
+    if (elTitle) elTitle.textContent = titleStr;
+    if (lblStart) lblStart.textContent = valStart.toFixed(2) + units;
+    if (lblEnd) lblEnd.textContent = valEnd.toFixed(2) + units;
+    
+    const sign = slope >= 0 ? "+" : "";
+    if (lblSlope) lblSlope.textContent = `${sign}${slope.toFixed(4)}${units}/${timeUnit}`;
+    if (lblMax) lblMax.textContent = valMax.toFixed(2) + units;
+    if (lblMin) lblMin.textContent = valMin.toFixed(2) + units;
+
+    if (lblDiagnosis) {
+      if (slope > 0.005) {
+        lblDiagnosis.textContent = "⚡ 동적 상향 활성 (Fast Response)";
+        lblDiagnosis.style.color = "#34d399";
+      } else if (slope < -0.005) {
+        lblDiagnosis.textContent = "📉 하향 스트레스 반응 (Stress Declining)";
+        lblDiagnosis.style.color = "#f43f5e";
+      } else {
+        lblDiagnosis.textContent = "● 정상 안정 평형 (Steady State)";
+        lblDiagnosis.style.color = "#fbbf24";
+      }
+    }
+
+    // Open Modal
+    const modal = document.getElementById("scopeZoomModal");
+    if (modal) modal.classList.add("active");
+
+    // Draw Zoom Graph
+    const zoomCanvas = document.getElementById("scopeZoomCanvas");
+    if (zoomCanvas) {
+      const zoomCtx = zoomCanvas.getContext("2d");
+      this.initCanvas(zoomCanvas, zoomCtx);
+      const zw = zoomCanvas.dispW;
+      const zh = zoomCanvas.dispH;
+      
+      zoomCtx.clearRect(0, 0, zw, zh);
+
+      const zPadL = 40, zPadR = 20, zPadT = 16, zPadB = 20;
+      const zPlotW = zw - zPadL - zPadR;
+      const zPlotH = zh - zPadT - zPadB;
+
+      // Draw Grid
+      zoomCtx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+      zoomCtx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = Math.floor(zPadT + (i / 4) * zPlotH) + 0.5;
+        zoomCtx.beginPath(); zoomCtx.moveTo(zPadL, y); zoomCtx.lineTo(zPadL + zPlotW, y); zoomCtx.stroke();
+      }
+      for (let i = 0; i <= 5; i++) {
+        const x = Math.floor(zPadL + (i / 5) * zPlotW) + 0.5;
+        zoomCtx.beginPath(); zoomCtx.moveTo(x, zPadT); zoomCtx.lineTo(x, zPadT + zPlotH); zoomCtx.stroke();
+      }
+
+      // Draw Y Labels
+      zoomCtx.fillStyle = "rgba(255,255,255,0.45)";
+      zoomCtx.font = "9px 'JetBrains Mono', monospace";
+      zoomCtx.textAlign = "right";
+      zoomCtx.textBaseline = "middle";
+      [valMax, (valMax + valMin)/2, valMin].forEach((v, idx) => {
+        const y = zPadT + (idx / 2) * zPlotH;
+        zoomCtx.fillText(v.toFixed(1), zPadL - 8, y);
+      });
+
+      // Draw Plot Line
+      zoomCtx.save();
+      zoomCtx.beginPath();
+      zoomCtx.rect(zPadL, zPadT, zPlotW, zPlotH);
+      zoomCtx.clip();
+
+      // Draw Fill
+      zoomCtx.beginPath();
+      slicedData.forEach((val, i) => {
+        const x = zPadL + (i / (slicedData.length - 1)) * zPlotW;
+        const clamped = Math.min(valMax, Math.max(valMin, val));
+        const y = zPadT + zPlotH - ((clamped - valMin) / (Math.max(0.01, valMax - valMin))) * zPlotH;
+        if (i === 0) zoomCtx.moveTo(x, y);
+        else zoomCtx.lineTo(x, y);
+      });
+      zoomCtx.lineTo(zPadL + zPlotW, zPadT + zPlotH);
+      zoomCtx.lineTo(zPadL, zPadT + zPlotH);
+      zoomCtx.closePath();
+      zoomCtx.fillStyle = fillTheme;
+      zoomCtx.fill();
+
+      // Draw Stroke
+      zoomCtx.beginPath();
+      slicedData.forEach((val, i) => {
+        const x = zPadL + (i / (slicedData.length - 1)) * zPlotW;
+        const clamped = Math.min(valMax, Math.max(valMin, val));
+        const y = zPadT + zPlotH - ((clamped - valMin) / (Math.max(0.01, valMax - valMin))) * zPlotH;
+        if (i === 0) zoomCtx.moveTo(x, y);
+        else zoomCtx.lineTo(x, y);
+      });
+      zoomCtx.strokeStyle = colorTheme;
+      zoomCtx.lineWidth = 2.0;
+      zoomCtx.stroke();
+      zoomCtx.restore();
     }
   }
 }

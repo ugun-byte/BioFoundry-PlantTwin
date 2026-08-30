@@ -684,6 +684,17 @@ function initApp() {
     });
   }
 
+  const btnScopeZoomClose = document.getElementById("btnScopeZoomClose");
+  const scopeZoomModal = document.getElementById("scopeZoomModal");
+  if (btnScopeZoomClose && scopeZoomModal) {
+    btnScopeZoomClose.addEventListener("click", () => {
+      if (typeof audio === "object" && typeof audio.playClick === "function") {
+        audio.playClick();
+      }
+      scopeZoomModal.classList.remove("active");
+    });
+  }
+
   // Initialize Draggable HUD Cards inside 3D Viewport
   const viewportCard = document.querySelector(".viewport-card");
   const leafCard = document.getElementById("hudLeafCard");
