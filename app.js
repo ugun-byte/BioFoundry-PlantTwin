@@ -318,7 +318,22 @@ const DOM = {
   hplcScopeCanvas: document.getElementById("hplcScopeCanvas"),
   hplcPeakTableBody: document.getElementById("hplcPeakTableBody"),
   btnReinjectHplc: document.getElementById("btnReinjectHplc"),
-  btnExportHplcCSV: document.getElementById("btnExportHplcCSV")
+  btnExportHplcCSV: document.getElementById("btnExportHplcCSV"),
+
+  // Biological Electrical Impedance Spectroscopy (EIS) Modal
+  btnEisSpectroscopy: document.getElementById("btnEisSpectroscopy"),
+  eisModal: document.getElementById("eisModal"),
+  eisClose: document.getElementById("eisClose"),
+  eisModalTitle: document.getElementById("eisModalTitle"),
+  eisCmVal: document.getElementById("eisCmVal"),
+  eisViabilityBadge: document.getElementById("eisViabilityBadge"),
+  eisReVal: document.getElementById("eisReVal"),
+  eisRiVal: document.getElementById("eisRiVal"),
+  eisFcVal: document.getElementById("eisFcVal"),
+  eisScopeCanvas: document.getElementById("eisScopeCanvas"),
+  eisParamTableBody: document.getElementById("eisParamTableBody"),
+  btnRescanEis: document.getElementById("btnRescanEis"),
+  btnExportEisCSV: document.getElementById("btnExportEisCSV")
 };
 
 function populateCropDropdown(selectedId = null) {
@@ -863,6 +878,22 @@ function bindEventListeners() {
   }
   if (DOM.btnExportHplcCSV) {
     DOM.btnExportHplcCSV.addEventListener("click", exportHplcDataCSV);
+  }
+
+  // Biological Electrical Impedance Spectroscopy (EIS) Modal
+  if (DOM.btnEisSpectroscopy) {
+    DOM.btnEisSpectroscopy.addEventListener("click", openEisModal);
+  }
+  if (DOM.eisClose) {
+    DOM.eisClose.addEventListener("click", () => {
+      if (DOM.eisModal) DOM.eisModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnRescanEis) {
+    DOM.btnRescanEis.addEventListener("click", openEisModal);
+  }
+  if (DOM.btnExportEisCSV) {
+    DOM.btnExportEisCSV.addEventListener("click", exportEisDataCSV);
   }
 
   // Timeline Controls
@@ -1473,6 +1504,83 @@ function exportHplcDataCSV() {
   const link = document.createElement("a");
   link.setAttribute("href", url);
   link.setAttribute("download", `BioFoundry_HPLC_${crop.id}_Day${DOM.teleDay ? DOM.teleDay.textContent : '01'}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function openEisModal() {
+  audio.playEisFrequencySweepSound();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const eisData = bioEngine.calculateEisImpedanceSpectroscopy(envTele.sensors, crop, plantState);
+
+  if (DOM.eisModalTitle) {
+    DOM.eisModalTitle.textContent = `⚡ ${crop.name}: 생체 전기 임피던스 분광법(EIS 10Hz~1MHz) 세포막 건전성 분석`;
+  }
+  if (DOM.eisCmVal) DOM.eisCmVal.textContent = `${eisData.membraneCapacitanceUf} μF/cm²`;
+  if (DOM.eisViabilityBadge) {
+    DOM.eisViabilityBadge.textContent = `● 건전성: ${eisData.membraneViabilityPct}% (${eisData.viabilityStatus})`;
+    DOM.eisViabilityBadge.style.color = eisData.membraneViabilityPct > 85.0 ? "#34d399" : (eisData.membraneViabilityPct > 65.0 ? "#fbbf24" : "#f43f5e");
+  }
+  if (DOM.eisReVal) DOM.eisReVal.textContent = `${eisData.extracellularResistanceOhm.toLocaleString()} Ω`;
+  if (DOM.eisRiVal) DOM.eisRiVal.textContent = `${eisData.intracellularResistanceOhm.toLocaleString()} Ω`;
+  if (DOM.eisFcVal) DOM.eisFcVal.textContent = `${eisData.characteristicFreqKhz} kHz`;
+
+  // Equivalent Circuit Table
+  const paramRows = [
+    { symbol: "Re (R0)", desc: "아포플라스트 세포외액 저항", val: `${eisData.extracellularResistanceOhm.toLocaleString()} Ω`, normal: "1,500 ~ 3,500 Ω", status: "정상 수화 (Hydrated)", ok: true },
+    { symbol: "Ri (R_inf)", desc: "심플라스트 세포내액 저항", val: `${eisData.intracellularResistanceOhm.toLocaleString()} Ω`, normal: "400 ~ 900 Ω", status: "전해질 안정", ok: true },
+    { symbol: "Cm", desc: "세포막 정전용량 (지질 이중층)", val: `${eisData.membraneCapacitanceUf} μF/cm²`, normal: "1.5 ~ 2.4 μF/cm²", status: eisData.membraneCapacitanceUf > 1.2 ? "지질막 온전 (Intact)" : "막 투과성 손상", ok: eisData.membraneCapacitanceUf > 1.2 },
+    { symbol: "α (Alpha)", desc: "Cole-Cole 주파수 분산 지수", val: `${eisData.coleColeAlpha}`, normal: "0.75 ~ 0.90", status: "생체 조직 분산 양호", ok: true },
+    { symbol: "fc", desc: "특성 완화 주파수", val: `${eisData.characteristicFreqKhz} kHz`, normal: "40 ~ 120 kHz", status: "정상 유전 분극", ok: true },
+    { symbol: "τ (Tau)", desc: "유전 완화 시상수", val: `${eisData.relaxationTimeUs} μs`, normal: "1.5 ~ 4.0 μs", status: "정상 완화 반응", ok: true }
+  ];
+
+  if (DOM.eisParamTableBody) {
+    DOM.eisParamTableBody.innerHTML = paramRows.map(r => `
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <td style="padding: 5px 8px; font-family: monospace; color: #c084fc; font-weight: 700;">${r.symbol}</td>
+        <td style="padding: 5px 8px; color: #e2e8f0;">${r.desc}</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: #38bdf8; font-weight: 600;">${r.val}</td>
+        <td style="padding: 5px 8px; color: var(--text-muted); font-size: 9.5px;">${r.normal}</td>
+        <td style="padding: 5px 8px; color: ${r.ok ? '#34d399' : '#f43f5e'}; font-weight: 600;">${r.status}</td>
+      </tr>
+    `).join("");
+  }
+
+  if (DOM.eisModal) {
+    DOM.eisModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (telemetryCharts && DOM.eisScopeCanvas) {
+      telemetryCharts.renderEisNyquistAndBodeScope(DOM.eisScopeCanvas, eisData);
+    }
+  }, 60);
+}
+
+function exportEisDataCSV() {
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const eisData = bioEngine.calculateEisImpedanceSpectroscopy(envTele.sensors, crop, plantState);
+
+  const header = `# BioFoundry PlantTwin - Biological Electrical Impedance Spectroscopy (EIS) Dataset\n` +
+    `# Crop: ${crop.name} (${crop.scientificName})\n` +
+    `# Model: Hayden / Cole-Cole Bio-Equivalent Circuit (10 Hz ~ 1 MHz)\n` +
+    `# Extracellular Resistance (Re): ${eisData.extracellularResistanceOhm} Ohm\n` +
+    `# Intracellular Resistance (Ri): ${eisData.intracellularResistanceOhm} Ohm\n` +
+    `# Membrane Capacitance (Cm): ${eisData.membraneCapacitanceUf} uF/cm2\n` +
+    `# Characteristic Frequency (fc): ${eisData.characteristicFreqKhz} kHz | Alpha: ${eisData.coleColeAlpha}\n` +
+    `# Viability Index: ${eisData.membraneViabilityPct}% (${eisData.viabilityStatus})\n\n` +
+    `Frequency_Hz,Log10_Freq,Z_Real_Ohm,Z_Imag_Ohm,Z_Magnitude_Ohm,Phase_Angle_Deg\n` +
+    eisData.sweepData.map(d => `${d.freqHz},${d.logFreq},${d.zReal},${d.zImag},${d.zMagnitude},${d.phaseAngleDeg}`).join("\n");
+
+  const blob = new Blob(["\uFEFF" + header], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `BioFoundry_EIS_${crop.id}_Day${DOM.teleDay ? DOM.teleDay.textContent : '01'}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

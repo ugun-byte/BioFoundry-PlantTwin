@@ -806,6 +806,104 @@ export class BioPhysicalEngine {
       chromatogramCurve
     };
   }
+
+  /**
+   * 18. Biological Electrical Impedance Spectroscopy (EIS, 10Hz ~ 1MHz) & Cole-Cole Model
+   * Simulates plant tissue Hayden equivalent circuit: Extracellular resistance (Re),
+   * Intracellular resistance (Ri), and Membrane capacitance (Cm) across 5 decades of AC frequency.
+   */
+  calculateEisImpedanceSpectroscopy(envParams = {}, cropProfile = {}, plantState = {}) {
+    const { ec = 2.2, airTemp = 24.0, vpd = 1.05 } = envParams;
+    const turgor = plantState.turgorPressureMPa !== undefined ? plantState.turgorPressureMPa : 0.65;
+
+    // 1. Equivalent Circuit Parameters (Hayden / Cole-Cole model)
+    // Re (Apoplastic Extracellular Resistance in Ohms): Drops if EC is high or cell membrane leaks ions
+    const baseRe = 2800.0;
+    const re = Math.max(600.0, baseRe * (2.0 / Math.max(0.5, ec)) * (0.85 + 0.15 * Math.min(1.0, turgor)));
+
+    // Ri (Symplastic Intracellular Resistance in Ohms): Cytoplasmic electrolyte resistance
+    const baseRi = 640.0;
+    const tempFactor = 1.0 - (airTemp - 25.0) * 0.015;
+    const ri = Math.max(250.0, baseRi * tempFactor);
+
+    // Cm (Cell Membrane Capacitance in uF/cm2): Healthy lipid bilayer = 1.6 ~ 2.2 uF/cm2
+    // Stressed/damaged membrane drops capacitance or increases dispersion
+    const baseCm = 1.85; // uF/cm2
+    const cm = parseFloat((baseCm * Math.min(1.15, Math.max(0.65, 0.7 + turgor * 0.5))).toFixed(2));
+
+    // Alpha (Cole-Cole distribution parameter: 0 < alpha <= 1, living plant tissue ~ 0.82)
+    const alpha = 0.84;
+
+    // High frequency resistance limit (R_inf = Re*Ri / (Re + Ri))
+    const rInf = (re * ri) / (re + ri);
+    // Low frequency resistance limit (R_0 = Re)
+    const r0 = re;
+
+    // Characteristic relaxation time (tau in seconds) & Characteristic frequency (fc in kHz)
+    // tau = (Re + Ri) * (Cm in Farads)
+    const tauSec = (re + ri) * (cm * 1e-6) * 0.001; // Scaled for tissue cross-section
+    const fcKhz = parseFloat((1.0 / (2.0 * Math.PI * tauSec * 1000.0)).toFixed(1));
+
+    // 2. 50-point Logarithmic Frequency Sweep (10 Hz to 1,000,000 Hz)
+    const sweepData = [];
+    const minLog = 1.0; // 10^1 = 10 Hz
+    const maxLog = 6.0; // 10^6 = 1,000,000 Hz
+    const numPoints = 50;
+
+    for (let i = 0; i < numPoints; i++) {
+      const logFreq = minLog + (i / (numPoints - 1)) * (maxLog - minLog);
+      const freqHz = Math.pow(10, logFreq);
+      const omega = 2.0 * Math.PI * freqHz;
+
+      // Cole-Cole Equation: Z(w) = R_inf + (R0 - R_inf) / (1 + (j * w * tau)^alpha)
+      // (j * w * tau)^alpha = (w * tau)^alpha * (cos(alpha * PI/2) + j * sin(alpha * PI/2))
+      const wt = omega * tauSec;
+      const wtAlpha = Math.pow(wt, alpha);
+      const phi = alpha * (Math.PI / 2.0);
+
+      const denomReal = 1.0 + wtAlpha * Math.cos(phi);
+      const denomImag = wtAlpha * Math.sin(phi);
+      const denomMagSq = denomReal * denomReal + denomImag * denomImag;
+
+      const deltaR = r0 - rInf;
+      const zReal = rInf + (deltaR * denomReal) / denomMagSq;
+      const zImag = (deltaR * denomImag) / denomMagSq; // Reactance is negative capacitive (-Z'')
+
+      const zMagnitude = Math.sqrt(zReal * zReal + zImag * zImag);
+      const phaseAngleDeg = -Math.atan2(zImag, zReal) * (180.0 / Math.PI);
+
+      sweepData.push({
+        freqHz: Math.round(freqHz),
+        logFreq: parseFloat(logFreq.toFixed(2)),
+        zReal: parseFloat(zReal.toFixed(1)),
+        zImag: parseFloat(zImag.toFixed(1)),
+        zMagnitude: parseFloat(zMagnitude.toFixed(1)),
+        phaseAngleDeg: parseFloat(phaseAngleDeg.toFixed(2))
+      });
+    }
+
+    // 3. Overall Membrane Integrity Viability Index (0 ~ 100%)
+    const membraneViabilityPct = parseFloat(
+      Math.min(100.0, Math.max(30.0, (cm / baseCm) * 60.0 + (re / baseRe) * 40.0)).toFixed(1)
+    );
+
+    const viabilityStatus = membraneViabilityPct > 90.0 
+      ? "우수 (Intact Lipid Bilayer)" 
+      : (membraneViabilityPct > 70.0 ? "양호 (Moderate Elasticity)" : "세포막 손상/누출 (Membrane Permeabilization)");
+
+    return {
+      extracellularResistanceOhm: Math.round(re),
+      intracellularResistanceOhm: Math.round(ri),
+      membraneCapacitanceUf: cm,
+      coleColeAlpha: alpha,
+      characteristicFreqKhz: fcKhz,
+      relaxationTimeUs: parseFloat((tauSec * 1e6).toFixed(1)),
+      membraneViabilityPct,
+      viabilityStatus,
+      sweepData
+    };
+  }
 }
+
 
 

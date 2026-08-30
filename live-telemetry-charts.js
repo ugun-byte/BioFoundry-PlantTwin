@@ -1198,4 +1198,183 @@ export class LiveTelemetryCharts {
     ctx.font = `bold ${9.5 * dpr}px 'Inter', sans-serif`;
     ctx.fillText(`UV/Vis λ=450nm | Flow: 1.0 mL/min | Column: C18 (250x4.6mm)`, padL + 10 * dpr, padT + 12 * dpr);
   }
+
+  /**
+   * Real-Time Biological EIS Nyquist (Cole-Cole) & Bode Impedance Dual Scope Canvas
+   */
+  renderEisNyquistAndBodeScope(canvas, eisData) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = (rect.width > 0 ? rect.width : 780) * dpr;
+    const h = (rect.height > 0 ? rect.height : 230) * dpr;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+
+    ctx.clearRect(0, 0, w, h);
+
+    // 1. Futuristic Glass Background
+    ctx.fillStyle = "rgba(4, 11, 20, 0.96)";
+    ctx.fillRect(0, 0, w, h);
+
+    const padL = 45 * dpr;
+    const padR = 20 * dpr;
+    const padT = 30 * dpr;
+    const padB = 32 * dpr;
+    const midGap = 35 * dpr;
+    const singlePlotW = (w - padL - padR - midGap) / 2;
+    const plotH = h - padT - padB;
+
+    const sweep = eisData.sweepData || [];
+
+    // ==========================================
+    // PANE 1: Nyquist Cole-Cole Arc (Left Pane)
+    // ==========================================
+    const maxReal = Math.max(3000.0, (eisData.extracellularResistanceOhm || 2800) * 1.15);
+    const maxImag = maxReal * 0.45;
+
+    // Grid lines for Nyquist
+    ctx.strokeStyle = "rgba(139, 92, 246, 0.1)";
+    ctx.lineWidth = 1 * dpr;
+    for (let r = 0; r <= maxReal; r += 1000) {
+      const x = padL + (r / maxReal) * singlePlotW;
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + plotH);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${r}Ω`, x - 8 * dpr, padT + plotH + 14 * dpr);
+    }
+    for (let im = 0; im <= maxImag; im += 400) {
+      const y = padT + ((maxImag - im) / maxImag) * plotH;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + singlePlotW, y);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${im}Ω`, padL - 32 * dpr, y + 3 * dpr);
+    }
+
+    // Pane 1 Title
+    ctx.fillStyle = "#c084fc";
+    ctx.font = `bold ${9.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① Nyquist Cole-Cole Arc (Z' vs -Z'')", padL, padT - 10 * dpr);
+
+    // Plot Nyquist Depressed Arc
+    if (sweep.length > 0) {
+      ctx.save();
+      ctx.shadowColor = "#a855f7";
+      ctx.shadowBlur = 8 * dpr;
+      ctx.strokeStyle = "#c084fc";
+      ctx.lineWidth = 2.4 * dpr;
+      ctx.beginPath();
+      sweep.forEach((pt, i) => {
+        const x = padL + (pt.zReal / maxReal) * singlePlotW;
+        const y = padT + ((maxImag - Math.min(maxImag, pt.zImag)) / maxImag) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // Intercept markers
+      const rInfX = padL + ((eisData.intracellularResistanceOhm || 640) / maxReal) * singlePlotW;
+      const r0X = padL + ((eisData.extracellularResistanceOhm || 2800) / maxReal) * singlePlotW;
+      const baseLineY = padT + plotH;
+
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`R_inf`, rInfX - 6 * dpr, baseLineY - 6 * dpr);
+      ctx.fillStyle = "#fbbf24";
+      ctx.fillText(`R_0=Re`, r0X - 10 * dpr, baseLineY - 6 * dpr);
+
+      // Apex Characteristic Frequency Marker
+      const fcPt = sweep[Math.floor(sweep.length / 2)];
+      if (fcPt) {
+        const apexX = padL + (fcPt.zReal / maxReal) * singlePlotW;
+        const apexY = padT + ((maxImag - Math.min(maxImag, fcPt.zImag)) / maxImag) * plotH;
+        ctx.beginPath();
+        ctx.arc(apexX, apexY, 4 * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = "#f43f5e";
+        ctx.fill();
+        ctx.fillStyle = "#fecdd3";
+        ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
+        ctx.fillText(`fc=${eisData.characteristicFreqKhz}kHz`, apexX + 6 * dpr, apexY - 4 * dpr);
+      }
+    }
+
+    // ==========================================
+    // PANE 2: Bode Frequency vs Phase (Right Pane)
+    // ==========================================
+    const pane2L = padL + singlePlotW + midGap;
+
+    // Grid lines for Bode Log Frequency (10Hz to 1MHz)
+    ctx.strokeStyle = "rgba(6, 182, 212, 0.1)";
+    ctx.lineWidth = 1 * dpr;
+    const logDecades = [
+      { log: 1, label: "10Hz" },
+      { log: 2, label: "100Hz" },
+      { log: 3, label: "1kHz" },
+      { log: 4, label: "10kHz" },
+      { log: 5, label: "100kHz" },
+      { log: 6, label: "1MHz" }
+    ];
+
+    logDecades.forEach(d => {
+      const x = pane2L + ((d.log - 1.0) / 5.0) * singlePlotW;
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + plotH);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(d.label, x - 10 * dpr, padT + plotH + 14 * dpr);
+    });
+
+    // Phase angle Y-axis (0 to -60 deg)
+    for (let deg = 0; deg >= -60; deg -= 20) {
+      const y = padT + ((-deg) / 60.0) * plotH;
+      ctx.beginPath();
+      ctx.moveTo(pane2L, y);
+      ctx.lineTo(pane2L + singlePlotW, y);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${deg}°`, pane2L - 25 * dpr, y + 3 * dpr);
+    }
+
+    // Pane 2 Title
+    ctx.fillStyle = "#22d3ee";
+    ctx.font = `bold ${9.5 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② Bode Phase Angle vs Frequency (10Hz ~ 1MHz)", pane2L, padT - 10 * dpr);
+
+    // Plot Bode Phase Curve
+    if (sweep.length > 0) {
+      ctx.save();
+      ctx.shadowColor = "#06b6d4";
+      ctx.shadowBlur = 8 * dpr;
+      ctx.strokeStyle = "#22d3ee";
+      ctx.lineWidth = 2.4 * dpr;
+      ctx.beginPath();
+      sweep.forEach((pt, i) => {
+        const x = pane2L + ((pt.logFreq - 1.0) / 5.0) * singlePlotW;
+        const y = padT + ((-pt.phaseAngleDeg) / 60.0) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
 }

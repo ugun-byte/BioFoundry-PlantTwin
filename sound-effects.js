@@ -187,4 +187,32 @@ export class CyberAudioEngine {
       osc2.stop(this.ctx.currentTime + 0.18);
     } catch (e) {}
   }
+
+  /**
+   * Synthesizes EIS AC frequency sweep chirp tone (200 Hz to 2400 Hz)
+   */
+  playEisFrequencySweepSound() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(2400, this.ctx.currentTime + 0.22);
+
+      gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.08, this.ctx.currentTime + 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.22);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.22);
+    } catch (e) {}
+  }
 }
