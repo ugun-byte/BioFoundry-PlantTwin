@@ -424,15 +424,84 @@ body {
 }
 
 /* ==========================================================================
-   3. Main 3-Column Dashboard Layout
+   3. Main 3-Column Dashboard Layout with Resizable Drag Gutters
    ========================================================================== */
 .main-dashboard-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: 265px 1fr 340px;
-  gap: 8px;
+  grid-template-columns: var(--col-left-w, 265px) 8px minmax(320px, 1fr) 8px var(--col-right-w, 340px);
+  gap: 0;
   align-items: stretch;
   overflow: hidden;
+  position: relative;
+  min-height: 440px;
+}
+
+/* Resizable Splitter Gutters */
+.split-gutter {
+  position: relative;
+  background: transparent;
+  z-index: 35;
+  user-select: none;
+  touch-action: none;
+  transition: background 0.15s ease;
+}
+
+.split-gutter::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.split-gutter.col-gutter {
+  cursor: col-resize;
+  width: 8px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.split-gutter.col-gutter::after {
+  top: 15%;
+  bottom: 15%;
+  left: 3px;
+  width: 2px;
+}
+
+.split-gutter.col-gutter:hover::after,
+.split-gutter.col-gutter.is-dragging::after {
+  background: var(--emerald-primary);
+  box-shadow: 0 0 10px var(--emerald-primary);
+  width: 3px;
+  left: 2.5px;
+}
+
+.split-gutter.row-gutter {
+  cursor: row-resize;
+  height: 8px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1px 0;
+}
+
+.split-gutter.row-gutter::after {
+  left: 20%;
+  right: 20%;
+  top: 3px;
+  height: 2px;
+}
+
+.split-gutter.row-gutter:hover::after,
+.split-gutter.row-gutter.is-dragging::after {
+  background: var(--emerald-primary);
+  box-shadow: 0 0 10px var(--emerald-primary);
+  height: 3px;
+  top: 2.5px;
 }
 
 .panel-card {
@@ -1214,6 +1283,10 @@ input:checked + .switch-slider:before {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+  height: var(--bottom-scopes-h, 165px);
+  min-height: 90px;
+  max-height: 420px;
+  flex-shrink: 0;
 }
 
 .scope-card {
@@ -1223,7 +1296,7 @@ input:checked + .switch-slider:before {
   padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  height: 165px;
+  height: 100%;
   overflow: hidden;
 }
 

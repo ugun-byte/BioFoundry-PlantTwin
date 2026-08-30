@@ -262,11 +262,140 @@ function initApp() {
   makeElementDraggable(rootCard, viewportCard);
   makeElementDraggable(bioPinCard, viewportCard);
 
+  // Initialize Interactive Resizable Panel Layout Gutters
+  initResizablePanels();
+
   bindEventListeners();
   buildParamEditor();
   resetPlantState();
 
   requestAnimationFrame(simulationLoop);
+}
+
+/**
+ * Interactive Resizable Panel Layout (Left, Right, Bottom Gutters)
+ */
+function initResizablePanels() {
+  const gridEl = document.querySelector(".main-dashboard-grid");
+  const bottomScopesEl = document.querySelector(".bottom-scopes-grid");
+  const gutterLeft = document.getElementById("gutterLeft");
+  const gutterRight = document.getElementById("gutterRight");
+  const gutterBottom = document.getElementById("gutterBottom");
+
+  if (!gridEl) return;
+
+  // Restore saved widths/height from localStorage
+  const savedLeftW = localStorage.getItem("planttwin_left_w");
+  const savedRightW = localStorage.getItem("planttwin_right_w");
+  const savedBottomH = localStorage.getItem("planttwin_bottom_h");
+
+  let leftW = savedLeftW ? parseFloat(savedLeftW) : 265;
+  let rightW = savedRightW ? parseFloat(savedRightW) : 340;
+  let bottomH = savedBottomH ? parseFloat(savedBottomH) : 165;
+
+  const applyLayout = () => {
+    gridEl.style.setProperty("--col-left-w", `${leftW}px`);
+    gridEl.style.setProperty("--col-right-w", `${rightW}px`);
+    if (bottomScopesEl) {
+      bottomScopesEl.style.setProperty("--bottom-scopes-h", `${bottomH}px`);
+    }
+  };
+
+  applyLayout();
+
+  // 1. Left Gutter (Controls Column Width)
+  if (gutterLeft) {
+    gutterLeft.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      gutterLeft.classList.add("is-dragging");
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+
+      const startX = e.clientX;
+      const startW = leftW;
+
+      const onMove = (moveEvt) => {
+        const dx = moveEvt.clientX - startX;
+        leftW = Math.min(480, Math.max(190, startW + dx));
+        gridEl.style.setProperty("--col-left-w", `${leftW}px`);
+      };
+
+      const onUp = () => {
+        gutterLeft.classList.remove("is-dragging");
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        localStorage.setItem("planttwin_left_w", leftW);
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+      };
+
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    });
+  }
+
+  // 2. Right Gutter (Telemetry Column Width)
+  if (gutterRight) {
+    gutterRight.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      gutterRight.classList.add("is-dragging");
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+
+      const startX = e.clientX;
+      const startW = rightW;
+
+      const onMove = (moveEvt) => {
+        const dx = startX - moveEvt.clientX;
+        rightW = Math.min(520, Math.max(260, startW + dx));
+        gridEl.style.setProperty("--col-right-w", `${rightW}px`);
+      };
+
+      const onUp = () => {
+        gutterRight.classList.remove("is-dragging");
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        localStorage.setItem("planttwin_right_w", rightW);
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+      };
+
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    });
+  }
+
+  // 3. Bottom Gutter (Oscilloscopes Height)
+  if (gutterBottom && bottomScopesEl) {
+    gutterBottom.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      gutterBottom.classList.add("is-dragging");
+      document.body.style.cursor = "row-resize";
+      document.body.style.userSelect = "none";
+
+      const startY = e.clientY;
+      const startH = bottomH;
+
+      const onMove = (moveEvt) => {
+        const dy = startY - moveEvt.clientY;
+        bottomH = Math.min(420, Math.max(90, startH + dy));
+        bottomScopesEl.style.setProperty("--bottom-scopes-h", `${bottomH}px`);
+      };
+
+      const onUp = () => {
+        gutterBottom.classList.remove("is-dragging");
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        localStorage.setItem("planttwin_bottom_h", bottomH);
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        if (telemetryCharts) telemetryCharts.renderAll();
+      };
+
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    });
+  }
 }
 
 /**
