@@ -450,4 +450,58 @@ export class BioPhysicalEngine {
       pHDeviation: parseFloat((currentPH - targetPH).toFixed(2))
     };
   }
+
+  /**
+   * 13. Xylem Sap Flow & Hydraulic Conductance / Water Potential Dynamics
+   * Computes Sap Flux Density (Js in cm/h), Total Sap Flow Rate (Qsap in mL/h),
+   * Stem Water Potential (Psi_stem in MPa), and Percent Loss of Conductivity (PLC %).
+   */
+  calculateSapFlowDynamics(envParams = {}, cropProfile = {}, plantState = {}) {
+    const { ppfd = 450, airTemp = 24.0, vpd = 1.05, ec = 2.2 } = envParams;
+    const freshWeight = plantState.freshWeightGrams || 150.0;
+
+    // 1. Transpiration driving force: VPD & Light & Stomatal Aperture
+    const lightFactor = Math.min(1.0, ppfd / (cropProfile.lightSaturationPoint || 650));
+    const vpdDrive = Math.max(0.1, vpd);
+    const tempOpt = Math.exp(-0.5 * Math.pow((airTemp - (cropProfile.tempOpt || 24.0)) / 7.0, 2));
+
+    // Sap Flux Density (Js in cm/h, typical range: 2 ~ 32 cm/h in greenhouse crops)
+    const baseFluxDensity = 14.5 * lightFactor * Math.sqrt(vpdDrive) * tempOpt;
+    const Js = parseFloat(Math.max(1.2, baseFluxDensity).toFixed(1));
+
+    // 2. Total Stem Volumetric Sap Flow (Q_sap in mL/h)
+    const xylemAreaCm2 = 0.45 * Math.pow(freshWeight / 150.0, 0.65);
+    const Qsap = parseFloat((Js * xylemAreaCm2 * 7.5).toFixed(1)); // mL/h
+
+    // 3. Stem Water Potential (Psi_stem in MPa)
+    const psiNutrient = -0.036 * ec;
+    const rHydraulic = 0.0085;
+    const psiStem = parseFloat((psiNutrient - (Qsap * rHydraulic)).toFixed(2));
+
+    // 4. Percent Loss of Hydraulic Conductivity (PLC %) via Cavitation Vulnerability
+    const psi50 = -2.2;
+    const plc = Math.min(100, Math.max(0.5, 100 / (1.0 + Math.exp(-3.5 * (psiStem - psi50)))));
+
+    // 5. 24-Hour Diurnal Sap Flow Curve Projection
+    const diurnalCurve = [];
+    for (let h = 0; h < 24; h++) {
+      const solarH = Math.sin(((h - 6) / 16) * Math.PI);
+      const dayJs = h >= 6 && h <= 22 ? Math.max(0.5, Js * solarH) : 0.8;
+      diurnalCurve.push({
+        hour: h,
+        js: parseFloat(dayJs.toFixed(1)),
+        qSap: parseFloat((dayJs * xylemAreaCm2 * 7.5).toFixed(1))
+      });
+    }
+
+    return {
+      sapFluxDensity: Js,
+      volumetricFlowMlH: Qsap,
+      stemWaterPotentialMPa: psiStem,
+      plcPercent: parseFloat(plc.toFixed(1)),
+      xylemAreaCm2: parseFloat(xylemAreaCm2.toFixed(2)),
+      hydraulicStatus: psiStem > -0.8 ? "최적 수분 유동 (Optimal Hydration)" : (psiStem > -1.2 ? "경미한 수분 스트레스 (Mild Deficit)" : "도관 수분 결핍 (Severe Stress)"),
+      diurnalCurve
+    };
+  }
 }

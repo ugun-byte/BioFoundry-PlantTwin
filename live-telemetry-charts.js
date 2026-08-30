@@ -762,4 +762,105 @@ export class LiveTelemetryCharts {
       }
     }
   }
+
+  /**
+   * Real-Time Xylem Sap Flow & Transpiration Hydraulic Oscilloscope Canvas
+   */
+  renderSapFlowScope(canvas, sapData) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // 1. Futuristic Glass Grid
+    ctx.fillStyle = "rgba(4, 11, 20, 0.95)";
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.strokeStyle = "rgba(0, 242, 254, 0.08)";
+    ctx.lineWidth = 1;
+    for (let x = 40; x < w - 20; x += 45) {
+      ctx.beginPath();
+      ctx.moveTo(x, 20);
+      ctx.lineTo(x, h - 30);
+      ctx.stroke();
+    }
+    for (let y = 30; y < h - 30; y += 30) {
+      ctx.beginPath();
+      ctx.moveTo(40, y);
+      ctx.lineTo(w - 20, y);
+      ctx.stroke();
+    }
+
+    // 2. Axis Labels
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.font = "9px 'Inter', sans-serif";
+    ctx.fillText("00:00", 40, h - 14);
+    ctx.fillText("06:00 (일출)", 120, h - 14);
+    ctx.fillText("12:00 (정오)", 220, h - 14);
+    ctx.fillText("18:00 (일몰)", 320, h - 14);
+    ctx.fillText("24:00", w - 45, h - 14);
+
+    ctx.fillText("30 cm/h", 5, 35);
+    ctx.fillText("15 cm/h", 5, 85);
+    ctx.fillText("0 cm/h", 10, h - 35);
+
+    // 3. Draw 24-Hour Diurnal Sap Flux Density Curve (Aqua/Cyan Area)
+    const curve = sapData.diurnalCurve || [];
+    if (curve.length > 0) {
+      const padL = 45;
+      const plotW = w - padL - 25;
+      const plotH = h - 65;
+      const padT = 28;
+      const maxJs = 32.0;
+
+      const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+      grad.addColorStop(0, "rgba(56, 189, 248, 0.45)");
+      grad.addColorStop(1, "rgba(56, 189, 248, 0.0)");
+
+      ctx.beginPath();
+      curve.forEach((pt, i) => {
+        const x = padL + (i / (curve.length - 1)) * plotW;
+        const y = padT + ((maxJs - pt.js) / maxJs) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.lineTo(padL + plotW, padT + plotH);
+      ctx.lineTo(padL, padT + plotH);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Stroke Line
+      ctx.save();
+      ctx.shadowColor = "#38bdf8";
+      ctx.shadowBlur = 8;
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      curve.forEach((pt, i) => {
+        const x = padL + (i / (curve.length - 1)) * plotW;
+        const y = padT + ((maxJs - pt.js) / maxJs) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // Current live operating point marker
+      const liveX = padL + (12 / 24) * plotW;
+      const liveY = padT + ((maxJs - sapData.sapFluxDensity) / maxJs) * plotH;
+      ctx.beginPath();
+      ctx.arc(liveX, liveY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = "#00f2fe";
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(liveX, liveY, 9, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(0, 242, 254, 0.5)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  }
 }

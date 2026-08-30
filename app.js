@@ -236,7 +236,20 @@ const DOM = {
   cellAtpVal: document.getElementById("cellAtpVal"),
   cellRubiscoVal: document.getElementById("cellRubiscoVal"),
   microscopeStomaCanvas: document.getElementById("microscopeStomaCanvas"),
-  btnFocusZoomTissue: document.getElementById("btnFocusZoomTissue")
+  btnFocusZoomTissue: document.getElementById("btnFocusZoomTissue"),
+
+  // Sap Flow Modal
+  btnSapFlow: document.getElementById("btnSapFlow"),
+  sapFlowModal: document.getElementById("sapFlowModal"),
+  sapFlowClose: document.getElementById("sapFlowClose"),
+  sapFlowModalTitle: document.getElementById("sapFlowModalTitle"),
+  sapJsVal: document.getElementById("sapJsVal"),
+  sapStatusBadge: document.getElementById("sapStatusBadge"),
+  sapVolFlowVal: document.getElementById("sapVolFlowVal"),
+  sapPsiVal: document.getElementById("sapPsiVal"),
+  sapPlcVal: document.getElementById("sapPlcVal"),
+  sapFlowScopeCanvas: document.getElementById("sapFlowScopeCanvas"),
+  btnXylemSeeThrough: document.getElementById("btnXylemSeeThrough")
 };
 
 function populateCropDropdown(selectedId = null) {
@@ -689,6 +702,24 @@ function bindEventListeners() {
     });
   }
 
+  // Sap Flow Modal
+  if (DOM.btnSapFlow) {
+    DOM.btnSapFlow.addEventListener("click", openSapFlowDiagnostics);
+  }
+  if (DOM.sapFlowClose) {
+    DOM.sapFlowClose.addEventListener("click", () => {
+      if (DOM.sapFlowModal) DOM.sapFlowModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnXylemSeeThrough) {
+    DOM.btnXylemSeeThrough.addEventListener("click", () => {
+      audio.playPulse();
+      if (plantChamber3d) {
+        plantChamber3d.triggerXylemFlowVisualization();
+      }
+    });
+  }
+
   // Timeline Controls
   DOM.btnPlay.addEventListener("click", () => {
     audio.playClick();
@@ -909,6 +940,41 @@ function openMicroscopeInspector() {
   }, 60);
 }
 
+function openSapFlowDiagnostics() {
+  audio.playPulse();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+
+  // 1. Trigger 3D Xylem Streamline See-Through Pulse
+  if (plantChamber3d) {
+    plantChamber3d.triggerXylemFlowVisualization();
+  }
+
+  // 2. Calculate Sap Flow Dynamics
+  const sapData = bioEngine.calculateSapFlowDynamics(envTele.sensors, crop, plantState);
+
+  // 3. Update Modal Metrics
+  if (DOM.sapFlowModalTitle) {
+    DOM.sapFlowModalTitle.textContent = `💧 ${crop.name}: 도관부(Xylem) 수액 유량(Sap Flow) & 수생리학 진단`;
+  }
+  if (DOM.sapJsVal) DOM.sapJsVal.textContent = `${sapData.sapFluxDensity} cm/h`;
+  if (DOM.sapStatusBadge) DOM.sapStatusBadge.textContent = `● ${sapData.hydraulicStatus}`;
+  if (DOM.sapVolFlowVal) DOM.sapVolFlowVal.textContent = `${sapData.volumetricFlowMlH} mL/h`;
+  if (DOM.sapPsiVal) DOM.sapPsiVal.textContent = `${sapData.stemWaterPotentialMPa} MPa`;
+  if (DOM.sapPlcVal) DOM.sapPlcVal.textContent = `${sapData.plcPercent}%`;
+
+  // 4. Show Modal & Render Oscilloscope
+  if (DOM.sapFlowModal) {
+    DOM.sapFlowModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (telemetryCharts && DOM.sapFlowScopeCanvas) {
+      telemetryCharts.renderSapFlowScope(DOM.sapFlowScopeCanvas, sapData);
+    }
+  }, 60);
+}
+
 function openElectrophysDiagnostics() {
   audio.playPulse();
   const crop = profileManager.getActiveProfile();
@@ -1104,6 +1170,12 @@ function simulationLoop(now) {
     
     // 5. Calculate Michaelis-Menten Root Ion Uptake Kinetics (NO3-, H2PO4-, K+)
     const ionUptake = bioEngine.calculateRootIonUptake(envTele.sensors, crop, plantState);
+
+    // 5b. Calculate Dynamic Xylem Sap Flow & Modulate 3D Streamline Velocity
+    const sapFlowData = bioEngine.calculateSapFlowDynamics(envTele.sensors, crop, plantState);
+    if (plantChamber3d && plantChamber3d.setSapFlowSpeed) {
+      plantChamber3d.setSapFlowSpeed(sapFlowData.sapFluxDensity);
+    }
 
     // 6. Update Top Diurnal Status Label with Time of Day Phase
     const hour = envTele.simulatedHour;

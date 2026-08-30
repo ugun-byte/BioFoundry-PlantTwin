@@ -443,7 +443,61 @@ export class ThreePlantChamber {
     // Build Procedural 3D Aeroponic Root System
     this.buildRootArchitecture();
 
+    // Build 3D Xylem Capillary Streamline Flow System
+    this.buildXylemStreamlines();
+
     this.scene.add(this.plantGroup);
+  }
+
+  buildXylemStreamlines() {
+    if (this.xylemStreamlineSystem && this.plantGroup) {
+      this.plantGroup.remove(this.xylemStreamlineSystem);
+    }
+    const particleCount = 80;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    this.xylemParticleMeta = [];
+    this.currentSapSpeedMultiplier = 1.0;
+
+    const col1 = new THREE.Color(0x00f2fe);
+    const col2 = new THREE.Color(0x38bdf8);
+    const maxH = this.stemHeight || 0.85;
+
+    for (let i = 0; i < particleCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 0.003 + Math.random() * 0.009;
+      const y = Math.random() * maxH;
+
+      pos[i * 3 + 0] = Math.cos(angle) * radius;
+      pos[i * 3 + 1] = y;
+      pos[i * 3 + 2] = Math.sin(angle) * radius;
+
+      const c = Math.random() > 0.4 ? col1 : col2;
+      colors[i * 3 + 0] = c.r;
+      colors[i * 3 + 1] = c.g;
+      colors[i * 3 + 2] = c.b;
+
+      this.xylemParticleMeta.push({
+        baseAngle: angle,
+        baseRadius: radius,
+        speed: 0.003 + Math.random() * 0.0035
+      });
+    }
+
+    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+    const mat = new THREE.PointsMaterial({
+      size: 0.009,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending
+    });
+
+    this.xylemStreamlineSystem = new THREE.Points(geo, mat);
+    this.plantGroup.add(this.xylemStreamlineSystem);
   }
 
   buildRootArchitecture() {
@@ -1040,6 +1094,26 @@ export class ThreePlantChamber {
       this.rootIonStreamSystem.geometry.attributes.position.needsUpdate = true;
     }
 
+    // 6. Xylem Sap Flow Upward Water Streamlines Animation (Driven by Transpiration & VPD)
+    if (this.xylemStreamlineSystem && this.xylemParticleMeta) {
+      const pos = this.xylemStreamlineSystem.geometry.attributes.position.array;
+      const count = pos.length / 3;
+      const maxH = this.stemHeight || 0.85;
+      const speedMult = this.currentSapSpeedMultiplier || 1.0;
+
+      for (let i = 0; i < count; i++) {
+        const meta = this.xylemParticleMeta[i];
+        pos[i * 3 + 1] += meta.speed * speedMult;
+        if (pos[i * 3 + 1] > maxH) {
+          pos[i * 3 + 1] = 0.01;
+        }
+        meta.baseAngle += 0.015;
+        pos[i * 3 + 0] = Math.cos(meta.baseAngle) * meta.baseRadius;
+        pos[i * 3 + 2] = Math.sin(meta.baseAngle) * meta.baseRadius;
+      }
+      this.xylemStreamlineSystem.geometry.attributes.position.needsUpdate = true;
+    }
+
     if (this.renderer && this.scene && this.camera) {
       this.renderer.render(this.scene, this.camera);
     }
@@ -1367,5 +1441,34 @@ export class ThreePlantChamber {
       }
     };
     requestAnimationFrame(anim);
+  }
+
+  setSapFlowSpeed(jsCmH) {
+    this.currentSapSpeedMultiplier = Math.max(0.2, Math.min(3.5, (jsCmH || 14.5) / 14.0));
+  }
+
+  triggerXylemFlowVisualization(onComplete = null) {
+    if (!this.stemMesh || !this.stemMesh.material) return;
+    const mat = this.stemMesh.material;
+    const origOpacity = mat.opacity !== undefined ? mat.opacity : 1.0;
+    const origTransparent = mat.transparent;
+
+    mat.transparent = true;
+    mat.opacity = 0.35;
+
+    if (this.xylemStreamlineSystem && this.xylemStreamlineSystem.material) {
+      this.xylemStreamlineSystem.material.size = 0.018;
+      this.xylemStreamlineSystem.material.opacity = 1.0;
+    }
+
+    setTimeout(() => {
+      mat.opacity = origOpacity;
+      mat.transparent = origTransparent;
+      if (this.xylemStreamlineSystem && this.xylemStreamlineSystem.material) {
+        this.xylemStreamlineSystem.material.size = 0.009;
+        this.xylemStreamlineSystem.material.opacity = 0.85;
+      }
+      if (typeof onComplete === "function") onComplete();
+    }, 2800);
   }
 }
