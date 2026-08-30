@@ -963,11 +963,63 @@ function initHudPointerToggle() {
       updateHudLeaderLines();
     });
   }
+
+  // Minimize/Expand Interactive Listeners
+  const btnMinLeaf = document.getElementById("btnMinimizeLeafHud");
+  const btnMinRoot = document.getElementById("btnMinimizeRootHud");
+  const miniBadgeLeaf = document.getElementById("minimizedLeafBadge");
+  const miniBadgeRoot = document.getElementById("minimizedRootBadge");
+
+  if (btnMinLeaf) {
+    btnMinLeaf.addEventListener("click", (e) => {
+      e.stopPropagation();
+      isLeafMinimized = true;
+      if (typeof audio === "object" && typeof audio.playClick === "function") {
+        audio.playClick();
+      }
+      updateHudLeaderLines();
+    });
+  }
+
+  if (btnMinRoot) {
+    btnMinRoot.addEventListener("click", (e) => {
+      e.stopPropagation();
+      isRootMinimized = true;
+      if (typeof audio === "object" && typeof audio.playClick === "function") {
+        audio.playClick();
+      }
+      updateHudLeaderLines();
+    });
+  }
+
+  if (miniBadgeLeaf) {
+    miniBadgeLeaf.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+      isLeafMinimized = false;
+      if (typeof audio === "object" && typeof audio.playClick === "function") {
+        audio.playClick();
+      }
+      updateHudLeaderLines();
+    });
+  }
+
+  if (miniBadgeRoot) {
+    miniBadgeRoot.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+      isRootMinimized = false;
+      if (typeof audio === "object" && typeof audio.playClick === "function") {
+        audio.playClick();
+      }
+      updateHudLeaderLines();
+    });
+  }
 }
 
-// Global states for Leaf and Root dynamic pointer visibility
+// Global states for Leaf and Root dynamic pointer visibility and minimization
 let isLeafPointerVisible = true;
 let isRootPointerVisible = true;
+let isLeafMinimized = false;
+let isRootMinimized = false;
 
 /**
  * Real-Time Dynamic Leader Lines Connecting 3D Plant Tissues to Floating HUD Cards
@@ -977,6 +1029,7 @@ function updateHudLeaderLines() {
   const svg = document.getElementById("hudLeaderLineSvg");
   const leafCard = document.getElementById("hudLeafCard");
   const rootCard = document.getElementById("hudRootCard");
+  const bioPinCard = document.getElementById("hologramBioHud");
   const viewportCard = document.querySelector(".viewport-card");
 
   if (!svg || !viewportCard) return;
@@ -1016,96 +1069,131 @@ function updateHudLeaderLines() {
     return { d, attachX, attachY };
   };
 
-  // 1. Update 3D Leaf Tissue Leader Line
+  // 1. Update 3D Leaf Tissue Leader Line & Minimized Badge
   const leafLine = document.getElementById("leafLeaderLine");
   const leafDot = document.getElementById("leafTargetDot");
   const leafPulse = document.getElementById("leafTargetPulse");
   const leafCardDot = document.getElementById("leafCardAttachDot");
   const leafHit = document.getElementById("leafTargetHitArea");
+  const miniBadgeLeaf = document.getElementById("minimizedLeafBadge");
 
-  if (isLeafPointerVisible && anchors && anchors.leafScreen && anchors.leafScreen.isVisible && leafCard) {
+  if (anchors && anchors.leafScreen && anchors.leafScreen.isVisible && leafCard) {
     const tx = anchors.leafScreen.x;
     const ty = anchors.leafScreen.y;
-    const pathInfo = computeLeaderPath(tx, ty, leafCard);
 
-    if (pathInfo) {
-      if (leafLine) {
-        leafLine.setAttribute("d", pathInfo.d);
-        leafLine.style.display = "";
+    if (isLeafMinimized) {
+      // Minimized: Hide card/lines, show badge floating on target pin
+      leafCard.style.display = "none";
+      if (leafLine) leafLine.style.display = "none";
+      if (leafCardDot) leafCardDot.style.display = "none";
+
+      if (leafDot) { leafDot.setAttribute("cx", tx); leafDot.setAttribute("cy", ty); leafDot.style.display = ""; }
+      if (leafPulse) { leafPulse.setAttribute("cx", tx); leafPulse.setAttribute("cy", ty); leafPulse.style.display = ""; }
+      if (leafHit) { leafHit.setAttribute("cx", tx); leafHit.setAttribute("cy", ty); leafHit.style.display = ""; }
+
+      if (miniBadgeLeaf) {
+        miniBadgeLeaf.style.display = "block";
+        miniBadgeLeaf.style.left = `${tx}px`;
+        miniBadgeLeaf.style.top = `${ty - 12}px`;
       }
-      if (leafDot) {
-        leafDot.setAttribute("cx", tx);
-        leafDot.setAttribute("cy", ty);
-        leafDot.style.display = "";
-      }
-      if (leafPulse) {
-        leafPulse.setAttribute("cx", tx);
-        leafPulse.setAttribute("cy", ty);
-        leafPulse.style.display = "";
-      }
-      if (leafHit) {
-        leafHit.setAttribute("cx", tx);
-        leafHit.setAttribute("cy", ty);
-        leafHit.style.display = "";
-      }
-      if (leafCardDot) {
-        leafCardDot.setAttribute("cx", pathInfo.attachX);
-        leafCardDot.setAttribute("cy", pathInfo.attachY);
-        leafCardDot.style.display = "";
+    } else {
+      // Expanded
+      leafCard.style.display = "";
+      if (miniBadgeLeaf) miniBadgeLeaf.style.display = "none";
+
+      if (isLeafPointerVisible) {
+        const pathInfo = computeLeaderPath(tx, ty, leafCard);
+        if (pathInfo) {
+          if (leafLine) { leafLine.setAttribute("d", pathInfo.d); leafLine.style.display = ""; }
+          if (leafDot) { leafDot.setAttribute("cx", tx); leafDot.setAttribute("cy", ty); leafDot.style.display = ""; }
+          if (leafPulse) { leafPulse.setAttribute("cx", tx); leafPulse.setAttribute("cy", ty); leafPulse.style.display = ""; }
+          if (leafHit) { leafHit.setAttribute("cx", tx); leafHit.setAttribute("cy", ty); leafHit.style.display = ""; }
+          if (leafCardDot) { leafCardDot.setAttribute("cx", pathInfo.attachX); leafCardDot.setAttribute("cy", pathInfo.attachY); leafCardDot.style.display = ""; }
+        }
+      } else {
+        if (leafLine) leafLine.style.display = "none";
+        if (leafDot) leafDot.style.display = "none";
+        if (leafPulse) leafPulse.style.display = "none";
+        if (leafHit) leafHit.style.display = "none";
+        if (leafCardDot) leafCardDot.style.display = "none";
       }
     }
-  } else {
-    if (leafLine) leafLine.style.display = "none";
-    if (leafDot) leafDot.style.display = "none";
-    if (leafPulse) leafPulse.style.display = "none";
-    if (leafHit) leafHit.style.display = "none";
-    if (leafCardDot) leafCardDot.style.display = "none";
   }
 
-  // 2. Update 3D Root Zone Leader Line
+  // 2. Update 3D Root Zone Leader Line & Minimized Badge
   const rootLine = document.getElementById("rootLeaderLine");
   const rootDot = document.getElementById("rootTargetDot");
   const rootPulse = document.getElementById("rootTargetPulse");
   const rootCardDot = document.getElementById("rootCardAttachDot");
   const rootHit = document.getElementById("rootTargetHitArea");
+  const miniBadgeRoot = document.getElementById("minimizedRootBadge");
 
-  if (isRootPointerVisible && anchors && anchors.rootScreen && anchors.rootScreen.isVisible && rootCard) {
+  if (anchors && anchors.rootScreen && anchors.rootScreen.isVisible && rootCard) {
     const tx = anchors.rootScreen.x;
     const ty = anchors.rootScreen.y;
-    const pathInfo = computeLeaderPath(tx, ty, rootCard);
+
+    if (isRootMinimized) {
+      // Minimized
+      rootCard.style.display = "none";
+      if (rootLine) rootLine.style.display = "none";
+      if (rootCardDot) rootCardDot.style.display = "none";
+
+      if (rootDot) { rootDot.setAttribute("cx", tx); rootDot.setAttribute("cy", ty); rootDot.style.display = ""; }
+      if (rootPulse) { rootPulse.setAttribute("cx", tx); rootPulse.setAttribute("cy", ty); rootPulse.style.display = ""; }
+      if (rootHit) { rootHit.setAttribute("cx", tx); rootHit.setAttribute("cy", ty); rootHit.style.display = ""; }
+
+      if (miniBadgeRoot) {
+        miniBadgeRoot.style.display = "block";
+        miniBadgeRoot.style.left = `${tx}px`;
+        miniBadgeRoot.style.top = `${ty - 12}px`;
+      }
+    } else {
+      // Expanded
+      rootCard.style.display = "";
+      if (miniBadgeRoot) miniBadgeRoot.style.display = "none";
+
+      if (isRootPointerVisible) {
+        const pathInfo = computeLeaderPath(tx, ty, rootCard);
+        if (pathInfo) {
+          if (rootLine) { rootLine.setAttribute("d", pathInfo.d); rootLine.style.display = ""; }
+          if (rootDot) { rootDot.setAttribute("cx", tx); rootDot.setAttribute("cy", ty); rootDot.style.display = ""; }
+          if (rootPulse) { rootPulse.setAttribute("cx", tx); rootPulse.setAttribute("cy", ty); rootPulse.style.display = ""; }
+          if (rootHit) { rootHit.setAttribute("cx", tx); rootHit.setAttribute("cy", ty); rootHit.style.display = ""; }
+          if (rootCardDot) { rootCardDot.setAttribute("cx", pathInfo.attachX); rootCardDot.setAttribute("cy", pathInfo.attachY); rootCardDot.style.display = ""; }
+        }
+      } else {
+        if (rootLine) rootLine.style.display = "none";
+        if (rootDot) rootDot.style.display = "none";
+        if (rootPulse) rootPulse.style.display = "none";
+        if (rootHit) rootHit.style.display = "none";
+        if (rootCardDot) rootCardDot.style.display = "none";
+      }
+    }
+  }
+
+  // 3. Dynamic Clicked Node Leader Line Group (Purple Line)
+  const pinLine = document.getElementById("pinLeaderLine");
+  const pinCardDot = document.getElementById("pinCardAttachDot");
+
+  if (anchors && anchors.pinScreen && anchors.pinScreen.isVisible && bioPinCard && bioPinCard.style.display !== "none") {
+    const tx = anchors.pinScreen.x;
+    const ty = anchors.pinScreen.y;
+    const pathInfo = computeLeaderPath(tx, ty, bioPinCard);
 
     if (pathInfo) {
-      if (rootLine) {
-        rootLine.setAttribute("d", pathInfo.d);
-        rootLine.style.display = "";
+      if (pinLine) {
+        pinLine.setAttribute("d", pathInfo.d);
+        pinLine.style.display = "";
       }
-      if (rootDot) {
-        rootDot.setAttribute("cx", tx);
-        rootDot.setAttribute("cy", ty);
-        rootDot.style.display = "";
-      }
-      if (rootPulse) {
-        rootPulse.setAttribute("cx", tx);
-        rootPulse.setAttribute("cy", ty);
-        rootPulse.style.display = "";
-      }
-      if (rootHit) {
-        rootHit.setAttribute("cx", tx);
-        rootHit.setAttribute("cy", ty);
-        rootHit.style.display = "";
-      }
-      if (rootCardDot) {
-        rootCardDot.setAttribute("cx", pathInfo.attachX);
-        rootCardDot.setAttribute("cy", pathInfo.attachY);
-        rootCardDot.style.display = "";
+      if (pinCardDot) {
+        pinCardDot.setAttribute("cx", pathInfo.attachX);
+        pinCardDot.setAttribute("cy", pathInfo.attachY);
+        pinCardDot.style.display = "";
       }
     }
   } else {
-    if (rootLine) rootLine.style.display = "none";
-    if (rootDot) rootDot.style.display = "none";
-    if (rootPulse) rootPulse.style.display = "none";
-    if (rootHit) rootHit.style.display = "none";
-    if (rootCardDot) rootCardDot.style.display = "none";
+    if (pinLine) pinLine.style.display = "none";
+    if (pinCardDot) pinCardDot.style.display = "none";
   }
 }
 
@@ -3758,6 +3846,11 @@ function simulationLoop(now) {
     DOM.hudRootTemp.textContent = `${ionUptake.rootTemp} °C`;
     DOM.hudRootO2.textContent = `${(ionUptake.absorptionRatio * 100).toFixed(1)}% (NPK)`;
 
+    const lblMiniLeaf = document.getElementById("lblMiniLeaf");
+    const lblMiniRoot = document.getElementById("lblMiniRoot");
+    if (lblMiniLeaf) lblMiniLeaf.textContent = `🍃 ${chlAbRatio}`;
+    if (lblMiniRoot) lblMiniRoot.textContent = `🌱 ${rootRhVal}%`;
+
     // 9b. Update Smart pH and PID Auto-Dosing Pump Badges
     if (DOM.phCurrentBadge) {
       DOM.phCurrentBadge.textContent = `${envTele.sensors.ph.toFixed(2)} pH`;
@@ -4094,14 +4187,22 @@ function updateStaticPhysicsOnSliderChange() {
   DOM.teleSensVpd.textContent = envTele.sensors.vpd.toFixed(2);
   DOM.teleSensFvFm.textContent = instantPhoto.fvFm.toFixed(3);
 
+  const chlRatio = (2.85 + 0.65 * (envTele.sensors.ppfd / 800.0)).toFixed(2);
+  const rootRhVal = (99.4 - Math.min(3.0, (envTele.sensors.ec - 1.0) * 0.8)).toFixed(1);
+
   DOM.metaPpfd.textContent = Math.round(envTele.sensors.ppfd);
   DOM.metaAn.textContent = instantPhoto.netAn.toFixed(1);
   DOM.hudStomatalGs.textContent = `${instantPhoto.stomata.gs.toFixed(2)} mol m⁻² s⁻¹`;
-  DOM.hudChlAb.textContent = (2.85 + 0.65 * (envTele.sensors.ppfd / 800.0)).toFixed(2);
+  DOM.hudChlAb.textContent = chlRatio;
   DOM.hudNpq.textContent = (instantPhoto.npq !== undefined ? instantPhoto.npq : Math.max(0.2, (envTele.sensors.ppfd - 200) / 250)).toFixed(2);
-  DOM.hudRootRh.textContent = `${(99.4 - Math.min(3.0, (envTele.sensors.ec - 1.0) * 0.8)).toFixed(1)} %`;
+  DOM.hudRootRh.textContent = `${rootRhVal} %`;
   DOM.hudRootTemp.textContent = `${ionUptake.rootTemp} °C`;
   DOM.hudRootO2.textContent = `${(ionUptake.absorptionRatio * 100).toFixed(1)}% (NPK)`;
+
+  const lblMiniLeaf = document.getElementById("lblMiniLeaf");
+  const lblMiniRoot = document.getElementById("lblMiniRoot");
+  if (lblMiniLeaf) lblMiniLeaf.textContent = `🍃 ${chlRatio}`;
+  if (lblMiniRoot) lblMiniRoot.textContent = `🌱 ${rootRhVal}%`;
 
   if (plantChamber3d) {
     plantChamber3d.updateSimulation(plantState, envTele, crop, ionUptake);

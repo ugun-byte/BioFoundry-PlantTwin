@@ -1337,10 +1337,16 @@ export class ThreePlantChamber {
       rootWorld.x -= 0.08;
     }
 
-    return {
+    const points = {
       leafScreen: this.get3dScreenPosition(leafWorld),
       rootScreen: this.get3dScreenPosition(rootWorld)
     };
+
+    if (this.pinMarker && this.pinMarker.visible && this.pinned3DWorldPos) {
+      points.pinScreen = this.get3dScreenPosition(this.pinned3DWorldPos);
+    }
+
+    return points;
   }
 
   setupRaycasting() {

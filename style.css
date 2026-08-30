@@ -1063,6 +1063,57 @@ input:checked + .switch-slider:before {
   stroke-width: 2.5px !important;
 }
 
+.hud-minimize-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.hud-minimize-btn:hover {
+  color: var(--cyan-accent);
+}
+.hud-card-header.emerald .hud-minimize-btn:hover {
+  color: var(--emerald-glow);
+}
+
+.hud-minimized-badge {
+  position: absolute;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 9.5px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 26;
+  cursor: pointer;
+  user-select: none;
+  pointer-events: auto;
+  transform: translate(-50%, -100%);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  transition: transform 0.15s, scale 0.15s;
+}
+.hud-minimized-badge:hover {
+  transform: translate(-50%, -100%) scale(1.1);
+}
+.hud-minimized-badge.cyan-badge {
+  background: rgba(8, 145, 178, 0.50);
+  border: 1px solid var(--cyan-accent);
+  color: #e0f2fe;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+}
+.hud-minimized-badge.emerald-badge {
+  background: rgba(4, 120, 87, 0.50);
+  border: 1px solid var(--emerald-primary);
+  color: #ecfdf5;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
 .chamber-hud-card.leaf-pos {
   top: 75px;
   right: 14px;
