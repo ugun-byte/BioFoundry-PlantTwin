@@ -1516,16 +1516,16 @@ input:checked + .switch-slider:before {
 }
 
 .scope-card {
-  background: rgba(6, 13, 24, 0.88);
-  border: 1.2px solid rgba(56, 189, 248, 0.28);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
   border-radius: var(--radius-md);
   padding: 8px 12px;
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transition: all 0.2s ease;
 }
 

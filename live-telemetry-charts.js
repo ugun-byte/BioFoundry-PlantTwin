@@ -167,13 +167,13 @@ export class LiveTelemetryCharts {
     const seriesCi = this.getScaledSeries(this.history.ci, 520, 1000.0);
 
     // Draw Channel 3: Ci (Purple)
-    this.drawLineSeries(ctx, seriesCi, 1000.0, padL, padT, plotW, plotH, "#c084fc", "rgba(192, 132, 252, 0.20)");
+    this.drawLineSeries(ctx, seriesCi, 1000.0, padL, padT, plotW, plotH, "#c084fc", "rgba(192, 132, 252, 0.08)");
 
     // Draw Channel 2: gs (Cyan)
     this.drawLineSeries(ctx, seriesGs, 0.60, padL, padT, plotW, plotH, "#00f2fe", null);
 
     // Draw Channel 1: An (Emerald)
-    this.drawLineSeries(ctx, seriesAn, 40.0, padL, padT, plotW, plotH, "#34d399", "rgba(52, 211, 153, 0.26)");
+    this.drawLineSeries(ctx, seriesAn, 40.0, padL, padT, plotW, plotH, "#34d399", "rgba(52, 211, 153, 0.10)");
   }
 
   /**
@@ -230,10 +230,10 @@ export class LiveTelemetryCharts {
     const seriesConc = this.getScaledSeries(this.history.luteinConc, 18.2, 40.0);
 
     // Draw Channel 2: Concentration (Purple)
-    this.drawLineSeries(ctx, seriesConc, 40.0, padL, padT, plotW, plotH, "#c084fc", "rgba(192, 132, 252, 0.20)");
+    this.drawLineSeries(ctx, seriesConc, 40.0, padL, padT, plotW, plotH, "#c084fc", "rgba(192, 132, 252, 0.08)");
 
     // Draw Channel 1: Flux (Emerald)
-    this.drawLineSeries(ctx, seriesFlux, 25.0, padL, padT, plotW, plotH, "#34d399", "rgba(52, 211, 153, 0.26)");
+    this.drawLineSeries(ctx, seriesFlux, 25.0, padL, padT, plotW, plotH, "#34d399", "rgba(52, 211, 153, 0.10)");
   }
 
   getScaledSeries(historyArr, baselineVal, maxVal) {
