@@ -720,7 +720,7 @@ input:checked + .switch-slider:before {
   border-color: var(--emerald-primary);
 }
 
-/* 3D Floating Glassmorphic HUD Cards (LEAF ANALYSIS & ROOT ZONE & RAYCAST HUD) */
+/* 3D Floating Glassmorphic Draggable HUD Cards (LEAF ANALYSIS & ROOT ZONE & RAYCAST HUD) */
 .chamber-hud-card {
   position: absolute;
   background: rgba(4, 12, 20, 0.94);
@@ -730,10 +730,20 @@ input:checked + .switch-slider:before {
   font-size: 11px;
   backdrop-filter: blur(14px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.85), 0 0 14px rgba(0, 242, 254, 0.25);
-  z-index: 20;
+  z-index: 25;
   pointer-events: auto;
-  transition: transform 0.2s, opacity 0.2s;
   min-width: 160px;
+  user-select: none;
+  cursor: grab;
+  touch-action: none;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.chamber-hud-card:active, .chamber-hud-card.is-dragging {
+  cursor: grabbing;
+  border-color: var(--cyan-accent);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 242, 254, 0.5);
+  z-index: 35;
 }
 
 .chamber-hud-card.leaf-pos {
@@ -749,6 +759,7 @@ input:checked + .switch-slider:before {
 .hud-card-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 6px;
   font-size: 11px;
   font-weight: 800;
@@ -758,6 +769,20 @@ input:checked + .switch-slider:before {
   padding-bottom: 5px;
   margin-bottom: 6px;
   text-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+  cursor: grab;
+}
+
+.hud-drag-handle {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 13px;
+  letter-spacing: -2px;
+  cursor: grab;
+  padding: 0 2px;
+  transition: color 0.15s;
+}
+
+.hud-drag-handle:hover {
+  color: var(--cyan-accent);
 }
 
 .hud-card-header.emerald {

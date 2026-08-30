@@ -252,11 +252,90 @@ function initApp() {
     });
   }
 
+  // Initialize Draggable HUD Cards inside 3D Viewport
+  const viewportCard = document.querySelector(".viewport-card");
+  const leafCard = document.getElementById("hudLeafCard");
+  const rootCard = document.getElementById("hudRootCard");
+  const bioPinCard = document.getElementById("hologramBioHud");
+
+  makeElementDraggable(leafCard, viewportCard);
+  makeElementDraggable(rootCard, viewportCard);
+  makeElementDraggable(bioPinCard, viewportCard);
+
   bindEventListeners();
   buildParamEditor();
   resetPlantState();
 
   requestAnimationFrame(simulationLoop);
+}
+
+/**
+ * Universal Draggable HUD Utility for 3D Viewport
+ */
+function makeElementDraggable(cardEl, containerEl) {
+  if (!cardEl || !containerEl) return;
+
+  let isDragging = false;
+  let startX = 0, startY = 0;
+  let initLeft = 0, initTop = 0;
+
+  const onPointerDown = (e) => {
+    if (e.target.tagName === "BUTTON" || e.target.tagName === "INPUT" || e.target.tagName === "SELECT") {
+      return;
+    }
+    e.stopPropagation();
+
+    isDragging = true;
+    cardEl.classList.add("is-dragging");
+
+    const containerRect = containerEl.getBoundingClientRect();
+    const cardRect = cardEl.getBoundingClientRect();
+
+    initLeft = cardRect.left - containerRect.left;
+    initTop = cardRect.top - containerRect.top;
+
+    startX = e.clientX;
+    startY = e.clientY;
+
+    cardEl.style.left = `${initLeft}px`;
+    cardEl.style.top = `${initTop}px`;
+    cardEl.style.right = "auto";
+    cardEl.style.bottom = "auto";
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+  };
+
+  const onPointerMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    const containerRect = containerEl.getBoundingClientRect();
+    const cardRect = cardEl.getBoundingClientRect();
+
+    const maxLeft = Math.max(8, containerRect.width - cardRect.width - 8);
+    const maxTop = Math.max(8, containerRect.height - cardRect.height - 8);
+
+    const newLeft = Math.min(maxLeft, Math.max(8, initLeft + dx));
+    const newTop = Math.min(maxTop, Math.max(8, initTop + dy));
+
+    cardEl.style.left = `${newLeft}px`;
+    cardEl.style.top = `${newTop}px`;
+  };
+
+  const onPointerUp = () => {
+    if (!isDragging) return;
+    isDragging = false;
+    cardEl.classList.remove("is-dragging");
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+  };
+
+  cardEl.addEventListener("pointerdown", onPointerDown);
 }
 
 function bindEventListeners() {
