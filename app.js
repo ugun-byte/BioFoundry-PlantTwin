@@ -748,15 +748,32 @@ function seekToDay(targetDay) {
   envEngine.simulatedDay = dayClamped;
   envEngine.simulatedHour = 12.0;
 
+  const dayRatio = (dayClamped - 1) / Math.max(1, crop.harvestDays - 1);
   const logistic = 1 / (1 + Math.exp(-0.2 * (dayClamped - 20)));
   plantState.dryWeightGrams = +(0.1 + 18.5 * logistic).toFixed(1);
   plantState.freshWeightGrams = +(plantState.dryWeightGrams * 10.2).toFixed(1);
-  plantState.heightCm = +(2.0 + 38.0 * logistic).toFixed(1);
-  plantState.leafCount = Math.floor(2 + dayClamped * 0.7);
+  plantState.heightCm = +(8.0 + (crop.harvestDays === 42 ? 77.0 : 40.0) * Math.pow(dayRatio, 0.9)).toFixed(1);
+  plantState.leafCount = Math.floor(2 + dayRatio * 14);
   plantState.lai = +(0.05 + (crop.maxLai - 0.05) * logistic).toFixed(2);
   plantState.leafDryWeightGrams = +(plantState.dryWeightGrams * crop.leafPartitionRatio).toFixed(1);
   plantState.luteinConcentration = +(crop.baseLuteinConcentration * (1.0 + (envEngine.setpoints.uvbActive && dayClamped >= (crop.harvestDays - 7) ? 0.6 : 0.2))).toFixed(1);
   plantState.totalLuteinAccumulatedMg = +(plantState.luteinConcentration * plantState.leafDryWeightGrams).toFixed(1);
+
+  // Live Instantaneous UI and 3D Update on Drag
+  const envTele = envEngine.getLiveSensorTelemetry();
+  DOM.teleDay.textContent = String(dayClamped).padStart(2, '0');
+  if (DOM.teleTimeFormatted) {
+    DOM.teleTimeFormatted.textContent = `(${envTele.timeFormatted})`;
+  }
+  const stageKey = dayClamped < 12 
+    ? "stageSeedling" 
+    : (dayClamped < 28 ? "stageVegetative" : "stageFlowering");
+  DOM.teleStage.textContent = i18n.t(stageKey);
+
+  const ionUptake = bioEngine.calculateRootIonUptake(envTele.sensors, crop, plantState);
+  if (plantChamber3d) {
+    plantChamber3d.updateSimulation(plantState, envTele, crop, ionUptake);
+  }
 }
 
 /**
@@ -828,7 +845,7 @@ function simulationLoop(now) {
     DOM.metaAn.textContent = instantPhoto.netAn.toFixed(1);
     
     // 5. Calculate Michaelis-Menten Root Ion Uptake Kinetics (NO3-, H2PO4-, K+)
-    const ionUptake = biophysicalEngine.calculateRootIonUptake(envTele.sensors, crop, plantState);
+    const ionUptake = bioEngine.calculateRootIonUptake(envTele.sensors, crop, plantState);
 
     // 6. Update Top Diurnal Status Label with Time of Day Phase
     const hour = envTele.simulatedHour;

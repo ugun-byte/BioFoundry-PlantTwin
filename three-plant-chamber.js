@@ -846,19 +846,20 @@ export class ThreePlantChamber {
       }
     }
 
-    // Stem height and thickness scaling
-    const minStemH = 0.22; // Starts at 22cm on Day 1
-    const adultStemH = this.currentSpecies === "spinach_carotenoid" ? 0.40 : (this.currentSpecies === "tobacco_recombinant" ? 1.05 : 0.85);
-    const stemH = minStemH + dayRatio * (adultStemH - minStemH);
-    const stemThick = 0.35 + dayRatio * 0.75;
-    this.stemMesh.scale.set(stemThick, stemH / this.stemHeight, stemThick);
+    // Stem height and thickness scaling (Day 1 starts as small sprout 0.08m, growing to 0.85m at Day 42)
+    const minStemH = 0.08;
+    const adultStemH = this.currentSpecies === "spinach_carotenoid" ? 0.35 : (this.currentSpecies === "tobacco_recombinant" ? 1.05 : 0.85);
+    const dayNorm = (simulatedDay - 1) / Math.max(1, harvestDays - 1); // 0.0 on Day 1, 1.0 on Day 42
+    const stemH = minStemH + Math.pow(dayNorm, 0.9) * (adultStemH - minStemH);
+    const stemThick = Math.max(0.18, 0.20 + dayNorm * 0.90);
+    this.stemMesh.scale.set(stemThick, Math.max(0.08, stemH / this.stemHeight), stemThick);
     this.stemMesh.position.y = stemH / 2;
 
     const turgorFactor = sensors.vpd > 1.6 ? Math.max(0.35, 1.0 - (sensors.vpd - 1.6) * 0.9) : 1.0;
 
     // Foliage leaves count and growth
-    // Starts with 4 leaves at Day 1, successively expanding up to 16 leaves
-    const visibleLeafCount = Math.min(this.leaves.length, Math.max(4, Math.floor(4 + dayRatio * 12)));
+    // Day 1: 2 small cotyledons -> Day 42: 16 full broad leaves
+    const visibleLeafCount = Math.min(this.leaves.length, Math.max(2, Math.floor(2 + dayNorm * 14)));
 
     // Lutein Color Shift
     const luteinRatio = Math.min(1.0, Math.max(0.0, (luteinConcentration - 2.0) / 3.0));
@@ -870,12 +871,12 @@ export class ThreePlantChamber {
 
     this.leaves.forEach((l, idx) => {
       if (idx < visibleLeafCount) {
-        // Individual leaf size scaling: starts robust and expands to full broad canopy
-        const leafAgeFactor = Math.max(0.40, Math.min(1.0, (dayRatio * 16 - idx * 0.7) / 2.5));
-        const lScale = (0.45 + dayRatio * 0.70) * leafAgeFactor;
+        // Individual leaf size scaling: starts small at seedling, grows to full broad leaf
+        const leafMaturity = Math.max(0.25, Math.min(1.0, (dayNorm * 16 - idx * 0.7) / 2.0));
+        const lScale = (0.28 + dayNorm * 0.85) * leafMaturity;
 
         // Position along the stem
-        const posY = stemH * (0.15 + (idx / Math.max(1, visibleLeafCount)) * 0.76);
+        const posY = Math.max(0.04, stemH * (0.15 + (idx / Math.max(1, visibleLeafCount)) * 0.78));
         l.mesh.position.set(0, posY, 0);
         l.mesh.scale.set(lScale, lScale, lScale);
 
@@ -892,18 +893,18 @@ export class ThreePlantChamber {
       }
     });
 
-    // Flower Blooming Ontogeny: Appears as floral bud from Day 18, expands to full bloom by Day 32~42
+    // Flower Blooming Ontogeny: Appears as floral bud from Day 20, expands to full bloom by Day 32~42
     if (this.flowerGroup) {
       this.flowerGroup.position.set(0, stemH, 0);
-      if (simulatedDay < 18) {
+      if (simulatedDay < 20) {
         this.flowerGroup.scale.set(0.0001, 0.0001, 0.0001);
-      } else if (simulatedDay < 30) {
-        const budRatio = (simulatedDay - 18) / 12.0;
-        const budScale = 0.15 + budRatio * 0.35;
+      } else if (simulatedDay < 32) {
+        const budRatio = (simulatedDay - 20) / 12.0;
+        const budScale = 0.12 + budRatio * 0.38;
         this.flowerGroup.scale.set(budScale, budScale, budScale);
       } else {
-        const bloomRatio = Math.min(1.0, (simulatedDay - 30) / 10.0);
-        const flowerScale = 0.50 + bloomRatio * 0.60;
+        const bloomRatio = Math.min(1.0, (simulatedDay - 32) / 10.0);
+        const flowerScale = 0.50 + bloomRatio * 0.65;
         this.flowerGroup.scale.set(flowerScale, flowerScale, flowerScale);
       }
     }
