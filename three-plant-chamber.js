@@ -62,9 +62,9 @@ export class ThreePlantChamber {
       this.scene.add(bgPlane);
     });
 
-    // 2. Camera
-    this.camera = new THREE.PerspectiveCamera(36, w / h, 0.1, 50);
-    this.camera.position.set(0, 1.25, 3.4);
+    // 2. Camera centered precisely on the entire glass bioreactor capsule
+    this.camera = new THREE.PerspectiveCamera(38, w / h, 0.1, 50);
+    this.camera.position.set(0, 1.15, 3.15);
 
     // 3. High-End WebGL Renderer with Alpha transparency & ACES Tone Mapping
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
@@ -80,14 +80,14 @@ export class ThreePlantChamber {
     if (oldCanvas) oldCanvas.remove();
     this.container.appendChild(this.renderer.domElement);
 
-    // 4. Smooth Orbit Controls
+    // 4. Smooth Orbit Controls centered at capsule midpoint (y = 1.05)
     if (typeof THREE.OrbitControls !== "undefined") {
       this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
       this.controls.dampingFactor = 0.06;
-      this.controls.target.set(0, 0.72, 0);
+      this.controls.target.set(0, 1.05, 0);
       this.controls.maxPolarAngle = Math.PI / 2 - 0.02;
-      this.controls.minDistance = 1.4;
+      this.controls.minDistance = 1.2;
       this.controls.maxDistance = 5.0;
     }
 
@@ -113,27 +113,27 @@ export class ThreePlantChamber {
     const chamberGroup = new THREE.Group();
 
     // 1. Heavy Titanium Base Plinth (Pedestal)
-    const baseGeo = new THREE.CylinderGeometry(1.28, 1.38, 0.16, 48);
+    const baseGeo = new THREE.CylinderGeometry(1.25, 1.35, 0.14, 48);
     const baseMat = new THREE.MeshStandardMaterial({
-      color: 0x141b24,
-      metalness: 0.85,
-      roughness: 0.25
+      color: 0x141c26,
+      metalness: 0.90,
+      roughness: 0.20
     });
     this.basePedestal = new THREE.Mesh(baseGeo, baseMat);
-    this.basePedestal.position.y = 0.08;
+    this.basePedestal.position.y = 0.07;
     this.basePedestal.receiveShadow = true;
     chamberGroup.add(this.basePedestal);
 
     // Base Polished Chrome Bezel Ring
-    const baseTrimGeo = new THREE.TorusGeometry(1.30, 0.022, 16, 64);
     const chromeMat = new THREE.MeshStandardMaterial({
-      color: 0x64748b,
-      metalness: 0.95,
-      roughness: 0.15
+      color: 0x94a3b8,
+      metalness: 0.96,
+      roughness: 0.12
     });
+    const baseTrimGeo = new THREE.TorusGeometry(1.26, 0.022, 16, 64);
     const baseTrim = new THREE.Mesh(baseTrimGeo, chromeMat);
     baseTrim.rotation.x = Math.PI / 2;
-    baseTrim.position.y = 0.16;
+    baseTrim.position.y = 0.14;
     chamberGroup.add(baseTrim);
 
     // Clean Cyber Grid Floor
@@ -141,50 +141,72 @@ export class ThreePlantChamber {
     grid.position.y = 0.001;
     chamberGroup.add(grid);
 
-    // 2. Full Cylindrical Transparent Glass Bioreactor Capsule
-    const glassGeo = new THREE.CylinderGeometry(1.14, 1.14, 2.05, 48, 1, true);
+    // 2. Large Outer Cylindrical Reinforced Glass Capsule Enclosure (Full Plant Encapsulation)
+    const glassGeo = new THREE.CylinderGeometry(1.15, 1.15, 1.82, 64, 1, true);
     const glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0xf8fafc,
+      color: 0xebf8ff,
       transparent: true,
-      opacity: 0.18,
+      opacity: 0.36,
       roughness: 0.03,
-      metalness: 0.05,
-      transmission: 0.92,
-      ior: 1.48,
-      reflectivity: 0.75,
+      metalness: 0.12,
+      transmission: 0.85,
+      ior: 1.54,
+      reflectivity: 0.95,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.04,
-      side: THREE.DoubleSide
+      clearcoatRoughness: 0.03,
+      specularIntensity: 2.0,
+      specularColor: new THREE.Color(0xffffff),
+      side: THREE.DoubleSide,
+      depthWrite: false
     });
     this.glassCapsule = new THREE.Mesh(glassGeo, glassMat);
-    this.glassCapsule.position.y = 1.22;
+    this.glassCapsule.position.y = 1.04;
     chamberGroup.add(this.glassCapsule);
 
-    // Vertical Structural Chrome Struts (4 Columns on Cylinder Exterior)
+    // Curved Glass Cylinder Specular Highlight Rim Ring (Top & Bottom Gaskets)
+    const glassGasketTop = new THREE.Mesh(new THREE.TorusGeometry(1.16, 0.015, 16, 64), chromeMat);
+    glassGasketTop.rotation.x = Math.PI / 2;
+    glassGasketTop.position.y = 1.95;
+    chamberGroup.add(glassGasketTop);
+
+    const glassGasketBottom = new THREE.Mesh(new THREE.TorusGeometry(1.16, 0.015, 16, 64), chromeMat);
+    glassGasketBottom.rotation.x = Math.PI / 2;
+    glassGasketBottom.position.y = 0.14;
+    chamberGroup.add(glassGasketBottom);
+
+    // 4 Vertical Structural Chrome Pillars framing the glass vessel
     for (let i = 0; i < 4; i++) {
       const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
       const strut = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.015, 0.015, 2.05, 12),
+        new THREE.CylinderGeometry(0.016, 0.016, 1.82, 16),
         chromeMat
       );
-      strut.position.set(Math.cos(angle) * 1.15, 1.22, Math.sin(angle) * 1.15);
+      strut.position.set(Math.cos(angle) * 1.16, 1.04, Math.sin(angle) * 1.16);
       chamberGroup.add(strut);
+
+      // Glowing LED Indicator Strip on each pillar
+      const strip = new THREE.Mesh(
+        new THREE.BoxGeometry(0.008, 1.70, 0.008),
+        new THREE.MeshBasicMaterial({ color: 0x00f2fe })
+      );
+      strip.position.set(Math.cos(angle) * 1.17, 1.04, Math.sin(angle) * 1.17);
+      chamberGroup.add(strip);
     }
 
     // 3. Middle Floating Hydroponic / Aeroponic Collar Plate
     const collarGroup = new THREE.Group();
-    collarGroup.position.set(0, 0.48, 0);
+    collarGroup.position.set(0, 0.46, 0);
 
-    const plateGeo = new THREE.CylinderGeometry(1.12, 1.12, 0.05, 48);
+    const plateGeo = new THREE.CylinderGeometry(1.13, 1.13, 0.04, 48);
     const plateMat = new THREE.MeshStandardMaterial({
       color: 0x0f172a,
-      metalness: 0.8,
-      roughness: 0.4
+      metalness: 0.85,
+      roughness: 0.3
     });
     const plate = new THREE.Mesh(plateGeo, plateMat);
     collarGroup.add(plate);
 
-    // Perforated Net Collar Ring
+    // Net Cup Collar
     const netCollarGeo = new THREE.CylinderGeometry(0.24, 0.18, 0.06, 24);
     const netCollarMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
     const netCollar = new THREE.Mesh(netCollarGeo, netCollarMat);
@@ -192,7 +214,7 @@ export class ThreePlantChamber {
     collarGroup.add(netCollar);
 
     // Glowing Aeroponic Basin Fluid Indicator Ring
-    const basinRingGeo = new THREE.TorusGeometry(1.13, 0.012, 16, 48);
+    const basinRingGeo = new THREE.TorusGeometry(1.14, 0.012, 16, 48);
     const basinRingMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
     const basinRing = new THREE.Mesh(basinRingGeo, basinRingMat);
     basinRing.rotation.x = Math.PI / 2;
@@ -214,7 +236,7 @@ export class ThreePlantChamber {
     }
 
     // Lower Nutrient Fluid Layer at base
-    const liquidGeo = new THREE.CylinderGeometry(1.10, 1.10, 0.06, 48);
+    const liquidGeo = new THREE.CylinderGeometry(1.12, 1.12, 0.05, 48);
     const liquidMat = new THREE.MeshStandardMaterial({
       color: 0x059669,
       roughness: 0.15,
@@ -224,27 +246,27 @@ export class ThreePlantChamber {
       emissiveIntensity: 0.25
     });
     const liquid = new THREE.Mesh(liquidGeo, liquidMat);
-    liquid.position.y = -0.36;
+    liquid.position.y = -0.34;
     collarGroup.add(liquid);
 
     chamberGroup.add(collarGroup);
 
     // 4. Top Titanium Cap & Circular LED Halo Array
     const topCapGroup = new THREE.Group();
-    topCapGroup.position.set(0, 2.25, 0);
+    topCapGroup.position.set(0, 1.96, 0);
 
-    const topFixtureGeo = new THREE.CylinderGeometry(1.24, 1.24, 0.14, 48);
+    const topFixtureGeo = new THREE.CylinderGeometry(1.25, 1.25, 0.14, 48);
     const topFixture = new THREE.Mesh(topFixtureGeo, baseMat);
     topCapGroup.add(topFixture);
 
     // Top Chrome Trim Ring
-    const topTrimGeo = new THREE.TorusGeometry(1.25, 0.02, 16, 64);
+    const topTrimGeo = new THREE.TorusGeometry(1.26, 0.02, 16, 64);
     const topTrim = new THREE.Mesh(topTrimGeo, chromeMat);
     topTrim.rotation.x = Math.PI / 2;
     topTrim.position.y = -0.07;
     topCapGroup.add(topTrim);
 
-    // 4 Ceiling Humidification Misting Nozzles (Matching Mockup Image)
+    // 4 Ceiling Humidification Misting Nozzles
     this.topNozzles = [];
     for (let i = 0; i < 4; i++) {
       const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
@@ -257,7 +279,7 @@ export class ThreePlantChamber {
       this.topNozzles.push(noz);
     }
 
-    // Circular LED Halo Ring Luminaire (Matching Mockup)
+    // Circular LED Halo Ring Luminaire
     const ledHaloGeo = new THREE.TorusGeometry(0.68, 0.045, 16, 64);
     this.ledHaloMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
@@ -279,11 +301,11 @@ export class ThreePlantChamber {
 
     // Downward Spotlight through Halo Ring
     this.growSpotLight = new THREE.SpotLight(0xfffaed, 5.0);
-    this.growSpotLight.position.set(0, 2.22, 0);
+    this.growSpotLight.position.set(0, 1.94, 0);
     this.growSpotLight.angle = Math.PI / 3.0;
     this.growSpotLight.penumbra = 0.55;
     this.growSpotLight.decay = 1.3;
-    this.growSpotLight.distance = 4.5;
+    this.growSpotLight.distance = 4.0;
     this.growSpotLight.castShadow = true;
     this.growSpotLight.shadow.mapSize.width = 1024;
     this.growSpotLight.shadow.mapSize.height = 1024;
@@ -292,11 +314,11 @@ export class ThreePlantChamber {
 
     // Fill Lighting
     this.sideFillLight = new THREE.PointLight(0x00f2fe, 0.8, 5);
-    this.sideFillLight.position.set(1.6, 1.4, 1.6);
+    this.sideFillLight.position.set(1.6, 1.3, 1.6);
     this.scene.add(this.sideFillLight);
 
     this.accentGoldLight = new THREE.PointLight(0x10b981, 0.6, 5);
-    this.accentGoldLight.position.set(-1.6, 1.1, -1.4);
+    this.accentGoldLight.position.set(-1.6, 1.0, -1.4);
     this.scene.add(this.accentGoldLight);
   }
 
@@ -1037,8 +1059,8 @@ export class ThreePlantChamber {
 
   resetCamera() {
     if (this.camera && this.controls) {
-      this.camera.position.set(0, 1.3, 3.2);
-      this.controls.target.set(0, 0.65, 0);
+      this.camera.position.set(0, 1.15, 3.15);
+      this.controls.target.set(0, 1.05, 0);
       this.controls.update();
     }
   }
