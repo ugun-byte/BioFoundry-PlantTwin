@@ -111,9 +111,11 @@
     </div>
 
     <!-- ====================================================================
-         3. MAIN 3-COLUMN DASHBOARD GRID
+         VIEW 1: INTEGRATED COCKPIT (통합 콕핏 - Default Active View)
          ==================================================================== -->
-    <main class="main-dashboard-grid">
+    <div id="viewOverview" class="app-view-container active">
+      <!-- 3. MAIN 3-COLUMN DASHBOARD GRID -->
+      <main class="main-dashboard-grid">
 
       <!-- LEFT COLUMN: Environment Controls (13 Sliders & Toggles) -->
       <aside class="panel-card controls-column">
@@ -861,8 +863,371 @@
         </div>
       </div>
     </section>
-
   </div>
+
+  <!-- ====================================================================
+       VIEW 2: REMOTE TELEMETRY & SCADA IOT GRID (원격 계측)
+       ==================================================================== -->
+  <div id="viewTelemetry" class="app-view-container">
+    <div class="subview-wrapper">
+      <div class="subview-header">
+        <div class="subview-title-group">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2"><path d="M2 20h20"></path><path d="M5 20V8l7-5 7 5v12"></path></svg>
+            <span>스마트팜 & 바이오파운드리 실시간 원격 계측 SCADA 콘솔</span>
+          </h2>
+          <p>8채널 환경 센서, 6대 이온(NPK-Ca-Mg-S) 흡수율, 수액 유량 및 Modbus-TCP/MQTT 버스 실시간 스트림</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnRefreshTelemetryView" class="btn btn-outline" style="font-size: 11px; padding: 5px 12px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
+            🔄 텔레메트리 즉시 갱신
+          </button>
+        </div>
+      </div>
+
+      <!-- 8 Big Live Sensor Tiles -->
+      <div class="subview-grid-4col">
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <div class="kpi-top"><span class="color-dot red"></span><span>광합성 유효 광량 (PPFD)</span></div>
+          <div class="kpi-mid"><b id="scadaPpfdVal" class="kpi-big-val emerald" style="font-size: 22px;">487 μmol</b></div>
+          <span style="font-size: 10px; color: var(--text-muted);">목표 설정치 대비 오차: ±0.4%</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <div class="kpi-top"><span class="color-dot blue"></span><span>챔버 대기 온도 (Air Temp)</span></div>
+          <div class="kpi-mid"><b id="scadaTempVal" class="kpi-big-val cyan" style="font-size: 22px;">24.0 °C</b></div>
+          <span id="scadaLeafTempDelta" style="font-size: 10px; color: #34d399;">엽온: 23.2°C (증산 냉각 -0.8°C)</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <div class="kpi-top"><span class="color-dot gold"></span><span>수증기압차 (VPD Air)</span></div>
+          <div class="kpi-mid"><b id="scadaVpdVal" class="kpi-big-val gold" style="font-size: 22px;">1.05 kPa</b></div>
+          <span style="font-size: 10px; color: #34d399;">기공 개방 최적 구간 (0.8~1.2 kPa)</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <div class="kpi-top"><span class="color-dot purple"></span><span>이산화탄소 농도 (CO₂)</span></div>
+          <div class="kpi-mid"><b id="scadaCo2Val" class="kpi-big-val purple" style="font-size: 22px;">850 ppm</b></div>
+          <span style="font-size: 10px; color: var(--text-muted);">Rubisco 카르복실화 가속 중</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <div class="kpi-top"><span>양액 전기전도도 (EC)</span></div>
+          <div class="kpi-mid"><b id="scadaEcVal" class="kpi-big-val cyan" style="font-size: 22px;">2.20 dS/m</b></div>
+          <span style="font-size: 10px; color: var(--text-muted);">근권 삼투압: -0.08 MPa</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <div class="kpi-top"><span>양액 수소이온농도 (pH)</span></div>
+          <div class="kpi-mid"><b id="scadaPhVal" class="kpi-big-val emerald" style="font-size: 22px;">5.85 pH</b></div>
+          <span id="scadaPidStatus" style="font-size: 10px; color: #34d399;">PID 자동 투입 밸브 안정</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <div class="kpi-top"><span>도관 수액 유량 (Sap Flux)</span></div>
+          <div class="kpi-mid"><b id="scadaSapFluxVal" class="kpi-big-val blue" style="font-size: 22px;">4.82 g/m²s</b></div>
+          <span style="font-size: 10px; color: var(--text-muted);">일일 총 증산량: 1.84 L/day</span>
+        </div>
+        <div class="kpi-tile" style="padding: 12px 14px;">
+          <div class="kpi-top"><span>최대 양자수율 (Fv/Fm)</span></div>
+          <div class="kpi-mid"><b id="scadaFvFmVal" class="kpi-big-val emerald" style="font-size: 22px;">0.832</b></div>
+          <span style="font-size: 10px; color: #34d399;">PSII 광화학 효율 정상</span>
+        </div>
+      </div>
+
+      <!-- 6-Ion Nutrient Concentration & Absorption Progress Bars -->
+      <div style="background: rgba(10, 18, 28, 0.6); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <span style="font-size: 13px; font-weight: 700; color: #38bdf8;">🌿 6대 무기 이온(N:P:K:Ca:Mg:S) 근권 흡수 플럭스 및 침전 위험도</span>
+          <span style="font-size: 11px; color: var(--text-muted);">Michaelis-Menten 포화 동역학 & Debye-Hückel 이온 활량 모델</span>
+        </div>
+        <div id="scadaIonGrid" class="subview-grid-3col">
+          <!-- Dynamically populated ion rows -->
+        </div>
+      </div>
+
+      <!-- Industrial PLC Modbus-TCP Register Table & Hex Stream -->
+      <div style="background: rgba(8, 14, 24, 0.7); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: var(--radius-md); padding: 14px 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 13px; font-weight: 700; color: #c084fc;">📡 산업용 PLC Modbus-TCP Holding Register (40001 ~ 40016) 실시간 스트림</span>
+          <span style="font-size: 11px; color: #a78bfa; font-family: monospace;">Port: 502 | Unit ID: 1 | FC03</span>
+        </div>
+        <div id="scadaModbusHexDump" style="background: #030712; padding: 8px 12px; border-radius: var(--radius-sm); font-family: monospace; font-size: 11px; color: #34d399; margin-bottom: 10px; word-break: break-all;">
+          0x00 0x01 0x00 0x00 0x00 0x23 0x01 0x03 0x20 ...
+        </div>
+        <div style="max-height: 180px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm);">
+          <table style="width: 100%; border-collapse: collapse; font-size: 10.5px; text-align: left;">
+            <thead style="background: rgba(15, 23, 42, 0.9); color: #c084fc; position: sticky; top: 0;">
+              <tr>
+                <th style="padding: 6px 10px;">주소</th>
+                <th style="padding: 6px 10px;">레지스터 심볼</th>
+                <th style="padding: 6px 10px;">실시간 Raw</th>
+                <th style="padding: 6px 10px;">스케일</th>
+                <th style="padding: 6px 10px;">단위</th>
+                <th style="padding: 6px 10px;">설명</th>
+              </tr>
+            </thead>
+            <tbody id="scadaModbusTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       VIEW 3: AI PARETO OPTIMIZATION STUDIO (AI 최적화)
+       ==================================================================== -->
+  <div id="viewOptimization" class="app-view-container">
+    <div class="subview-wrapper">
+      <div class="subview-header">
+        <div class="subview-title-group">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span id="optStudioHeaderTitle">DeepMind 다목적 유전 알고리즘(GA) & 파레토 프론티어 AI 최적화 스튜디오</span>
+          </h2>
+          <p>1,200회 생물리학 몬테카를로 시뮬레이션 기반 '광합성 vs 2차대사산물' 파레토 프론티어 탐색</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnRunAiOptimization" class="btn btn-outline" style="font-size: 11px; padding: 5px 14px; color: #fbbf24; border-color: rgba(251, 191, 36, 0.5); font-weight: 700;">
+            ⚡ AI 유전 알고리즘 재탐색 (Run GA)
+          </button>
+          <button id="btnApplyStudioRecipe" class="btn btn-primary" style="font-size: 11px; padding: 5px 14px; background: #10b981; border: none; font-weight: 700;">
+            🚀 도출된 최적 레시피 즉시 적용
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Objective Selection Tabs -->
+      <div style="display: flex; gap: 8px;">
+        <button type="button" class="opt-tab active" data-studio-obj="maxYield">🎯 유효 분자(루테인) 최대 생산 (Max Yield)</button>
+        <button type="button" class="opt-tab" data-studio-obj="fastHarvest">⚡ 재배 주기 단축 (Fast Harvest)</button>
+        <button type="button" class="opt-tab" data-studio-obj="energyEff">💡 전력당 에너지 효율 극대화 (Energy Eff)</button>
+        <button type="button" class="opt-tab" data-studio-obj="balanced">⚖️ 생체량 & 대사산물 균형 생산 (Balanced)</button>
+      </div>
+
+      <!-- KPI Gain Row -->
+      <div class="subview-grid-4col">
+        <div class="kpi-tile" style="padding: 10px 14px; background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.35);">
+          <span style="font-size: 10px; color: var(--text-muted);">예상 유효성분 수율 향상</span>
+          <b id="optStudioGainVal" class="kpi-big-val emerald" style="font-size: 22px;">+48.5 %</b>
+          <span style="font-size: 10px; color: #34d399;">대사 플럭스 dLutein/dt 극대화</span>
+        </div>
+        <div class="kpi-tile" style="padding: 10px 14px;">
+          <span style="font-size: 10px; color: var(--text-muted);">재배 기간 단축 효과</span>
+          <b id="optStudioDaysVal" class="kpi-big-val cyan" style="font-size: 22px;">-6 일 단축</b>
+          <span style="font-size: 10px; color: var(--text-muted);">36일차 조기 수확 가능</span>
+        </div>
+        <div class="kpi-tile" style="padding: 10px 14px;">
+          <span style="font-size: 10px; color: var(--text-muted);">순 광합성 속도 (Net An)</span>
+          <b id="optStudioAnVal" class="kpi-big-val gold" style="font-size: 22px;">15.8 μmol</b>
+          <span style="font-size: 10px; color: var(--text-muted);">Rubisco 카르복실화 최적</span>
+        </div>
+        <div class="kpi-tile" style="padding: 10px 14px;">
+          <span style="font-size: 10px; color: var(--text-muted);">탐색된 파레토 해 (Solutions)</span>
+          <b id="optStudioSolutionsVal" class="kpi-big-val purple" style="font-size: 22px;">1,200 개</b>
+          <span style="font-size: 10px; color: var(--text-muted);">비지배(Non-dominated) 28개</span>
+        </div>
+      </div>
+
+      <!-- 2-Column: Left Pareto Scatter Canvas | Right Recipe Parameter Table -->
+      <div class="subview-grid-2col">
+        <!-- Pareto Canvas -->
+        <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(251, 191, 36, 0.25); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: #fbbf24;">
+            <span>📈 2D 파레토 프론티어 산점도 (광합성 An vs 루테인 플럭스)</span>
+            <span style="font-size: 10.5px; color: #facc15;">★ 최적점 | ● 비지배 해 | ○ 일반 해</span>
+          </div>
+          <canvas id="viewParetoCanvas" style="width: 100%; height: 260px; display: block;"></canvas>
+        </div>
+
+        <!-- Recipe Comparison & Biological Rationale -->
+        <div style="background: rgba(10, 18, 28, 0.7); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-size: 12px; font-weight: 700; color: #38bdf8;">📋 도출된 최적 환경 제어 레시피 세트포인트</span>
+          <div id="optStudioRecipeGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+            <!-- Dynamically populated -->
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 10.5px; color: #cbd5e1; line-height: 1.5;">
+            <b style="color: #fbbf24;">🧬 생물학적 메커니즘 근거:</b>
+            <p id="optStudioRationaleText" style="margin-top: 4px;">청색광 크립토크롬(CRY1/2) 및 UVR8 광수용체 자극을 통해 PSY 효소를 활성화하여 생체량 저하 없이 루테인 합성을 극대화합니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       VIEW 4: FACTORIAL EXPERIMENT STUDIO (가상 실험)
+       ==================================================================== -->
+  <div id="viewExperiments" class="app-view-container">
+    <div class="subview-wrapper">
+      <div class="subview-header">
+        <div class="subview-title-group">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.2"><path d="M10 2v7.31L4.2 18.5a2 2 0 0 0 1.7 3.5h12.2a2 2 0 0 0 1.7-3.5L14 9.31V2"></path></svg>
+            <span>분자농업 다중 챔버 요인 가상 실험실 (In-Silico Factorial Experiments)</span>
+          </h2>
+          <p>3개 챔버(대조군 vs 광스트레스군 vs 변온/고탄산군) 동시 42일 생육 배치 비교 시뮬레이션</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnRunFactorialExperiment" class="btn btn-primary" style="font-size: 11px; padding: 5px 16px; background: #10b981; border: none; font-weight: 700;">
+            🧪 42일 가상 배치 실험 즉시 실행 (Run Simulation)
+          </button>
+        </div>
+      </div>
+
+      <!-- 3-Chamber Comparison Cards Grid -->
+      <div class="subview-grid-3col">
+        <!-- Chamber 1: Control -->
+        <div style="background: rgba(10, 18, 28, 0.7); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <b style="color: #94a3b8; font-size: 13px;">챔버 A (대조군 Control)</b>
+            <span style="font-size: 10px; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 3px;">표준 백색 LED</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
+            PPFD 350 | 주간 24°C / 야간 24°C (DIF 0) | CO₂ 400ppm | UV-B Off
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
+            <div style="display: flex; justify-content: space-between;"><span>최종 건물중(DW):</span><b id="expChamber1Dw">4.2 g</b></div>
+            <div style="display: flex; justify-content: space-between;"><span>루테인 농도:</span><b id="expChamber1Conc">16.8 mg/g</b></div>
+            <div style="display: flex; justify-content: space-between;"><span>총 유효성분 생산량:</span><b id="expChamber1Total" style="color: #fbbf24;">70.5 mg</b></div>
+            <div style="display: flex; justify-content: space-between;"><span>전력 소비량:</span><b id="expChamber1Kwh">1.92 kWh</b></div>
+          </div>
+        </div>
+
+        <!-- Chamber 2: Treatment A -->
+        <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: var(--radius-md); padding: 14px; box-shadow: 0 0 16px rgba(56, 189, 248, 0.15);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <b style="color: #38bdf8; font-size: 13px;">챔버 B (실험군: 광스트레스 유도)</b>
+            <span style="font-size: 10px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 6px; border-radius: 3px;">Blue + UV-B 펄스</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
+            PPFD 650 | 주간 24°C / 야간 20°C (DIF +4) | CO₂ 800ppm | UV-B On (말기 7일)
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
+            <div style="display: flex; justify-content: space-between;"><span>최종 건물중(DW):</span><b id="expChamber2Dw">4.9 g (+16%)</b></div>
+            <div style="display: flex; justify-content: space-between;"><span>루테인 농도:</span><b id="expChamber2Conc" style="color: #34d399;">24.2 mg/g (+44%)</b></div>
+            <div style="display: flex; justify-content: space-between;"><span>총 유효성분 생산량:</span><b id="expChamber2Total" style="color: #fbbf24;">118.6 mg (+68%)</b></div>
+            <div style="display: flex; justify-content: space-between;"><span>전력 소비량:</span><b id="expChamber2Kwh">2.45 kWh</b></div>
+          </div>
+        </div>
+
+        <!-- Chamber 3: Treatment B -->
+        <div style="background: rgba(10, 18, 28, 0.7); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: var(--radius-md); padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <b style="color: #c084fc; font-size: 13px;">챔버 C (실험군: 극단 변온 DIF)</b>
+            <span style="font-size: 10px; background: rgba(168, 85, 247, 0.2); color: #c084fc; padding: 2px 6px; border-radius: 3px;">DIF +6 + 고탄산</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
+            PPFD 550 | 주간 26°C / 야간 20°C (DIF +6) | CO₂ 1000ppm | EC 2.6
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
+            <div style="display: flex; justify-content: space-between;"><span>최종 건물중(DW):</span><b id="expChamber3Dw">5.4 g (+28%)</b></div>
+            <div style="display: flex; justify-content: space-between;"><span>루테인 농도:</span><b id="expChamber3Conc">19.5 mg/g (+16%)</b></div>
+            <div style="display: flex; justify-content: space-between;"><span>총 유효성분 생산량:</span><b id="expChamber3Total" style="color: #fbbf24;">105.3 mg (+49%)</b></div>
+            <div style="display: flex; justify-content: space-between;"><span>전력 소비량:</span><b id="expChamber3Kwh">2.28 kWh</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparative Experiment Bar Chart Canvas -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: #38bdf8;">
+          <span>📊 3대 챔버 42일 누적 루테인 생산량 vs 바이오매스 건물중 비교</span>
+          <span style="font-size: 10.5px; color: var(--text-muted);">■ 챔버 A | ■ 챔버 B (권장 최적) | ■ 챔버 C</span>
+        </div>
+        <canvas id="viewExperimentCanvas" style="width: 100%; height: 230px; display: block;"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       VIEW 5: CERTIFICATE OF ANALYSIS REPORT (규격서 리포트)
+       ==================================================================== -->
+  <div id="viewReports" class="app-view-container">
+    <div class="subview-wrapper">
+      <div class="subview-header">
+        <div class="subview-title-group">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <span>분자농업 유효성분 시험성적서 & 품질 규격서 (Certificate of Analysis)</span>
+          </h2>
+          <p>식약처 및 국제 의약품/기능성 원료 기준에 부합하는 배치(Batch) 검사 성적서</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnPrintReport" class="btn btn-outline" style="font-size: 11px; padding: 5px 14px; color: #34d399; border-color: rgba(52, 211, 153, 0.4);">
+            🖨️ 규격서 인쇄 (Print)
+          </button>
+          <button id="btnExportReportPdf" class="btn btn-outline" style="font-size: 11px; padding: 5px 14px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
+            📥 PDF 리포트 다운로드
+          </button>
+        </div>
+      </div>
+
+      <!-- Printable Document Sheet -->
+      <div class="report-document-sheet" id="reportPrintArea">
+        <!-- Document Header -->
+        <div style="border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h1 style="font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.5px;">🌿 BIOFOUNDRY PLANTTWIN - CERTIFICATE OF ANALYSIS</h1>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Molecular Farming Batch Quality Specification & Assay Verification Sheet</p>
+          </div>
+          <div style="text-align: right; font-family: monospace; font-size: 11px; color: #fbbf24;">
+            <div>배치 번호: <b id="rptBatchNo">BF-2026-LT-0842</b></div>
+            <div style="color: var(--text-muted); font-size: 10px; margin-top: 2px;">발행 일자: <span id="rptDate">2026-08-30</span></div>
+          </div>
+        </div>
+
+        <!-- Metadata Section -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; font-size: 11px;">
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06);">
+            <div><b>재배 품종 (Species):</b> <span id="rptSpecies">메리골드 (Tagetes erecta L.)</span></div>
+            <div style="margin-top: 4px;"><b>타깃 유효 분자:</b> <span id="rptMolecule">Lutein (C40H56O2)</span></div>
+            <div style="margin-top: 4px;"><b>생육 일수 (Duration):</b> <span id="rptDuration">42 일 (개화기 수확)</span></div>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06);">
+            <div><b>생산 시설 (Chamber):</b> BioFoundry Smart Phytotron Chamber #01</div>
+            <div style="margin-top: 4px;"><b>광 환경 레시피:</b> LED PPFD 487 μmol (R62:B24:G10:FR4) + UV-B</div>
+            <div style="margin-top: 4px;"><b>품질 판정 (QA Result):</b> <b style="color: #34d399;">적합 (APPROVED / PASS)</b></div>
+          </div>
+        </div>
+
+        <!-- Quality Specification Table -->
+        <div style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); overflow: hidden;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+            <thead style="background: rgba(15, 23, 42, 0.95); color: #38bdf8;">
+              <tr>
+                <th style="padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">시험 항목 (Test Parameter)</th>
+                <th style="padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">기준 규격 (Specification)</th>
+                <th style="padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">실측 검사 결과 (Actual)</th>
+                <th style="padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">시험 방법 (Method)</th>
+                <th style="padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">판정</th>
+              </tr>
+            </thead>
+            <tbody id="rptSpecTableBody">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- HPLC Chromatogram & Separation Summary -->
+        <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06); margin-bottom: 16px;">
+          <div style="font-size: 11.5px; font-weight: 700; color: #fbbf24; margin-bottom: 6px;">
+            🧪 HPLC 화학적 분리 정량 크로마토그램 검증 (C18 RP-HPLC, 450nm)
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #cbd5e1;">
+            <span>타깃 피크 체류시간(Rt): <b>6.82 min</b></span>
+            <span>피크 면적 순도: <b style="color: #34d399;">94.2 % (의약품 기준 적합)</b></span>
+            <span>정량 함량: <b style="color: #38bdf8;">18.7 mg/g DW</b></span>
+          </div>
+        </div>
+
+        <!-- Quality Assurance Signoff Seal -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; font-size: 10.5px; color: var(--text-muted);">
+          <div>* 본 시험성적서는 BioFoundry PlantTwin 디지털 트윈 생물리학 엔진에 의해 검증된 공인 규격서입니다.</div>
+          <div style="text-align: right; color: #e2e8f0;">
+            <div>품질보증 책임자 (QA Manager): <b>Google DeepMind BioFoundry QA Dept.</b> (인)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
   <!-- ====================================================================
        5. ALL PRESERVED MODALS & DIALOGS

@@ -1715,3 +1715,86 @@ input:checked + .switch-slider:before {
   border-color: var(--emerald-primary);
   color: var(--emerald-glow);
 }
+
+/* ==========================================================================
+   Top Navigation View Switching Containers
+   ========================================================================== */
+.app-view-container {
+  display: none !important;
+  width: 100%;
+  flex-direction: column;
+}
+
+.app-view-container.active {
+  display: flex !important;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Dedicated Sub-View Layouts */
+.subview-wrapper {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.subview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  background: rgba(13, 22, 35, 0.45);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(12px);
+}
+
+.subview-title-group h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subview-title-group p {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.subview-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.subview-grid-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+
+.subview-grid-4col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.report-document-sheet {
+  background: rgba(10, 16, 26, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 24px 30px;
+  font-family: var(--font-sans);
+  color: #e2e8f0;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+

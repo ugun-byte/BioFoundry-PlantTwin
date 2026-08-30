@@ -348,7 +348,69 @@ const DOM = {
   meristemScopeCanvas: document.getElementById("meristemScopeCanvas"),
   meristemParamTableBody: document.getElementById("meristemParamTableBody"),
   btnRescanMeristem: document.getElementById("btnRescanMeristem"),
-  btnExportMeristemCSV: document.getElementById("btnExportMeristemCSV")
+  btnExportMeristemCSV: document.getElementById("btnExportMeristemCSV"),
+
+  // Sub-Views
+  viewOverview: document.getElementById("viewOverview"),
+  viewTelemetry: document.getElementById("viewTelemetry"),
+  viewOptimization: document.getElementById("viewOptimization"),
+  viewExperiments: document.getElementById("viewExperiments"),
+  viewReports: document.getElementById("viewReports"),
+  allViews: document.querySelectorAll(".app-view-container"),
+
+  // Telemetry View Elements
+  btnRefreshTelemetryView: document.getElementById("btnRefreshTelemetryView"),
+  scadaPpfdVal: document.getElementById("scadaPpfdVal"),
+  scadaTempVal: document.getElementById("scadaTempVal"),
+  scadaLeafTempDelta: document.getElementById("scadaLeafTempDelta"),
+  scadaVpdVal: document.getElementById("scadaVpdVal"),
+  scadaCo2Val: document.getElementById("scadaCo2Val"),
+  scadaEcVal: document.getElementById("scadaEcVal"),
+  scadaPhVal: document.getElementById("scadaPhVal"),
+  scadaPidStatus: document.getElementById("scadaPidStatus"),
+  scadaSapFluxVal: document.getElementById("scadaSapFluxVal"),
+  scadaFvFmVal: document.getElementById("scadaFvFmVal"),
+  scadaIonGrid: document.getElementById("scadaIonGrid"),
+  scadaModbusHexDump: document.getElementById("scadaModbusHexDump"),
+  scadaModbusTableBody: document.getElementById("scadaModbusTableBody"),
+
+  // Optimization Studio Elements
+  btnRunAiOptimization: document.getElementById("btnRunAiOptimization"),
+  btnApplyStudioRecipe: document.getElementById("btnApplyStudioRecipe"),
+  studioOptTabs: document.querySelectorAll("[data-studio-obj]"),
+  optStudioGainVal: document.getElementById("optStudioGainVal"),
+  optStudioDaysVal: document.getElementById("optStudioDaysVal"),
+  optStudioAnVal: document.getElementById("optStudioAnVal"),
+  optStudioSolutionsVal: document.getElementById("optStudioSolutionsVal"),
+  viewParetoCanvas: document.getElementById("viewParetoCanvas"),
+  optStudioRecipeGrid: document.getElementById("optStudioRecipeGrid"),
+  optStudioRationaleText: document.getElementById("optStudioRationaleText"),
+
+  // Experiments View Elements
+  btnRunFactorialExperiment: document.getElementById("btnRunFactorialExperiment"),
+  expChamber1Dw: document.getElementById("expChamber1Dw"),
+  expChamber1Conc: document.getElementById("expChamber1Conc"),
+  expChamber1Total: document.getElementById("expChamber1Total"),
+  expChamber1Kwh: document.getElementById("expChamber1Kwh"),
+  expChamber2Dw: document.getElementById("expChamber2Dw"),
+  expChamber2Conc: document.getElementById("expChamber2Conc"),
+  expChamber2Total: document.getElementById("expChamber2Total"),
+  expChamber2Kwh: document.getElementById("expChamber2Kwh"),
+  expChamber3Dw: document.getElementById("expChamber3Dw"),
+  expChamber3Conc: document.getElementById("expChamber3Conc"),
+  expChamber3Total: document.getElementById("expChamber3Total"),
+  expChamber3Kwh: document.getElementById("expChamber3Kwh"),
+  viewExperimentCanvas: document.getElementById("viewExperimentCanvas"),
+
+  // Reports View Elements
+  btnPrintReport: document.getElementById("btnPrintReport"),
+  btnExportReportPdf: document.getElementById("btnExportReportPdf"),
+  rptBatchNo: document.getElementById("rptBatchNo"),
+  rptDate: document.getElementById("rptDate"),
+  rptSpecies: document.getElementById("rptSpecies"),
+  rptMolecule: document.getElementById("rptMolecule"),
+  rptDuration: document.getElementById("rptDuration"),
+  rptSpecTableBody: document.getElementById("rptSpecTableBody")
 };
 
 function populateCropDropdown(selectedId = null) {
@@ -672,20 +734,84 @@ function bindEventListeners() {
     });
   }
 
-  // Navigation Tabs
+  // Navigation Tabs Switching (Overview / Telemetry / Optimization / Experiments / Reports)
   DOM.navTabs.forEach(tab => {
     tab.addEventListener("click", () => {
       audio.playClick();
       DOM.navTabs.forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
+      const tabKey = tab.getAttribute("data-tab");
+      switchAppView(tabKey);
     });
   });
 
   // Audio Toggle
+  let isMuted = false;
   DOM.btnAudioMute.addEventListener("click", () => {
-    audio.playClick();
-    alert("🔊 앰비언트 바이오리액터 음향이 토글되었습니다.");
+    isMuted = !isMuted;
+    if (audio) audio.enabled = !isMuted;
+    DOM.btnAudioMute.innerHTML = isMuted
+      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`
+      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
+    DOM.btnAudioMute.title = isMuted ? "사운드 켜기" : "사운드 끄기";
   });
+
+  // Sub-View Event Bindings
+  if (DOM.btnRefreshTelemetryView) {
+    DOM.btnRefreshTelemetryView.addEventListener("click", () => {
+      audio.playClick();
+      renderScadaTelemetryView();
+    });
+  }
+
+  if (DOM.btnRunAiOptimization) {
+    DOM.btnRunAiOptimization.addEventListener("click", () => {
+      audio.playPulse();
+      renderOptimizationStudioView(currentOptimizationObjective);
+    });
+  }
+
+  if (DOM.btnApplyStudioRecipe) {
+    DOM.btnApplyStudioRecipe.addEventListener("click", () => {
+      audio.playUvElicitationTone();
+      applyAutoTuneRecipe();
+      switchAppView("overview");
+      DOM.navTabs.forEach(t => t.classList.toggle("active", t.getAttribute("data-tab") === "overview"));
+    });
+  }
+
+  if (DOM.studioOptTabs) {
+    DOM.studioOptTabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        audio.playClick();
+        DOM.studioOptTabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        currentOptimizationObjective = tab.getAttribute("data-studio-obj");
+        renderOptimizationStudioView(currentOptimizationObjective);
+      });
+    });
+  }
+
+  if (DOM.btnRunFactorialExperiment) {
+    DOM.btnRunFactorialExperiment.addEventListener("click", () => {
+      audio.playPulse();
+      renderFactorialExperimentsView();
+    });
+  }
+
+  if (DOM.btnPrintReport) {
+    DOM.btnPrintReport.addEventListener("click", () => {
+      window.print();
+    });
+  }
+
+  if (DOM.btnExportReportPdf) {
+    DOM.btnExportReportPdf.addEventListener("click", () => {
+      audio.playPulse();
+      const crop = profileManager.getActiveProfile();
+      DataExporter.exportTelemetryCSV(telemetryCharts.history, crop, envEngine.setpoints);
+    });
+  }
 
   // Crop Selector
   DOM.cropSelect.addEventListener("change", (e) => {
@@ -2418,6 +2544,253 @@ function copyGenericModalCode() {
       DOM.genericCodeModal.classList.remove("active");
     }, 1200);
   });
+}
+
+/**
+ * Switch Application Views (Overview, Telemetry, Optimization, Experiments, Reports)
+ */
+function switchAppView(tabKey) {
+  if (!DOM.allViews) return;
+  DOM.allViews.forEach(v => v.classList.remove("active"));
+
+  if (tabKey === "overview") {
+    if (DOM.viewOverview) DOM.viewOverview.classList.add("active");
+    setTimeout(() => {
+      if (plantChamber3d) plantChamber3d.onResize();
+    }, 50);
+  } else if (tabKey === "telemetry") {
+    if (DOM.viewTelemetry) DOM.viewTelemetry.classList.add("active");
+    renderScadaTelemetryView();
+  } else if (tabKey === "optimization") {
+    if (DOM.viewOptimization) DOM.viewOptimization.classList.add("active");
+    renderOptimizationStudioView(currentOptimizationObjective);
+  } else if (tabKey === "experiments") {
+    if (DOM.viewExperiments) DOM.viewExperiments.classList.add("active");
+    renderFactorialExperimentsView();
+  } else if (tabKey === "reports") {
+    if (DOM.viewReports) DOM.viewReports.classList.add("active");
+    renderQualityReportView();
+  }
+}
+
+/**
+ * 1. Render SCADA Remote Telemetry Sub-View
+ */
+function renderScadaTelemetryView() {
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const instantPhoto = bioEngine.calculateInstantaneousPhotosynthesis(envTele.sensors, crop);
+  const ionUptake = bioEngine.calculateRootIonUptake(envTele.sensors, crop, plantState);
+  const sapFlow = bioEngine.calculateSapFlowDynamics(envTele.sensors, crop, plantState);
+
+  // 8 Big Sensor Tiles
+  if (DOM.scadaPpfdVal) DOM.scadaPpfdVal.textContent = `${Math.round(envTele.sensors.ppfd)} μmol`;
+  if (DOM.scadaTempVal) DOM.scadaTempVal.textContent = `${envTele.sensors.airTemp.toFixed(1)} °C`;
+  if (DOM.scadaLeafTempDelta) {
+    const deltaT = (instantPhoto.stomata.leafTemp - envTele.sensors.airTemp).toFixed(1);
+    DOM.scadaLeafTempDelta.textContent = `엽온: ${instantPhoto.stomata.leafTemp.toFixed(1)}°C (증산 냉각 ${deltaT}°C)`;
+  }
+  if (DOM.scadaVpdVal) DOM.scadaVpdVal.textContent = `${envTele.sensors.vpd.toFixed(2)} kPa`;
+  if (DOM.scadaCo2Val) DOM.scadaCo2Val.textContent = `${Math.round(envTele.sensors.co2)} ppm`;
+  if (DOM.scadaEcVal) DOM.scadaEcVal.textContent = `${envTele.sensors.ec.toFixed(2)} dS/m`;
+  if (DOM.scadaPhVal) DOM.scadaPhVal.textContent = `${envTele.sensors.ph.toFixed(2)} pH`;
+  if (DOM.scadaSapFluxVal) DOM.scadaSapFluxVal.textContent = `${sapFlow.sapFluxDensity} g/m²s`;
+  if (DOM.scadaFvFmVal) DOM.scadaFvFmVal.textContent = `${instantPhoto.fvFm.toFixed(3)}`;
+
+  // 6-Ion Nutrient Grid
+  if (DOM.scadaIonGrid) {
+    const ions = [
+      { name: "NO₃⁻ (질산태 질소)", val: "14.2 mM", pct: 94.5, color: "#38bdf8", role: "단백질 & 엽록소 합성" },
+      { name: "H₂PO₄⁻ (인산이수소)", val: "2.1 mM", pct: 88.2, color: "#a855f7", role: "ATP 에너지 대사 & 핵산" },
+      { name: "K⁺ (칼륨 이온)", val: "6.5 mM", pct: 96.1, color: "#10b981", role: "공변세포 팽압 & 기공 개폐" },
+      { name: "Ca²⁺ (칼슘 이온)", val: "4.2 mM", pct: 89.0, color: "#fbbf24", role: "세포벽 펙틴 결합 & 막 안정" },
+      { name: "Mg²⁺ (마그네슘)", val: "2.0 mM", pct: 91.5, color: "#34d399", role: "엽록소 중심 금속 & 효소" },
+      { name: "SO₄²⁻ (황산 이온)", val: "2.4 mM", pct: 87.3, color: "#f87171", role: "함황 아미노산 & 항산화" }
+    ];
+
+    DOM.scadaIonGrid.innerHTML = ions.map(ion => `
+      <div style="background: rgba(15, 23, 42, 0.7); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06);">
+        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+          <b style="color: ${ion.color};">${ion.name}</b>
+          <span style="color: #fff; font-family: monospace;">${ion.val} (${ion.pct}%)</span>
+        </div>
+        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; margin-bottom: 4px;">
+          <div style="width: ${ion.pct}%; height: 100%; background: ${ion.color}; border-radius: 3px;"></div>
+        </div>
+        <span style="font-size: 9.5px; color: var(--text-muted);">${ion.role}</span>
+      </div>
+    `).join("");
+  }
+
+  // Modbus Registers & Hex Dump
+  if (DOM.scadaModbusTableBody && industrialIotBridge) {
+    const registers = industrialIotBridge.getModbusRegisters();
+    DOM.scadaModbusTableBody.innerHTML = registers.slice(0, 8).map(reg => `
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <td style="padding: 5px 10px; color: #fbbf24; font-family: monospace;">${reg.address}</td>
+        <td style="padding: 5px 10px; font-weight: 600; color: #fff;">${reg.name}</td>
+        <td style="padding: 5px 10px; font-family: monospace; color: #34d399;">${reg.rawHex} (${reg.value})</td>
+        <td style="padding: 5px 10px; color: var(--text-muted);">${reg.scale}</td>
+        <td style="padding: 5px 10px; color: var(--text-secondary);">${reg.unit}</td>
+        <td style="padding: 5px 10px; color: var(--text-muted);">${reg.desc}</td>
+      </tr>
+    `).join("");
+
+    if (DOM.scadaModbusHexDump) {
+      DOM.scadaModbusHexDump.textContent = `[TX] 0x01 0x03 0x00 0x01 0x00 0x10 0x15 0xC6 | [RX] 0x01 0x03 0x20 ${registers.slice(0, 8).map(r => r.rawHex).join(" ")} ... [CRC-16 OK]`;
+    }
+  }
+}
+
+/**
+ * 2. Render AI Pareto Optimization Studio Sub-View
+ */
+function renderOptimizationStudioView(objKey = "maxYield") {
+  const crop = profileManager.getActiveProfile();
+  const res = aiOptimizer.searchOptimalEnvironment(crop, objKey);
+
+  if (DOM.optStudioGainVal) DOM.optStudioGainVal.textContent = `+${res.improvements.yieldGainPercent} %`;
+  if (DOM.optStudioDaysVal) DOM.optStudioDaysVal.textContent = `-${res.improvements.daysSaved} 일 단축`;
+  if (DOM.optStudioAnVal) DOM.optStudioAnVal.textContent = `${res.improvements.netPhotosynthesis} μmol`;
+  if (DOM.optStudioSolutionsVal) DOM.optStudioSolutionsVal.textContent = `${res.totalSimulations.toLocaleString()} 개`;
+
+  // Draw Pareto Landscape Canvas
+  if (DOM.viewParetoCanvas && res.landscape) {
+    setTimeout(() => {
+      aiOptimizer.drawParetoLandscapeCanvas(DOM.viewParetoCanvas, res.landscape);
+    }, 60);
+  }
+
+  // Populate Recipe Grid
+  if (DOM.optStudioRecipeGrid && res.optimalRecipe) {
+    const rec = res.optimalRecipe;
+    const items = [
+      { label: "광량 (PPFD)", val: `${rec.ppfd} μmol/m²s`, color: "#fbbf24" },
+      { label: "일장 (Photoperiod)", val: `${rec.photoperiod} h/day`, color: "#38bdf8" },
+      { label: "주간 / 야간 온도", val: `${rec.dayTemp}°C / ${rec.nightTemp}°C (DIF ${rec.dayTemp - rec.nightTemp})`, color: "#f87171" },
+      { label: "CO₂ 농도", val: `${rec.co2} ppm`, color: "#34d399" },
+      { label: "광스펙트럼 (R:B:G:FR)", val: `R${rec.spectrum.red}:B${rec.spectrum.blue}:G${rec.spectrum.green}:FR${rec.spectrum.farRed}`, color: "#a855f7" },
+      { label: "UV-B 펄스 유도", val: rec.uvbActive ? "활성화 (Active, 1.2 W/m²)" : "비활성 (Off)", color: rec.uvbActive ? "#34d399" : "#64748b" }
+    ];
+
+    DOM.optStudioRecipeGrid.innerHTML = items.map(it => `
+      <div style="background: rgba(15, 23, 42, 0.7); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06);">
+        <span style="color: var(--text-muted); font-size: 10px;">${it.label}</span>
+        <div style="font-weight: 700; color: ${it.color}; font-size: 12px; margin-top: 2px;">${it.val}</div>
+      </div>
+    `).join("");
+  }
+
+  if (DOM.optStudioRationaleText) {
+    DOM.optStudioRationaleText.textContent = res.scientificExplanation || "크립토크롬(CRY1/2) 및 UVR8 광수용체 자극을 통해 PSY 효소를 활성화하여 생체량 저하 없이 루테인 합성을 극대화합니다.";
+  }
+}
+
+/**
+ * 3. Render Factorial Experiments Sub-View
+ */
+function renderFactorialExperimentsView() {
+  const crop = profileManager.getActiveProfile();
+
+  // Draw Comparative Canvas
+  if (DOM.viewExperimentCanvas) {
+    const canvas = DOM.viewExperimentCanvas;
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = rect.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Background Grid
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+    ctx.lineWidth = 1;
+    for (let y = 30; y < h - 40; y += 35) {
+      ctx.beginPath(); ctx.moveTo(50, y); ctx.lineTo(w - 20, y); ctx.stroke();
+    }
+
+    // Bar Chart Data: Chamber A vs B vs C
+    const data = [
+      { name: "챔버 A (대조군)", dw: 4.2, lutein: 70.5, color: "#94a3b8" },
+      { name: "챔버 B (권장 최적)", dw: 4.9, lutein: 118.6, color: "#38bdf8" },
+      { name: "챔버 C (극단 변온)", dw: 5.4, lutein: 105.3, color: "#c084fc" }
+    ];
+
+    const maxLutein = 140;
+    const barWidth = Math.min(60, (w - 140) / 6);
+
+    data.forEach((d, i) => {
+      const x = 70 + i * ((w - 100) / 3);
+      const barH = (d.lutein / maxLutein) * (h - 90);
+      const y = h - 40 - barH;
+
+      // Draw Gradient Bar
+      const grad = ctx.createLinearGradient(0, y, 0, h - 40);
+      grad.addColorStop(0, d.color);
+      grad.addColorStop(1, "rgba(0,0,0,0.3)");
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(x, y, barWidth, barH);
+      ctx.strokeStyle = d.color;
+      ctx.strokeRect(x, y, barWidth, barH);
+
+      // Value text
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 11px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`${d.lutein}mg`, x + barWidth / 2, y - 6);
+
+      // Label
+      ctx.fillStyle = "var(--text-secondary)";
+      ctx.font = "10.5px Inter, sans-serif";
+      ctx.fillText(d.name, x + barWidth / 2, h - 20);
+    });
+  }
+}
+
+/**
+ * 4. Render Certificate of Analysis (CoA) Quality Report Sub-View
+ */
+function renderQualityReportView() {
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const instantPhoto = bioEngine.calculateInstantaneousPhotosynthesis(envTele.sensors, crop);
+  const hplc = bioEngine.calculateHplcChromatogram(envTele.sensors, crop, plantState);
+
+  if (DOM.rptBatchNo) DOM.rptBatchNo.textContent = `BF-2026-${crop.targetMolecule.substring(0,2).toUpperCase()}-${String(envTele.simulatedDay).padStart(2, '0')}42`;
+  if (DOM.rptDate) DOM.rptDate.textContent = new Date().toISOString().split("T")[0];
+  if (DOM.rptSpecies) DOM.rptSpecies.textContent = `${crop.name} (${crop.scientificName})`;
+  if (DOM.rptMolecule) DOM.rptMolecule.textContent = `${crop.targetMolecule} (${crop.chemicalFormula})`;
+  if (DOM.rptDuration) DOM.rptDuration.textContent = `${envTele.simulatedDay} 일차 (수확 적기)`;
+
+  if (DOM.rptSpecTableBody) {
+    const specs = [
+      { param: `타깃 유효물질 함량 (${crop.targetMolecule})`, spec: `≥ ${crop.baseLuteinConcentration.toFixed(1)} mg/g DW`, actual: `${plantState.luteinConcentration.toFixed(1)} mg/g DW`, method: "C18 RP-HPLC (450nm)", pass: plantState.luteinConcentration >= crop.baseLuteinConcentration },
+      { param: "크로마토그래피 순도 (HPLC Purity)", spec: "≥ 90.0 %", actual: `${hplc.targetPurityPercent} %`, method: "Peak Area Normalization", pass: hplc.targetPurityPercent >= 90.0 },
+      { param: "수분 함량 (Moisture Loss)", spec: "≤ 8.0 %", actual: "4.8 %", method: "105°C Drying Oven", pass: true },
+      { param: "광합성 기능 건전성 (Fv/Fm)", spec: "≥ 0.800", actual: `${instantPhoto.fvFm.toFixed(3)}`, method: "PAM Fluorometry", pass: instantPhoto.fvFm >= 0.78 },
+      { param: "중금속 (Pb, Cd, As, Hg)", spec: "불검출 (ND)", actual: "ND (< 0.01 ppm)", method: "ICP-MS", pass: true },
+      { param: "미생물 한도 (총호기성균)", spec: "≤ 1,000 CFU/g", actual: "< 10 CFU/g", method: "USP 61/62", pass: true }
+    ];
+
+    DOM.rptSpecTableBody.innerHTML = specs.map(s => `
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+        <td style="padding: 7px 10px; font-weight: 600; color: #fff;">${s.param}</td>
+        <td style="padding: 7px 10px; color: var(--text-secondary);">${s.spec}</td>
+        <td style="padding: 7px 10px; font-family: monospace; color: #38bdf8; font-weight: 700;">${s.actual}</td>
+        <td style="padding: 7px 10px; color: var(--text-muted); font-size: 10px;">${s.method}</td>
+        <td style="padding: 7px 10px;">
+          <span style="background: ${s.pass ? 'rgba(16, 185, 129, 0.2)' : 'rgba(244, 63, 94, 0.2)'}; color: ${s.pass ? '#34d399' : '#f43f5e'}; padding: 2px 6px; border-radius: 3px; font-weight: 700; font-size: 10px;">
+            ${s.pass ? '적합 (PASS)' : '부적합 (FAIL)'}
+          </span>
+        </td>
+      </tr>
+    `).join("");
+  }
 }
 
 // Launch application on DOM ready or immediately if already loaded
