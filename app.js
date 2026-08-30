@@ -709,6 +709,11 @@ function initApp() {
   buildParamEditor();
   resetPlantState();
 
+  // Trigger initial resize once the layout has fully settled in the DOM
+  setTimeout(() => {
+    if (telemetryCharts) telemetryCharts.resizeAll();
+  }, 100);
+
   console.log("✅ BioFoundry PlantTwin Initialized & Running 60FPS loop");
   requestAnimationFrame(simulationLoop);
 }
@@ -821,6 +826,7 @@ function initResizablePanels() {
         const dy = startY - moveEvt.clientY;
         bottomH = Math.min(420, Math.max(90, startH + dy));
         bottomScopesEl.style.setProperty("--bottom-scopes-h", `${bottomH}px`);
+        if (telemetryCharts) telemetryCharts.resizeAll();
       };
 
       const onUp = () => {
