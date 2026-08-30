@@ -1083,7 +1083,33 @@ export class ThreePlantChamber {
       this.raycaster.setFromCamera(this.mouse, this.camera);
       if (!this.plantGroup) return;
 
-      const intersects = this.raycaster.intersectObjects(this.plantGroup.children, true);
+      // Filter strictly to visible plant tissues only (excl. empty floor, glass, particles)
+      const interactiveTargets = [];
+      if (this.stemMesh && this.stemMesh.visible && this.stemMesh.scale.y > 0.05) {
+        interactiveTargets.push(this.stemMesh);
+      }
+      if (this.taprootMesh && this.taprootMesh.visible) {
+        interactiveTargets.push(this.taprootMesh);
+      }
+      if (this.lateralRoots) {
+        this.lateralRoots.forEach(l => {
+          if (l.mesh && l.mesh.visible) interactiveTargets.push(l.mesh);
+        });
+      }
+      if (this.flowerGroup && this.flowerGroup.visible && this.flowerGroup.scale.x > 0.05) {
+        this.flowerGroup.traverse(obj => {
+          if (obj.isMesh) interactiveTargets.push(obj);
+        });
+      }
+      if (this.leaves) {
+        this.leaves.forEach(l => {
+          if (l.mesh && l.mesh.visible && l.mesh.scale.x > 0.05) {
+            interactiveTargets.push(l.mesh);
+          }
+        });
+      }
+
+      const intersects = this.raycaster.intersectObjects(interactiveTargets, false);
 
       if (intersects.length > 0) {
         const hit = intersects[0];
@@ -1096,13 +1122,15 @@ export class ThreePlantChamber {
         let nodeType = "엽육 광합성 세포 (Mesophyll Cell)";
         if (hit.object === this.stemMesh) {
           nodeType = "주원경 목질부 도관 (Main Xylem Stalk)";
-        } else if (this.rootGroup && (hit.object === this.taprootMesh || this.lateralRoots.some(l => l.mesh === hit.object))) {
+        } else if (hit.object === this.taprootMesh) {
+          nodeType = "근권 주근 중심주 (Taproot Core Zone)";
+        } else if (this.lateralRoots && this.lateralRoots.some(l => l.mesh === hit.object)) {
           nodeType = "근권 에어로포닉 흡수근 (Root Cap & Hair Zone)";
         } else if (this.flowerGroup && this.flowerGroup.children.includes(hit.object)) {
           nodeType = "정단 화경 & 꽃잎 (Apical Floral Petal)";
         } else {
           // Identify leaf index
-          const leafMatchIdx = this.leaves.findIndex(l => l.mesh === hit.object || l.mesh.children.includes(hit.object));
+          const leafMatchIdx = this.leaves.findIndex(l => l.mesh === hit.object);
           nodeType = leafMatchIdx >= 0 ? `제 ${leafMatchIdx + 1}엽 상위 엽맥 (Leaf #${leafMatchIdx + 1})` : "엽신 광합성 조직 (Lamina Tissue)";
         }
 
@@ -1113,7 +1141,7 @@ export class ThreePlantChamber {
           });
         }
       } else {
-        // Clicked on empty chamber space -> dismiss pin HUD
+        // Clicked on empty floor/chamber space -> dismiss pin HUD
         this.clearPin();
         if (this.onEmptyClickCallback) {
           this.onEmptyClickCallback();
