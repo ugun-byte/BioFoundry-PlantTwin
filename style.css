@@ -1438,6 +1438,34 @@ input:checked + .switch-slider:before {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.scope-card:fullscreen,
+.scope-card.maximized-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  z-index: 9999 !important;
+  background: rgba(4, 9, 17, 0.98) !important;
+  backdrop-filter: blur(16px) !important;
+  padding: 16px 20px !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+.scope-card.maximized-overlay .scope-heading {
+  font-size: 14px;
+}
+
+.scope-card.maximized-overlay .scope-legends {
+  font-size: 11px;
+  gap: 14px;
 }
 
 .scope-header {

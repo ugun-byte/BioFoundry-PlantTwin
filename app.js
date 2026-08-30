@@ -148,6 +148,8 @@ const DOM = {
   photoScopeChart: document.getElementById("photoScopeChart"),
   luteinScopeChart: document.getElementById("luteinScopeChart"),
   scaleButtons: document.querySelectorAll(".range-btn"),
+  btnExpandScope1: document.getElementById("btnExpandScope1"),
+  btnExpandScope2: document.getElementById("btnExpandScope2"),
 
   // Modals
   paramModal: document.getElementById("paramModal"),
@@ -816,6 +818,48 @@ function bindEventListeners() {
       });
       if (telemetryCharts) telemetryCharts.setTimeScale(scale);
     });
+  });
+
+  // Bottom Oscilloscopes Maximize/Fullscreen Expand
+  function setupScopeFullscreenToggle(btnElem, canvasElem) {
+    if (!btnElem || !canvasElem) return;
+    const scopeCard = canvasElem.closest(".scope-card");
+    if (!scopeCard) return;
+
+    btnElem.addEventListener("click", () => {
+      audio.playClick();
+      const isMaximized = scopeCard.classList.toggle("maximized-overlay");
+      if (isMaximized) {
+        btnElem.title = "원래 크기로 축소 (ESC)";
+        btnElem.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`;
+      } else {
+        btnElem.title = "전체화면 확대";
+        btnElem.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`;
+      }
+      setTimeout(() => {
+        if (telemetryCharts) telemetryCharts.resizeAll();
+      }, 60);
+    });
+  }
+
+  setupScopeFullscreenToggle(DOM.btnExpandScope1, DOM.photoScopeChart);
+  setupScopeFullscreenToggle(DOM.btnExpandScope2, DOM.luteinScopeChart);
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      document.querySelectorAll(".scope-card.maximized-overlay").forEach(card => {
+        card.classList.remove("maximized-overlay");
+      });
+      [DOM.btnExpandScope1, DOM.btnExpandScope2].forEach(btn => {
+        if (btn) {
+          btn.title = "전체화면 확대";
+          btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`;
+        }
+      });
+      setTimeout(() => {
+        if (telemetryCharts) telemetryCharts.resizeAll();
+      }, 60);
+    }
   });
 
   // 3D Viewport Utility Controls (4K Snapshot, Target Focus, Fullscreen, Reset Camera)

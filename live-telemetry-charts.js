@@ -43,13 +43,17 @@ export class LiveTelemetryCharts {
     };
 
     window.addEventListener("resize", () => {
-      Object.keys(this.canvases).forEach((k) => {
-        if (this.canvases[k] && this.contexts[k]) {
-          this.initCanvas(this.canvases[k], this.contexts[k]);
-        }
-      });
-      this.renderAll();
+      this.resizeAll();
     });
+  }
+
+  resizeAll() {
+    Object.keys(this.canvases).forEach((k) => {
+      if (this.canvases[k] && this.contexts[k]) {
+        this.initCanvas(this.canvases[k], this.contexts[k]);
+      }
+    });
+    this.renderAll();
   }
 
   setTimeScale(scale) {
