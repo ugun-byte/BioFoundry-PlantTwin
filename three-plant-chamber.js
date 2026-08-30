@@ -42,24 +42,15 @@ export class ThreePlantChamber {
     const w = this.container.clientWidth || 800;
     const h = this.container.clientHeight || 480;
 
-    // 1. Scene with cleanroom laboratory atmosphere
+    // 1. Scene with 100% transparent cleanroom laboratory pass-through
     this.scene = new THREE.Scene();
+    this.scene.background = null;
     
-    // Load laboratory backdrop texture into scene environment & subtle depth plane
+    // Load laboratory backdrop texture into scene environment for realistic glass/chrome reflections
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load("assets/biofoundry_lab_background.jpg", (tex) => {
       tex.mapping = THREE.EquirectangularReflectionMapping;
       this.scene.environment = tex;
-
-      const bgPlaneGeo = new THREE.PlaneGeometry(7.5, 4.2);
-      const bgPlaneMat = new THREE.MeshBasicMaterial({
-        map: tex,
-        transparent: true,
-        opacity: 0.28
-      });
-      const bgPlane = new THREE.Mesh(bgPlaneGeo, bgPlaneMat);
-      bgPlane.position.set(0, 1.25, -2.4);
-      this.scene.add(bgPlane);
     });
 
     // 2. Camera centered precisely on the entire glass bioreactor capsule
@@ -67,7 +58,12 @@ export class ThreePlantChamber {
     this.camera.position.set(0, 1.15, 3.15);
 
     // 3. High-End WebGL Renderer with Alpha transparency & ACES Tone Mapping
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      premultipliedAlpha: false,
+      powerPreference: "high-performance"
+    });
     this.renderer.setClearColor(0x000000, 0.0);
     this.renderer.setSize(w, h);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -78,6 +74,8 @@ export class ThreePlantChamber {
 
     const oldCanvas = this.container.querySelector("canvas");
     if (oldCanvas) oldCanvas.remove();
+    this.renderer.domElement.style.background = "transparent";
+    this.container.style.background = "transparent";
     this.container.appendChild(this.renderer.domElement);
 
     // 4. Smooth Orbit Controls centered at capsule midpoint (y = 1.05)

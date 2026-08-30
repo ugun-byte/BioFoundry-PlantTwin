@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BioFoundry PlantTwin - B2B Phytochemical Production Digital Twin</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3.1">
 </head>
 <body>
   <div class="app-container">
@@ -359,45 +359,45 @@
           <!-- Three.js Canvas Container -->
           <div id="plant3dContainer"></div>
 
-          <!-- Glassmorphic HUD Card 1: LEAF ANALYSIS -->
+          <!-- Glassmorphic HUD Card 1: 엽면 생체 분석 -->
           <div id="hudLeafCard" class="chamber-hud-card leaf-pos">
             <div class="hud-card-header">
               <div style="display:flex; align-items:center; gap:5px;">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 20A7 7 0 0 1 4 13a7 7 0 0 1 7-7c4 0 7 2 9 6-2 4-5 6-9 8z"></path></svg>
-                <span>LEAF ANALYSIS</span>
+                <span data-i18n="hudLeafHeader">엽면 생체 분석</span>
               </div>
               <span class="hud-drag-handle" title="드래그하여 이동">⋮⋮</span>
             </div>
             <div class="hud-stat-grid">
-              <span>Chl a/b</span>
+              <span data-i18n="hudChl">엽록소 a/b</span>
               <b id="hudChlAb">3.21</b>
-              <span>Stomatal Cond.</span>
+              <span data-i18n="hudGs">기공전도도</span>
               <b id="hudStomatalGs">0.36 mol m⁻² s⁻¹</b>
-              <span>NPQ</span>
+              <span data-i18n="hudNpq">비광화학 소광</span>
               <b id="hudNpq">1.28</b>
             </div>
           </div>
 
-          <!-- Glassmorphic HUD Card 2: ROOT ZONE -->
+          <!-- Glassmorphic HUD Card 2: 근권 환경 분석 -->
           <div id="hudRootCard" class="chamber-hud-card root-pos">
             <div class="hud-card-header emerald">
               <div style="display:flex; align-items:center; gap:5px;">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                <span>ROOT ZONE</span>
+                <span data-i18n="hudRootHeader">근권 환경 분석</span>
               </div>
               <span class="hud-drag-handle" title="드래그하여 이동">⋮⋮</span>
             </div>
             <div class="hud-stat-grid">
-              <span>RH</span>
+              <span data-i18n="hudRootRh">근권 습도</span>
               <b id="hudRootRh">98.7 %</b>
-              <span>Temp</span>
+              <span data-i18n="hudRootTemp">근권 수온</span>
               <b id="hudRootTemp">22.1 °C</b>
-              <span>O₂</span>
+              <span data-i18n="hudRootO2">용존 산소 (O₂)</span>
               <b id="hudRootO2">21.3 %</b>
             </div>
           </div>
 
-          <!-- Mini Bio-HUD v2.1 Badge inside Viewport (Matching Mockup) -->
+          <!-- Mini Bio-HUD v2.1 Badge inside Viewport -->
           <div class="bio-hud-mini-pill">
             <span>Bio-HUD v2.1</span>
             <svg width="22" height="11" viewBox="0 0 24 12" fill="none" stroke="var(--cyan-accent)" stroke-width="1.8"><polyline points="0,10 5,5 11,8 17,2 24,7"></polyline></svg>
@@ -413,24 +413,24 @@
               <button id="hudPinClose" style="background:transparent; border:none; color:#f87171; cursor:pointer; font-size:12px; padding:0 2px;">✕</button>
             </div>
             <div class="hud-stat-grid">
-              <span>Leaf Temp</span>
+              <span>엽온</span>
               <b id="hudLeafTemp">24.6 °C</b>
-              <span>Net An</span>
+              <span>순광합성</span>
               <b id="hudNetAn">12.4 μmol</b>
-              <span>Molecule Conc.</span>
+              <span>유효분자 농도</span>
               <b id="hudMoleculeConc">18.7 mg/g</b>
             </div>
           </div>
 
           <!-- Bottom Viewport Tip & Reset Button -->
-          <div class="viewport-bottom-tip">
-            👆 Click + drag to rotate • Scroll to zoom • R to reset
+          <div class="viewport-bottom-tip" data-i18n="viewportTip">
+            👆 마우스 드래그: 360° 회전 • 휠: 줌 확대/축소 • R: 리셋 • 잎/뿌리 클릭: 생체 HUD
           </div>
 
           <!-- Reset Camera Button -->
           <button id="btnResetCamera" class="viewport-reset-btn">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
-            <span>Reset Camera</span>
+            <span data-i18n="btnResetCamera">카메라 리셋</span>
           </button>
         </div>
 
@@ -892,6 +892,6 @@
   <!-- Scripts -->
   <script src="three.min.js"></script>
   <script src="OrbitControls.js"></script>
-  <script type="module" src="app.js"></script>
+  <script type="module" src="app.js?v=3.1"></script>
 </body>
 </html>
