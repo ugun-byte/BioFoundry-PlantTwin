@@ -575,20 +575,16 @@ export class ThreePlantChamber {
   }
 
   createMarigoldLeafGeo() {
-    const geom = new THREE.BufferGeometry();
-    const w = 0.22;
-    const l = 0.50;
-    const vertices = [
-      0, 0, 0,
-      -w * 0.42, 0.025, l * 0.28,
-      w * 0.42, 0.025, l * 0.28,
-      -w * 0.52, 0.055, l * 0.65,
-      w * 0.52, 0.055, l * 0.65,
-      0, 0.02, l
-    ];
-    const indices = [0, 1, 2, 1, 3, 2, 2, 3, 4, 3, 5, 4];
-    geom.setIndex(indices);
-    geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0);
+    shape.quadraticCurveTo(-0.09, 0.12, -0.08, 0.28);
+    shape.quadraticCurveTo(-0.04, 0.42, 0, 0.48);
+    shape.quadraticCurveTo(0.04, 0.42, 0.08, 0.28);
+    shape.quadraticCurveTo(0.09, 0.12, 0, 0);
+
+    const extrudeSettings = { depth: 0.005, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.002, bevelThickness: 0.002 };
+    const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    geom.rotateX(Math.PI / 2);
     geom.computeVertexNormals();
     return geom;
   }
@@ -629,95 +625,31 @@ export class ThreePlantChamber {
   }
 
   createSpinachLeafGeo() {
-    const geom = new THREE.BufferGeometry();
-    const w = 0.32; // Wider spade shape
-    const l = 0.44;
-    const vertices = [
-      0, 0, 0,
-      -w * 0.55, 0.03, l * 0.35,
-      w * 0.55, 0.03, l * 0.35,
-      -w * 0.60, 0.06, l * 0.70,
-      w * 0.60, 0.06, l * 0.70,
-      0, 0.03, l
-    ];
-    const indices = [0, 1, 2, 1, 3, 2, 2, 3, 4, 3, 5, 4];
-    geom.setIndex(indices);
-    geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0);
+    shape.quadraticCurveTo(-0.16, 0.15, -0.14, 0.38);
+    shape.quadraticCurveTo(-0.06, 0.52, 0, 0.58);
+    shape.quadraticCurveTo(0.06, 0.52, 0.14, 0.38);
+    shape.quadraticCurveTo(0.16, 0.15, 0, 0);
+
+    const geom = new THREE.ExtrudeGeometry(shape, { depth: 0.006, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.002, bevelThickness: 0.002 });
+    geom.rotateX(Math.PI / 2);
     geom.computeVertexNormals();
     return geom;
   }
 
   /**
-   * 3. Superfood Kale: Upright fibrous stalk with majestic ruffled/wavy leaves & white midrib
-   */
-  buildKalePlant() {
-    this.stemHeight = 0.75;
-    this.stemMaterial = new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.7 });
-    this.stemMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.036, this.stemHeight, 18), this.stemMaterial);
-    this.stemMesh.position.y = this.stemHeight / 2;
-    this.plantGroup.add(this.stemMesh);
-
-    // Ruffled Kale Leaf Geometry
-    const kaleLeafGeo = this.createKaleLeafGeo();
-    const kaleMat = new THREE.MeshStandardMaterial({
-      color: 0x047857, // Blue-green dark kale
-      roughness: 0.65,
-      side: THREE.DoubleSide
-    });
-
-    const leafCount = 14;
-    for (let i = 0; i < leafCount; i++) {
-      const leafMesh = new THREE.Mesh(kaleLeafGeo, kaleMat.clone());
-      leafMesh.castShadow = true;
-      leafMesh.receiveShadow = true;
-      this.plantGroup.add(leafMesh);
-
-      this.leaves.push({
-        mesh: leafMesh,
-        nodeHeightRatio: 0.15 + (i / leafCount) * 0.75,
-        baseAngle: (i * 137.5 * Math.PI) / 180,
-        type: "kale"
-      });
-    }
-  }
-
-  createKaleLeafGeo() {
-    const geom = new THREE.BufferGeometry();
-    const w = 0.28;
-    const l = 0.58;
-    // Ruffled undulating vertices
-    const vertices = [
-      0, 0, 0,
-      -w * 0.45, 0.08, l * 0.25,
-      w * 0.45, -0.04, l * 0.25,
-      -w * 0.65, -0.06, l * 0.55,
-      w * 0.65, 0.09, l * 0.55,
-      0, 0.02, l
-    ];
-    const indices = [0, 1, 2, 1, 3, 2, 2, 3, 4, 3, 5, 4];
-    geom.setIndex(indices);
-    geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geom.computeVertexNormals();
-    return geom;
-  }
-
-  /**
-   * 4. Tobacco Biofactory: Giant broad fan biomass leaves & tall robust trunk
+   * 3. Molecular Farming Tobacco
    */
   buildTobaccoPlant() {
-    this.stemHeight = 1.05; // Tallest biomass crop
-    this.stemMaterial = new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.5 });
-    this.stemMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.045, this.stemHeight, 18), this.stemMaterial);
+    this.stemHeight = 1.05;
+    this.stemMaterial = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.5 });
+    this.stemMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.038, this.stemHeight, 18), this.stemMaterial);
     this.stemMesh.position.y = this.stemHeight / 2;
     this.plantGroup.add(this.stemMesh);
 
-    // Giant Broad Oval Leaves
     const tobaccoLeafGeo = this.createTobaccoLeafGeo();
-    const tobaccoMat = new THREE.MeshStandardMaterial({
-      color: 0x16a34a,
-      roughness: 0.45,
-      side: THREE.DoubleSide
-    });
+    const tobaccoMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.35, side: THREE.DoubleSide });
 
     const leafCount = 18;
     for (let i = 0; i < leafCount; i++) {
@@ -728,45 +660,66 @@ export class ThreePlantChamber {
 
       this.leaves.push({
         mesh: leafMesh,
-        nodeHeightRatio: 0.10 + (i / leafCount) * 0.82,
+        nodeHeightRatio: 0.10 + (i / leafCount) * 0.80,
         baseAngle: (i * 137.5 * Math.PI) / 180,
         type: "tobacco"
       });
     }
-
-    // Apical Inflorescence (Flower Cluster at Top)
-    this.flowerGroup = new THREE.Group();
-    this.flowerGroup.position.set(0, this.stemHeight, 0);
-
-    for (let f = 0; f < 6; f++) {
-      const theta = (f / 6) * Math.PI * 2;
-      const fl = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.025, 0.008, 0.09, 8),
-        new THREE.MeshStandardMaterial({ color: 0xfda4af, roughness: 0.4 }) // Delicate pink/white
-      );
-      fl.position.set(Math.cos(theta) * 0.06, 0.06, Math.sin(theta) * 0.06);
-      fl.rotation.x = 0.4;
-      this.flowerGroup.add(fl);
-    }
-    this.flowerGroup.scale.set(0.01, 0.01, 0.01);
-    this.plantGroup.add(this.flowerGroup);
   }
 
   createTobaccoLeafGeo() {
-    const geom = new THREE.BufferGeometry();
-    const w = 0.38; // Giant broad leaf
-    const l = 0.65;
-    const vertices = [
-      0, 0, 0,
-      -w * 0.45, 0.03, l * 0.28,
-      w * 0.45, 0.03, l * 0.28,
-      -w * 0.58, 0.07, l * 0.62,
-      w * 0.58, 0.07, l * 0.62,
-      0, 0.02, l
-    ];
-    const indices = [0, 1, 2, 1, 3, 2, 2, 3, 4, 3, 5, 4];
-    geom.setIndex(indices);
-    geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0);
+    shape.quadraticCurveTo(-0.18, 0.20, -0.15, 0.50);
+    shape.quadraticCurveTo(-0.06, 0.70, 0, 0.78);
+    shape.quadraticCurveTo(0.06, 0.70, 0.15, 0.50);
+    shape.quadraticCurveTo(0.18, 0.20, 0, 0);
+
+    const geom = new THREE.ExtrudeGeometry(shape, { depth: 0.006, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.002, bevelThickness: 0.002 });
+    geom.rotateX(Math.PI / 2);
+    geom.computeVertexNormals();
+    return geom;
+  }
+
+  /**
+   * 4. Medical Kale: Upright thick stalk, dense curly frilly cabbage leaves
+   */
+  buildKalePlant() {
+    this.stemHeight = 0.65;
+    this.stemMaterial = new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.6 });
+    this.stemMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.038, this.stemHeight, 18), this.stemMaterial);
+    this.stemMesh.position.y = this.stemHeight / 2;
+    this.plantGroup.add(this.stemMesh);
+
+    const kaleLeafGeo = this.createKaleLeafGeo();
+    const kaleMat = new THREE.MeshStandardMaterial({ color: 0x047857, roughness: 0.35, side: THREE.DoubleSide });
+
+    const leafCount = 14;
+    for (let i = 0; i < leafCount; i++) {
+      const leafMesh = new THREE.Mesh(kaleLeafGeo, kaleMat.clone());
+      leafMesh.castShadow = true;
+      leafMesh.receiveShadow = true;
+      this.plantGroup.add(leafMesh);
+
+      this.leaves.push({
+        mesh: leafMesh,
+        nodeHeightRatio: 0.12 + (i / leafCount) * 0.75,
+        baseAngle: (i * 137.5 * Math.PI) / 180,
+        type: "kale"
+      });
+    }
+  }
+
+  createKaleLeafGeo() {
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0);
+    shape.quadraticCurveTo(-0.14, 0.15, -0.12, 0.35);
+    shape.quadraticCurveTo(-0.05, 0.48, 0, 0.54);
+    shape.quadraticCurveTo(0.05, 0.48, 0.12, 0.35);
+    shape.quadraticCurveTo(0.14, 0.15, 0, 0);
+
+    const geom = new THREE.ExtrudeGeometry(shape, { depth: 0.006, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.002, bevelThickness: 0.002 });
+    geom.rotateX(Math.PI / 2);
     geom.computeVertexNormals();
     return geom;
   }
@@ -840,7 +793,7 @@ export class ThreePlantChamber {
   updateSimulation(plantState, envTelemetry, cropProfile, ionUptake = null) {
     if (!this.isInitialized || !this.plantGroup) return;
 
-    const { dryWeightGrams, luteinConcentration, heightCm } = plantState;
+    const { dryWeightGrams, luteinConcentration } = plantState;
     const { isLightOn, simulatedHour, sensors } = envTelemetry;
     this.simulatedHour = simulatedHour;
     this.isLightOn = isLightOn;
@@ -858,12 +811,12 @@ export class ThreePlantChamber {
     // 3. Species-Specific Ontogenetic Growth Modeling (Day 1 Sprout -> Day 42 Full Bloom)
     const simulatedDay = envTelemetry.simulatedDay || 1;
     const harvestDays = cropProfile.harvestDays || 42;
-    const dayRatio = Math.min(1.0, Math.max(0.01, simulatedDay / harvestDays));
+    const dayRatio = Math.min(1.0, Math.max(0.02, simulatedDay / harvestDays));
 
     // Dynamic 3D Root Architecture Elongation & Michaelis-Menten Root Ion Heatmap
     if (this.rootGroup) {
-      const rootScale = Math.min(1.30, 0.12 + dayRatio * 1.18);
-      this.rootGroup.scale.set(rootScale, rootScale * 1.15, rootScale);
+      const rootScale = Math.min(1.30, 0.35 + dayRatio * 0.95);
+      this.rootGroup.scale.set(rootScale, rootScale * 1.10, rootScale);
 
       // Calculate Michaelis-Menten Root Ion Uptake Heatmap (Cyan -> Emerald -> Radiant Gold)
       const absRatio = ionUptake && typeof ionUptake.absorptionRatio === "number" ? ionUptake.absorptionRatio : 0.72;
@@ -893,24 +846,19 @@ export class ThreePlantChamber {
       }
     }
 
-    // Sigmoid height curve (seedling sprout at Day 1 ~ 5, exponential elongation, plateau)
-    const heightProgress = 1.0 / (1.0 + Math.exp(-0.18 * (simulatedDay - 18)));
-    const minStemH = 0.06; // Day 1 sprout height (6 cm)
-    const adultStemH = this.currentSpecies === "spinach_carotenoid" ? 0.35 : (this.currentSpecies === "tobacco_recombinant" ? 1.05 : 0.85);
-    const stemH = minStemH + heightProgress * (adultStemH - minStemH);
-
-    // Stem thickness scaling: Day 1 slender sprout (0.15) -> Adult robust trunk (1.0 + dryWeight)
-    const stemThick = Math.min(1.2, 0.14 + heightProgress * 0.86 + Math.min(0.2, dryWeightGrams * 0.01));
+    // Stem height and thickness scaling
+    const minStemH = 0.22; // Starts at 22cm on Day 1
+    const adultStemH = this.currentSpecies === "spinach_carotenoid" ? 0.40 : (this.currentSpecies === "tobacco_recombinant" ? 1.05 : 0.85);
+    const stemH = minStemH + dayRatio * (adultStemH - minStemH);
+    const stemThick = 0.35 + dayRatio * 0.75;
     this.stemMesh.scale.set(stemThick, stemH / this.stemHeight, stemThick);
     this.stemMesh.position.y = stemH / 2;
 
     const turgorFactor = sensors.vpd > 1.6 ? Math.max(0.35, 1.0 - (sensors.vpd - 1.6) * 0.9) : 1.0;
 
-    // Leaf Development: Day 1~4 has ONLY 2 tiny cotyledons (떡잎); leaves unfold successively
-    let visibleLeafCount = 2;
-    if (simulatedDay >= 5) {
-      visibleLeafCount = Math.min(this.leaves.length, 2 + Math.floor((simulatedDay - 4) * 0.45));
-    }
+    // Foliage leaves count and growth
+    // Starts with 4 leaves at Day 1, successively expanding up to 16 leaves
+    const visibleLeafCount = Math.min(this.leaves.length, Math.max(4, Math.floor(4 + dayRatio * 12)));
 
     // Lutein Color Shift
     const luteinRatio = Math.min(1.0, Math.max(0.0, (luteinConcentration - 2.0) / 3.0));
@@ -922,25 +870,21 @@ export class ThreePlantChamber {
 
     this.leaves.forEach((l, idx) => {
       if (idx < visibleLeafCount) {
-        // Individual leaf size scaling: cotyledons (idx 0,1) start small, true leaves expand
-        let lScale = 0.18;
-        if (simulatedDay > 4) {
-          const leafAge = Math.max(0, simulatedDay - 4 - idx * 2.0);
-          const leafGrowth = 1.0 / (1.0 + Math.exp(-0.25 * (leafAge - 6)));
-          lScale = Math.max(0.18, leafGrowth * 1.15);
-        }
+        // Individual leaf size scaling: starts robust and expands to full broad canopy
+        const leafAgeFactor = Math.max(0.40, Math.min(1.0, (dayRatio * 16 - idx * 0.7) / 2.5));
+        const lScale = (0.45 + dayRatio * 0.70) * leafAgeFactor;
 
-        // At Day 1~4, cotyledons sit right at the sprout apex
-        const posY = simulatedDay <= 4 ? stemH * 0.95 : stemH * l.nodeHeightRatio;
+        // Position along the stem
+        const posY = stemH * (0.15 + (idx / Math.max(1, visibleLeafCount)) * 0.76);
         l.mesh.position.set(0, posY, 0);
         l.mesh.scale.set(lScale, lScale, lScale);
 
-        // Species-specific drooping angles
+        // Species-specific drooping angles and 3D rotation
         const basePitch = l.type === "spinach" ? 0.65 : (l.type === "tobacco" ? 0.50 : 0.42);
-        const droopPitch = (1.0 - turgorFactor) * 0.85;
-        l.mesh.rotation.set(basePitch + droopPitch, l.baseAngle, 0.15);
+        const droopPitch = (1.0 - turgorFactor) * 0.55;
+        l.mesh.rotation.set(basePitch + droopPitch, l.baseAngle, 0.12);
 
-        if (cropProfile.id === "marigold_lutein" || !cropProfile.id) {
+        if (l.mesh.material) {
           l.mesh.material.color.lerp(targetLeafColor, 0.08);
         }
       } else {
@@ -948,22 +892,18 @@ export class ThreePlantChamber {
       }
     });
 
-    // Flower Blooming Ontogeny: ONLY appears after Day 26 (Budding) and fully blooms on Day 34~42
+    // Flower Blooming Ontogeny: Appears as floral bud from Day 18, expands to full bloom by Day 32~42
     if (this.flowerGroup) {
-      if (simulatedDay < 26) {
-        // Day 1 ~ 25: Completely invisible (Vegetative stage)
+      this.flowerGroup.position.set(0, stemH, 0);
+      if (simulatedDay < 18) {
         this.flowerGroup.scale.set(0.0001, 0.0001, 0.0001);
-      } else if (simulatedDay < 34) {
-        // Day 26 ~ 33: Emergence of small green/yellow floral bud (봉오리)
-        this.flowerGroup.position.y = stemH;
-        const budProgress = (simulatedDay - 26) / 8.0;
-        const budScale = 0.06 + budProgress * 0.30;
+      } else if (simulatedDay < 30) {
+        const budRatio = (simulatedDay - 18) / 12.0;
+        const budScale = 0.15 + budRatio * 0.35;
         this.flowerGroup.scale.set(budScale, budScale, budScale);
       } else {
-        // Day 34 ~ 42: Full blooming mature flower head
-        this.flowerGroup.position.y = stemH;
-        const bloomProgress = Math.min(1.0, (simulatedDay - 34) / 7.0);
-        const flowerScale = 0.36 + bloomProgress * 0.74;
+        const bloomRatio = Math.min(1.0, (simulatedDay - 30) / 10.0);
+        const flowerScale = 0.50 + bloomRatio * 0.60;
         this.flowerGroup.scale.set(flowerScale, flowerScale, flowerScale);
       }
     }
