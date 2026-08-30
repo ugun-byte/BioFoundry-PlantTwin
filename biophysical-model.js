@@ -153,11 +153,12 @@ export class BioPhysicalEngine {
     const carbonSupplyFactor = Math.max(0.1, instantPhoto.netAn / 18.0);
 
     // 2. Photoprotective Upregulation via Blue & UV-B Light (PSY - Phytoene Synthase enzyme activity)
+    const specSens = cropProfile.spectrumSensitivity || { blue: 1.2, uvb: 1.8 };
     const blueRatio = (spectrum.blue || 25) / 100;
-    const blueActivation = 1.0 + Math.pow(blueRatio / 0.2, 1.4) * cropProfile.spectrumSensitivity.blue;
+    const blueActivation = 1.0 + Math.pow(blueRatio / 0.2, 1.4) * (specSens.blue || 1.2);
 
     // UV-B induces massive photoprotective antioxidant enzyme cascade
-    const uvbActivation = uvbActive ? cropProfile.spectrumSensitivity.uvb : 1.0;
+    const uvbActivation = uvbActive ? (specSens.uvb || 1.8) : 1.0;
 
     // 3. Low Temperature Shift (Cold Shock increases anthocyanin and lutein membrane stabilizers)
     const coldActivation = coldShockActive ? 1.35 : 1.0;
