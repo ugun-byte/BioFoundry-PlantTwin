@@ -323,8 +323,8 @@ export class ThreePlantChamber {
   }
 
   buildPhysicsParticles() {
-    // 1. 4 Ceiling Downward Misting Sprays from 4 Nozzles (Matching Mockup Image)
-    const mistCount = 240;
+    // 1. 4 Ceiling Downward Misting Sprays from 4 Nozzles (Gentle, Slow Vapor Droplets)
+    const mistCount = 75;
     const mistGeo = new THREE.BufferGeometry();
     const mistPos = new Float32Array(mistCount * 3);
     this.mistVelocities = [];
@@ -343,7 +343,7 @@ export class ThreePlantChamber {
 
       this.mistVelocities.push({
         nIdx,
-        speed: 0.007 + Math.random() * 0.011,
+        speed: 0.003 + Math.random() * 0.004,
         angle: angle
       });
     }
@@ -351,16 +351,16 @@ export class ThreePlantChamber {
     mistGeo.setAttribute('position', new THREE.BufferAttribute(mistPos, 3));
     const mistMat = new THREE.PointsMaterial({
       color: 0xffffff,
-      size: 0.024,
+      size: 0.012,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.22,
       blending: THREE.AdditiveBlending
     });
     this.mistSystem = new THREE.Points(mistGeo, mistMat);
     this.scene.add(this.mistSystem);
 
-    // 2. Airflow Streamline Particles
-    const breezeCount = 40;
+    // 2. Airflow Streamline Particles (Gentle Breeze)
+    const breezeCount = 15;
     const breezeGeo = new THREE.BufferGeometry();
     const breezePos = new Float32Array(breezeCount * 3);
 
@@ -373,16 +373,16 @@ export class ThreePlantChamber {
     breezeGeo.setAttribute('position', new THREE.BufferAttribute(breezePos, 3));
     const breezeMat = new THREE.PointsMaterial({
       color: 0x00f2fe,
-      size: 0.015,
+      size: 0.010,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.18,
       blending: THREE.AdditiveBlending
     });
     this.breezeSystem = new THREE.Points(breezeGeo, breezeMat);
     this.scene.add(this.breezeSystem);
 
     // 3. Aeroponic Root Zone Misting Spray System
-    const rootMistCount = 120;
+    const rootMistCount = 45;
     const rootMistGeo = new THREE.BufferGeometry();
     const rootMistPos = new Float32Array(rootMistCount * 3);
 
@@ -397,22 +397,22 @@ export class ThreePlantChamber {
     rootMistGeo.setAttribute('position', new THREE.BufferAttribute(rootMistPos, 3));
     const rootMistMat = new THREE.PointsMaterial({
       color: 0x00f2fe,
-      size: 0.016,
+      size: 0.011,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.35,
       blending: THREE.AdditiveBlending
     });
     this.rootMistSystem = new THREE.Points(rootMistGeo, rootMistMat);
     this.scene.add(this.rootMistSystem);
 
-    // 4. Real-time 3D CFD Airflow Streamline Vector Field (480 Particles)
-    this.buildCfdVectorField(480);
+    // 4. Real-time 3D CFD Airflow Streamline Vector Field (120 Soft Particles)
+    this.buildCfdVectorField(120);
 
-    // 5. Quantum Photon Energy Density Rain System (360 Photons)
-    this.buildPhotonRainField(360);
+    // 5. Quantum Photon Energy Density Rain System (90 Soft Photons)
+    this.buildPhotonRainField(90);
   }
 
-  buildCfdVectorField(count = 480) {
+  buildCfdVectorField(count = 120) {
     this.cfdVectorCount = count;
     const geo = new THREE.BufferGeometry();
     const pos = new Float32Array(count * 3);
@@ -431,15 +431,15 @@ export class ThreePlantChamber {
       pos[i * 3 + 2] = z;
 
       colors[i * 3 + 0] = 0.0;
-      colors[i * 3 + 1] = 0.95;
-      colors[i * 3 + 2] = 1.0;
+      colors[i * 3 + 1] = 0.90;
+      colors[i * 3 + 2] = 0.98;
 
       this.cfdParticles.push({
         angle,
         radius,
         y,
-        speedY: 0.007 + Math.random() * 0.015,
-        angularSpeed: 0.010 + Math.random() * 0.020,
+        speedY: 0.0025 + Math.random() * 0.005,
+        angularSpeed: 0.003 + Math.random() * 0.006,
         phase: Math.random() * Math.PI * 2
       });
     }
@@ -448,20 +448,21 @@ export class ThreePlantChamber {
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     const mat = new THREE.PointsMaterial({
-      size: 0.024,
+      size: 0.013,
       vertexColors: true,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.38,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
 
     this.cfdVectorSystem = new THREE.Points(geo, mat);
+    this.cfdVectorSystem.visible = false;
+    this.showCfdFlow = false;
     this.scene.add(this.cfdVectorSystem);
-    this.showCfdFlow = true;
   }
 
-  buildPhotonRainField(count = 360) {
+  buildPhotonRainField(count = 90) {
     this.photonCount = count;
     const geo = new THREE.BufferGeometry();
     const pos = new Float32Array(count * 3);
@@ -485,7 +486,7 @@ export class ThreePlantChamber {
         x,
         z,
         y,
-        speed: 0.014 + Math.random() * 0.022
+        speed: 0.004 + Math.random() * 0.006
       });
     }
 
@@ -493,17 +494,18 @@ export class ThreePlantChamber {
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     const mat = new THREE.PointsMaterial({
-      size: 0.019,
+      size: 0.011,
       vertexColors: true,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.32,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
 
     this.photonStreamSystem = new THREE.Points(geo, mat);
+    this.photonStreamSystem.visible = false;
+    this.showPhotons = false;
     this.scene.add(this.photonStreamSystem);
-    this.showPhotons = true;
   }
 
   toggleCfdFlow(forcedState = null) {
@@ -1132,11 +1134,11 @@ export class ThreePlantChamber {
 
   animate() {
     requestAnimationFrame(this.animate);
-    this.time += 0.025;
+    this.time += 0.010;
 
     if (this.controls) this.controls.update();
 
-    // 1. Ceiling Nozzle Downward Mist Cone Vapor Particles
+    // 1. Ceiling Nozzle Downward Mist Cone Vapor Particles (Gentle & Slow)
     if (this.mistSystem && this.mistVelocities) {
       const pos = this.mistSystem.geometry.attributes.position.array;
       const count = pos.length / 3;
@@ -1144,9 +1146,9 @@ export class ThreePlantChamber {
 
       for (let i = 0; i < count; i++) {
         const vel = this.mistVelocities[i];
-        pos[i * 3 + 1] -= vel.speed;
-        pos[i * 3 + 0] += Math.sin(this.time * 2.0 + i) * 0.0015;
-        pos[i * 3 + 2] += Math.cos(this.time * 2.0 + i) * 0.0015;
+        pos[i * 3 + 1] -= vel.speed * 0.5;
+        pos[i * 3 + 0] += Math.sin(this.time * 1.0 + i) * 0.0006;
+        pos[i * 3 + 2] += Math.cos(this.time * 1.0 + i) * 0.0006;
 
         // Reset particle back at ceiling nozzle
         if (pos[i * 3 + 1] < 0.75) {
@@ -1159,11 +1161,11 @@ export class ThreePlantChamber {
       this.mistSystem.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 2. Airflow Breeze Particles
+    // 2. Airflow Breeze Particles (Gentle & Slow)
     if (this.breezeSystem) {
       const pos = this.breezeSystem.geometry.attributes.position.array;
       for (let i = 0; i < pos.length / 3; i++) {
-        pos[i * 3 + 0] += 0.012;
+        pos[i * 3 + 0] += 0.004;
         if (pos[i * 3 + 0] > 1.4) pos[i * 3 + 0] = -1.4;
       }
       this.breezeSystem.geometry.attributes.position.needsUpdate = true;
@@ -1173,47 +1175,47 @@ export class ThreePlantChamber {
     if (this.rootMistSystem) {
       const pos = this.rootMistSystem.geometry.attributes.position.array;
       for (let i = 0; i < pos.length / 3; i++) {
-        pos[i * 3 + 1] -= 0.005; // downward mist velocity into roots
-        pos[i * 3 + 0] += Math.sin(this.time * 2.5 + i) * 0.0012;
-        pos[i * 3 + 2] += Math.cos(this.time * 2.5 + i) * 0.0012;
+        pos[i * 3 + 1] -= 0.002;
+        pos[i * 3 + 0] += Math.sin(this.time * 1.2 + i) * 0.0006;
+        pos[i * 3 + 2] += Math.cos(this.time * 1.2 + i) * 0.0006;
         if (pos[i * 3 + 1] < 0.22) {
-          pos[i * 3 + 1] = 0.40; // reset near misting nozzles
+          pos[i * 3 + 1] = 0.40;
         }
       }
       this.rootMistSystem.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 4. Plant Mechanical Wind Sway
+    // 4. Plant Mechanical Wind Sway (Natural Gentle Breathing Sway)
     if (this.plantGroup) {
-      const swayZ = Math.sin(this.time * 1.5) * 0.016;
-      const swayX = Math.cos(this.time * 1.2) * 0.010;
+      const swayZ = Math.sin(this.time * 0.9) * 0.008;
+      const swayX = Math.cos(this.time * 0.7) * 0.005;
       this.plantGroup.rotation.z = swayZ;
       this.plantGroup.rotation.x = swayX;
     }
 
-    // 5. Bio-Electric Root Ion Stream Particles Flow (Driven by Membrane Potential V_m)
+    // 5. Bio-Electric Root Ion Stream Particles Flow
     if (this.rootIonStreamSystem && this.ionParticleMeta) {
       const pos = this.rootIonStreamSystem.geometry.attributes.position.array;
       const count = pos.length / 3;
       for (let i = 0; i < count; i++) {
         const meta = this.ionParticleMeta[i];
-        pos[i * 3 + 1] += meta.speed;
+        pos[i * 3 + 1] += meta.speed * 0.5;
         if (pos[i * 3 + 1] > -0.01) {
           pos[i * 3 + 1] = -0.34;
         }
-        meta.baseAngle += 0.025;
+        meta.baseAngle += 0.010;
         pos[i * 3 + 0] = Math.cos(meta.baseAngle) * (meta.baseRadius * (1.0 + pos[i * 3 + 1] * 0.4));
         pos[i * 3 + 2] = Math.sin(meta.baseAngle) * (meta.baseRadius * (1.0 + pos[i * 3 + 1] * 0.4));
       }
       this.rootIonStreamSystem.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 6. Xylem Sap Flow Upward Water Streamlines Animation (Driven by Transpiration & VPD)
+    // 6. Xylem Sap Flow Upward Water Streamlines Animation
     if (this.xylemStreamlineSystem && this.xylemParticleMeta) {
       const pos = this.xylemStreamlineSystem.geometry.attributes.position.array;
       const count = pos.length / 3;
       const maxH = this.stemHeight || 0.85;
-      const speedMult = this.currentSapSpeedMultiplier || 1.0;
+      const speedMult = (this.currentSapSpeedMultiplier || 1.0) * 0.5;
 
       for (let i = 0; i < count; i++) {
         const meta = this.xylemParticleMeta[i];
@@ -1221,19 +1223,19 @@ export class ThreePlantChamber {
         if (pos[i * 3 + 1] > maxH) {
           pos[i * 3 + 1] = 0.01;
         }
-        meta.baseAngle += 0.015;
+        meta.baseAngle += 0.008;
         pos[i * 3 + 0] = Math.cos(meta.baseAngle) * meta.baseRadius;
         pos[i * 3 + 2] = Math.sin(meta.baseAngle) * meta.baseRadius;
       }
       this.xylemStreamlineSystem.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 7. CFD Airflow Vector Field Particles (Helical Downward Vortex & Canopy Flow)
+    // 7. CFD Airflow Vector Field Particles (Helical Downward Vortex - 50% Speed & Smooth Gentle Flow)
     if (this.cfdVectorSystem && this.cfdVectorSystem.visible && this.cfdParticles) {
       const pos = this.cfdVectorSystem.geometry.attributes.position.array;
       const colors = this.cfdVectorSystem.geometry.attributes.color.array;
       const count = pos.length / 3;
-      const speedMult = this.currentAirflowSpeed || 1.0;
+      const speedMult = (this.currentAirflowSpeed || 1.0) * 0.5;
       const isWarm = (this.currentTemp || 24.0) > 27.0;
 
       for (let i = 0; i < count; i++) {
@@ -1247,7 +1249,7 @@ export class ThreePlantChamber {
         }
 
         // Swirl around plant canopy
-        const currentR = p.radius * (1.0 + Math.sin(this.time * 2.0 + p.phase) * 0.08);
+        const currentR = p.radius * (1.0 + Math.sin(this.time * 1.2 + p.phase) * 0.05);
         pos[i * 3 + 0] = Math.cos(p.angle) * currentR;
         pos[i * 3 + 1] = p.y;
         pos[i * 3 + 2] = Math.sin(p.angle) * currentR;
@@ -1267,11 +1269,11 @@ export class ThreePlantChamber {
       this.cfdVectorSystem.geometry.attributes.color.needsUpdate = true;
     }
 
-    // 8. Quantum Photon Energy Density Stream (Ceiling LED to Canopy Rain)
+    // 8. Quantum Photon Energy Density Stream (Gentle Soft Light Droplets - 50% Speed)
     if (this.photonStreamSystem && this.photonStreamSystem.visible && this.photonParticles) {
       const pos = this.photonStreamSystem.geometry.attributes.position.array;
       const count = pos.length / 3;
-      const ppfdRatio = Math.max(0.3, Math.min(2.2, (this.currentPpfd || 450) / 450));
+      const ppfdRatio = Math.max(0.3, Math.min(2.2, (this.currentPpfd || 450) / 450)) * 0.5;
 
       for (let i = 0; i < count; i++) {
         const p = this.photonParticles[i];

@@ -1514,7 +1514,7 @@ function bindEventListeners() {
       if (plantChamber3d) {
         const isVisible = plantChamber3d.toggleCfdFlow();
         DOM.btnToggleCfdFlow.classList.toggle("active", isVisible);
-        DOM.btnToggleCfdFlow.style.opacity = isVisible ? "1.0" : "0.5";
+        DOM.btnToggleCfdFlow.style.background = isVisible ? "rgba(8, 145, 178, 0.45)" : "rgba(8, 145, 178, 0.15)";
       }
     });
   }
@@ -1525,7 +1525,7 @@ function bindEventListeners() {
       if (plantChamber3d) {
         const isVisible = plantChamber3d.togglePhotons();
         DOM.btnTogglePhotons.classList.toggle("active", isVisible);
-        DOM.btnTogglePhotons.style.opacity = isVisible ? "1.0" : "0.5";
+        DOM.btnTogglePhotons.style.background = isVisible ? "rgba(180, 83, 9, 0.45)" : "rgba(180, 83, 9, 0.15)";
       }
     });
   }
