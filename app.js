@@ -496,9 +496,38 @@ const DOM = {
   viewOverview: document.getElementById("viewOverview"),
   viewTelemetry: document.getElementById("viewTelemetry"),
   viewOptimization: document.getElementById("viewOptimization"),
+  viewRlStudio: document.getElementById("viewRlStudio"),
   viewExperiments: document.getElementById("viewExperiments"),
   viewReports: document.getElementById("viewReports"),
   allViews: document.querySelectorAll(".app-view-container"),
+
+  // RL Studio Elements
+  rlStudioHeaderTitle: document.getElementById("rlStudioHeaderTitle"),
+  btnStudioTrainRl: document.getElementById("btnStudioTrainRl"),
+  btnStudioDeployRl: document.getElementById("btnStudioDeployRl"),
+  btnStudioExportOnnx: document.getElementById("btnStudioExportOnnx"),
+  btnStudioExportCsv: document.getElementById("btnStudioExportCsv"),
+  rlStudioBestRewardVal: document.getElementById("rlStudioBestRewardVal"),
+  rlStudioYieldGainVal: document.getElementById("rlStudioYieldGainVal"),
+  rlStudioYieldSub: document.getElementById("rlStudioYieldSub"),
+  rlStudioEnergySavedVal: document.getElementById("rlStudioEnergySavedVal"),
+  rlStudioEpsilonVal: document.getElementById("rlStudioEpsilonVal"),
+  rlStudioMainCanvas: document.getElementById("rlStudioMainCanvas"),
+  tabAlgoDqn: document.getElementById("tabAlgoDqn"),
+  tabAlgoPpo: document.getElementById("tabAlgoPpo"),
+  tabAlgoSac: document.getElementById("tabAlgoSac"),
+  sliderWeightYield: document.getElementById("sliderWeightYield"),
+  lblWeightYield: document.getElementById("lblWeightYield"),
+  sliderWeightBiomass: document.getElementById("sliderWeightBiomass"),
+  lblWeightBiomass: document.getElementById("lblWeightBiomass"),
+  sliderWeightEnergy: document.getElementById("sliderWeightEnergy"),
+  lblWeightEnergy: document.getElementById("lblWeightEnergy"),
+  sliderWeightStress: document.getElementById("sliderWeightStress"),
+  lblWeightStress: document.getElementById("lblWeightStress"),
+  btnRolloutPlay: document.getElementById("btnRolloutPlay"),
+  btnRolloutStep: document.getElementById("btnRolloutStep"),
+  btnRolloutReset: document.getElementById("btnRolloutReset"),
+  rlReplayBufferTableBody: document.getElementById("rlReplayBufferTableBody"),
 
   // Telemetry View Elements
   btnRefreshTelemetryView: document.getElementById("btnRefreshTelemetryView"),
@@ -1403,9 +1432,13 @@ function bindEventListeners() {
   if (DOM.btnApplyParetoRecipe) DOM.btnApplyParetoRecipe.addEventListener("click", applyParetoTradeoffRecipe);
   if (DOM.btnExportParetoCSV) DOM.btnExportParetoCSV.addEventListener("click", exportParetoTradeoffCSV);
 
-  // DeepMind RL Agent Modal
+  // Autonomous Plant Bio-RL Studio & Quick Launch
   if (DOM.btnDeepmindRlAgent) {
-    DOM.btnDeepmindRlAgent.addEventListener("click", openDeepmindRlModal);
+    DOM.btnDeepmindRlAgent.addEventListener("click", () => {
+      audio.playClick();
+      switchAppView("rlstudio");
+      DOM.navTabs.forEach(t => t.classList.toggle("active", t.getAttribute("data-tab") === "rlstudio"));
+    });
   }
   if (DOM.deepmindRlClose) {
     DOM.deepmindRlClose.addEventListener("click", () => {
@@ -1422,6 +1455,48 @@ function bindEventListeners() {
   if (DOM.btnExportRlCSV) {
     DOM.btnExportRlCSV.addEventListener("click", exportDeepmindRlCSV);
   }
+
+  // RL Studio Dedicated View Controls
+  if (DOM.btnStudioTrainRl) DOM.btnStudioTrainRl.addEventListener("click", trainRlStudioAgent);
+  if (DOM.btnStudioDeployRl) DOM.btnStudioDeployRl.addEventListener("click", deployDeepmindRlPolicy);
+  if (DOM.btnStudioExportOnnx) DOM.btnStudioExportOnnx.addEventListener("click", exportRlOnnxJson);
+  if (DOM.btnStudioExportCsv) DOM.btnStudioExportCsv.addEventListener("click", exportDeepmindRlCSV);
+
+  // RL Studio Algorithm Tabs
+  if (DOM.tabAlgoDqn) DOM.tabAlgoDqn.addEventListener("click", () => switchRlAlgorithm("DQN"));
+  if (DOM.tabAlgoPpo) DOM.tabAlgoPpo.addEventListener("click", () => switchRlAlgorithm("PPO"));
+  if (DOM.tabAlgoSac) DOM.tabAlgoSac.addEventListener("click", () => switchRlAlgorithm("SAC"));
+
+  // RL Studio Reward Shaping Sliders
+  if (DOM.sliderWeightYield) {
+    DOM.sliderWeightYield.addEventListener("input", (e) => {
+      currentRlWeights.yield = parseFloat(e.target.value);
+      if (DOM.lblWeightYield) DOM.lblWeightYield.textContent = currentRlWeights.yield.toFixed(1);
+    });
+  }
+  if (DOM.sliderWeightBiomass) {
+    DOM.sliderWeightBiomass.addEventListener("input", (e) => {
+      currentRlWeights.biomass = parseFloat(e.target.value);
+      if (DOM.lblWeightBiomass) DOM.lblWeightBiomass.textContent = currentRlWeights.biomass.toFixed(1);
+    });
+  }
+  if (DOM.sliderWeightEnergy) {
+    DOM.sliderWeightEnergy.addEventListener("input", (e) => {
+      currentRlWeights.energy = parseFloat(e.target.value);
+      if (DOM.lblWeightEnergy) DOM.lblWeightEnergy.textContent = currentRlWeights.energy.toFixed(2);
+    });
+  }
+  if (DOM.sliderWeightStress) {
+    DOM.sliderWeightStress.addEventListener("input", (e) => {
+      currentRlWeights.stress = parseFloat(e.target.value);
+      if (DOM.lblWeightStress) DOM.lblWeightStress.textContent = currentRlWeights.stress.toFixed(1);
+    });
+  }
+
+  // RL Studio Rollout Player
+  if (DOM.btnRolloutPlay) DOM.btnRolloutPlay.addEventListener("click", playRolloutContinuous);
+  if (DOM.btnRolloutStep) DOM.btnRolloutStep.addEventListener("click", stepRolloutPlayer);
+  if (DOM.btnRolloutReset) DOM.btnRolloutReset.addEventListener("click", resetRolloutPlayer);
 
   // GMP Certificate of Analysis (CoA) Modal
   if (DOM.btnGmpCoaReport) {
@@ -2771,62 +2846,169 @@ function exportParetoTradeoffCSV() {
 }
 
 // ------------------------------------------------------------------------
-// Google DeepMind DQN / PPO Autonomous Cultivation RL Agent Handlers
+// Autonomous Plant Bio-RL Studio (DQN / PPO / SAC) Handlers
 // ------------------------------------------------------------------------
 let cachedRlData = null;
+let currentRlAlgorithm = "DQN";
+let currentRlWeights = { yield: 3.5, biomass: 5.2, energy: 0.45, stress: 4.0 };
+let rolloutSimState = null;
+let rolloutTimer = null;
 
-function openDeepmindRlModal() {
+function renderRlStudioView() {
   audio.playRlConvergenceChime();
   const crop = profileManager.getActiveProfile();
 
   if (!cachedRlData) {
-    cachedRlData = rlAgent.runTrainingSimulation(crop, "balanced", 200);
+    cachedRlData = rlAgent.runTrainingSimulation(crop, "balanced", 200, currentRlWeights, currentRlAlgorithm);
   }
 
-  if (DOM.rlModalTitle) {
-    DOM.rlModalTitle.textContent = `🧠 ${crop.name}: Google DeepMind DQN/PPO 강화학습 자율 최적화 에이전트`;
-  }
-  
   const bestR = (cachedRlData.bestReward && isFinite(cachedRlData.bestReward)) ? Math.round(cachedRlData.bestReward) : 2845;
   const finalLutein = (cachedRlData.finalLuteinYield && !isNaN(cachedRlData.finalLuteinYield)) ? cachedRlData.finalLuteinYield : (crop.baseLuteinConcentration * 1.35).toFixed(1);
 
-  if (DOM.rlBestRewardVal) DOM.rlBestRewardVal.textContent = `+${bestR.toLocaleString()} pts`;
-  if (DOM.rlYieldGainVal) DOM.rlYieldGainVal.textContent = `+34.8% (${crop.targetMolecule || "Lutein"} ${finalLutein} mg/g)`;
-  if (DOM.rlEnergySavedVal) DOM.rlEnergySavedVal.textContent = `-22.4% (전력 효율 극대화)`;
-  if (DOM.rlEpsilonVal) DOM.rlEpsilonVal.textContent = `ε = 0.050 (정책 수렴)`;
+  if (DOM.rlStudioBestRewardVal) DOM.rlStudioBestRewardVal.textContent = `+${bestR.toLocaleString()} pts`;
+  if (DOM.rlStudioYieldGainVal) DOM.rlStudioYieldGainVal.textContent = `+34.8 %`;
+  if (DOM.rlStudioYieldSub) DOM.rlStudioYieldSub.textContent = `${crop.targetMolecule || "Lutein"} ${finalLutein} mg/g DW`;
+  if (DOM.rlStudioEnergySavedVal) DOM.rlStudioEnergySavedVal.textContent = `-22.4 %`;
+  if (DOM.rlStudioEpsilonVal) DOM.rlStudioEpsilonVal.textContent = `ε = 0.050 (${currentRlAlgorithm})`;
 
-  if (DOM.deepmindRlModal) {
-    DOM.deepmindRlModal.classList.add("active");
+  // Populate Replay Buffer Table
+  if (DOM.rlReplayBufferTableBody && cachedRlData.replayBuffer) {
+    DOM.rlReplayBufferTableBody.innerHTML = cachedRlData.replayBuffer.slice(-12).map(row => `
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <td style="padding: 4px 8px; color: #38bdf8; font-weight: 700;">Day ${row.day}</td>
+        <td style="padding: 4px 8px; color: #cbd5e1;">${row.state}</td>
+        <td style="padding: 4px 8px; color: #fbbf24; font-weight: 600;">${row.action}</td>
+        <td style="padding: 4px 8px; color: #34d399; font-weight: 700;">${row.reward}</td>
+        <td style="padding: 4px 8px; color: #c084fc;">${row.nextState}</td>
+      </tr>
+    `).join("");
   }
 
   setTimeout(() => {
-    if (DOM.deepmindRlCanvas && cachedRlData) {
-      rlAgent.startAnimation(DOM.deepmindRlCanvas, cachedRlData);
+    if (DOM.rlStudioMainCanvas && cachedRlData) {
+      rlAgent.startAnimation(DOM.rlStudioMainCanvas, cachedRlData);
     }
   }, 40);
 }
 
-function trainDeepmindRlAgent() {
+function switchRlAlgorithm(algo) {
+  audio.playClick();
+  currentRlAlgorithm = algo;
+  if (DOM.tabAlgoDqn) DOM.tabAlgoDqn.classList.toggle("active", algo === "DQN");
+  if (DOM.tabAlgoPpo) DOM.tabAlgoPpo.classList.toggle("active", algo === "PPO");
+  if (DOM.tabAlgoSac) DOM.tabAlgoSac.classList.toggle("active", algo === "SAC");
+  trainRlStudioAgent();
+}
+
+function trainRlStudioAgent() {
   audio.playRlConvergenceChime();
   const crop = profileManager.getActiveProfile();
 
-  if (DOM.btnTrainRlAgent) {
-    DOM.btnTrainRlAgent.textContent = "⚡ DQN 200 에피소드 고속 훈련 중...";
-    DOM.btnTrainRlAgent.style.color = "#fbbf24";
+  if (DOM.btnStudioTrainRl) {
+    DOM.btnStudioTrainRl.textContent = `⚡ ${currentRlAlgorithm} 200 에피소드 고속 훈련 중...`;
+    DOM.btnStudioTrainRl.style.color = "#fbbf24";
   }
 
   setTimeout(() => {
-    cachedRlData = rlAgent.runTrainingSimulation(crop, "balanced", 200);
-    if (DOM.btnTrainRlAgent) {
-      DOM.btnTrainRlAgent.textContent = "✅ 강화학습 정책 훈련 수렴 완료!";
-      DOM.btnTrainRlAgent.style.color = "#34d399";
+    cachedRlData = rlAgent.runTrainingSimulation(crop, "balanced", 200, currentRlWeights, currentRlAlgorithm);
+    if (DOM.btnStudioTrainRl) {
+      DOM.btnStudioTrainRl.textContent = `✅ ${currentRlAlgorithm} 정책 훈련 수렴 완료!`;
+      DOM.btnStudioTrainRl.style.color = "#34d399";
       setTimeout(() => {
-        DOM.btnTrainRlAgent.textContent = "⚡ 200 에피소드 고속 재학습 (Retrain RL)";
-        DOM.btnTrainRlAgent.style.color = "#38bdf8";
+        DOM.btnStudioTrainRl.textContent = "⚡ 200 에피소드 고속 재학습 (Retrain RL)";
+        DOM.btnStudioTrainRl.style.color = "#38bdf8";
       }, 2500);
     }
-    openDeepmindRlModal();
-  }, 120);
+    renderRlStudioView();
+  }, 100);
+}
+
+function stepRolloutPlayer() {
+  audio.playPulse();
+  const crop = profileManager.getActiveProfile();
+  if (!rolloutSimState) {
+    rolloutSimState = {
+      day: 1,
+      envState: { ppfd: 450, airTemp: 24.0, co2: 800, vpd: 1.05, spectrum: { red: 60, green: 15, blue: 20, farRed: 5 }, uvbActive: true },
+      plantState: { dryWeightGrams: 1.2, leafDryWeightGrams: 0.8, luteinConcentration: crop.baseLuteinConcentration || 3.5, accumulatedBiomass: 1.2 }
+    };
+  }
+
+  if (rolloutSimState.day > (crop.harvestDays || 42)) {
+    rolloutSimState.day = 1;
+  }
+
+  const stepResult = rlAgent.stepRollout(crop, rolloutSimState.day, rolloutSimState.envState, rolloutSimState.plantState, currentRlWeights);
+  rolloutSimState.day++;
+
+  if (DOM.rlReplayBufferTableBody) {
+    const tr = document.createElement("tr");
+    tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+    tr.style.background = "rgba(56, 189, 248, 0.12)";
+    tr.innerHTML = `
+      <td style="padding: 4px 8px; color: #38bdf8; font-weight: 700;">Day ${stepResult.day}</td>
+      <td style="padding: 4px 8px; color: #cbd5e1;">[${Math.round(stepResult.envState.ppfd)}μ, ${stepResult.envState.airTemp.toFixed(1)}℃]</td>
+      <td style="padding: 4px 8px; color: #fbbf24; font-weight: 700;">${stepResult.actionName}</td>
+      <td style="padding: 4px 8px; color: #34d399; font-weight: 700;">+${stepResult.stepReward}</td>
+      <td style="padding: 4px 8px; color: #c084fc;">[${stepResult.plantSimState.dryWeightGrams.toFixed(1)}g, ${stepResult.plantSimState.luteinConcentration.toFixed(1)}mg/g]</td>
+    `;
+    DOM.rlReplayBufferTableBody.prepend(tr);
+  }
+}
+
+function playRolloutContinuous() {
+  if (rolloutTimer) {
+    clearInterval(rolloutTimer);
+    rolloutTimer = null;
+    if (DOM.btnRolloutPlay) DOM.btnRolloutPlay.textContent = "▶ 롤아웃 재생";
+    return;
+  }
+
+  if (DOM.btnRolloutPlay) DOM.btnRolloutPlay.textContent = "⏸ 일시정지";
+  rolloutTimer = setInterval(() => {
+    stepRolloutPlayer();
+    const crop = profileManager.getActiveProfile();
+    if (rolloutSimState && rolloutSimState.day >= (crop.harvestDays || 42)) {
+      clearInterval(rolloutTimer);
+      rolloutTimer = null;
+      if (DOM.btnRolloutPlay) DOM.btnRolloutPlay.textContent = "▶ 롤아웃 재생";
+    }
+  }, 400);
+}
+
+function resetRolloutPlayer() {
+  audio.playClick();
+  if (rolloutTimer) {
+    clearInterval(rolloutTimer);
+    rolloutTimer = null;
+  }
+  rolloutSimState = null;
+  if (DOM.btnRolloutPlay) DOM.btnRolloutPlay.textContent = "▶ 롤아웃 재생";
+  renderRlStudioView();
+}
+
+function exportRlOnnxJson() {
+  audio.playPulse();
+  const onnxPayload = rlAgent.exportOnnxJson();
+  const crop = profileManager.getActiveProfile();
+  const jsonStr = JSON.stringify(onnxPayload, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `PlantTwin_Policy_Weights_ONNX_${crop.id}_${currentRlAlgorithm}.json`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function openDeepmindRlModal() {
+  switchAppView("rlstudio");
+  DOM.navTabs.forEach(t => t.classList.toggle("active", t.getAttribute("data-tab") === "rlstudio"));
+}
+
+function trainDeepmindRlAgent() {
+  trainRlStudioAgent();
 }
 
 function deployDeepmindRlPolicy() {
@@ -2851,21 +3033,23 @@ function deployDeepmindRlPolicy() {
     if (badge) badge.textContent = "ON (RL Policy)";
   }
 
-  if (DOM.btnDeployRlPolicy) {
-    DOM.btnDeployRlPolicy.textContent = "✅ DeepMind 강화학습 정책 자율 운전 가동 중!";
-    DOM.btnDeployRlPolicy.style.background = "#059669";
+  const deployBtns = [DOM.btnDeployRlPolicy, DOM.btnStudioDeployRl];
+  deployBtns.forEach(btn => {
+    if (!btn) return;
+    btn.textContent = "✅ 강화학습 최적 정책 자율 운전 가동 중!";
+    btn.style.background = "#059669";
     setTimeout(() => {
-      DOM.btnDeployRlPolicy.textContent = "🚀 학습된 AI 정책 자율 운전 배포 (Deploy)";
-      DOM.btnDeployRlPolicy.style.background = "#38bdf8";
+      btn.textContent = "🚀 학습된 AI 정책 자율 운전 배포 (Deploy)";
+      btn.style.background = "#0284c7";
     }, 2500);
-  }
+  });
 }
 
 function exportDeepmindRlCSV() {
   if (!cachedRlData) return;
   const crop = profileManager.getActiveProfile();
 
-  const header = `# Google DeepMind DQN/PPO PlantTwin Reinforcement Learning Training Logs\n` +
+  const header = `# PlantTwin Autonomous Reinforcement Learning Training Logs (${currentRlAlgorithm})\n` +
     `# Crop: ${crop.name} (${crop.scientificName})\n` +
     `# Best Cumulative Reward: ${cachedRlData.bestReward} | Final Lutein Yield: ${cachedRlData.finalLuteinYield} mg/g DW\n` +
     `# Total Episodes: ${cachedRlData.totalEpisodes}\n\n` +
@@ -2876,7 +3060,7 @@ function exportDeepmindRlCSV() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.setAttribute("href", url);
-  link.setAttribute("download", `DeepMind_RL_Training_Log_${crop.id}.csv`);
+  link.setAttribute("download", `PlantTwin_RL_Training_Log_${crop.id}_${currentRlAlgorithm}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -3909,6 +4093,9 @@ function switchAppView(tabKey) {
   } else if (tabKey === "optimization") {
     if (DOM.viewOptimization) DOM.viewOptimization.classList.add("active");
     renderOptimizationStudioView(currentOptimizationObjective);
+  } else if (tabKey === "rlstudio") {
+    if (DOM.viewRlStudio) DOM.viewRlStudio.classList.add("active");
+    renderRlStudioView();
   } else if (tabKey === "experiments") {
     if (DOM.viewExperiments) DOM.viewExperiments.classList.add("active");
     renderFactorialExperimentsView();

@@ -25,6 +25,7 @@
           <button type="button" class="nav-tab-btn active" data-tab="overview" data-i18n="tabOverview">통합 콕핏</button>
           <button type="button" class="nav-tab-btn" data-tab="telemetry" data-i18n="tabTelemetry">원격 계측</button>
           <button type="button" class="nav-tab-btn" data-tab="optimization" data-i18n="tabOptimization">AI 최적화</button>
+          <button type="button" class="nav-tab-btn" data-tab="rlstudio" style="color: #38bdf8; font-weight: 700;">강화학습 스튜디오</button>
           <button type="button" class="nav-tab-btn" data-tab="experiments" data-i18n="tabExperiments">가상 실험</button>
           <button type="button" class="nav-tab-btn" data-tab="reports" data-i18n="tabReports">규격서 리포트</button>
         </nav>
@@ -457,9 +458,9 @@
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
                   <span>3D 파레토 다목적</span>
                 </button>
-                <button id="btnDeepmindRlAgent" draggable="true" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #0284c7; color: #bae6fd; background: rgba(3, 105, 161, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="Google DeepMind DQN / PPO 분자농업 강화학습 자율 최적화 에이전트">
+                <button id="btnDeepmindRlAgent" draggable="true" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #0284c7; color: #bae6fd; background: rgba(3, 105, 161, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="DQN / PPO / SAC 분자농업 강화학습 자율 최적화 스튜디오 열기">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"></path></svg>
-                  <span>DeepMind AI 강화학습</span>
+                  <span>AI 강화학습</span>
                 </button>
                 <button id="btnGmpCoaReport" draggable="true" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #10b981; color: #a7f3d0; background: rgba(6, 78, 59, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="GMP 바이오 의약품 원료 생산 인증서(CoA) 및 QR 이력 추적성 자동 발행">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -1090,6 +1091,157 @@
           <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 10.5px; color: #cbd5e1; line-height: 1.5;">
             <b style="color: #fbbf24;">🧬 생물학적 메커니즘 근거:</b>
             <p id="optStudioRationaleText" style="margin-top: 4px;">청색광 크립토크롬(CRY1/2) 및 UVR8 광수용체 자극을 통해 PSY 효소를 활성화하여 생체량 저하 없이 루테인 합성을 극대화합니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       VIEW: AUTONOMOUS REINFORCEMENT LEARNING STUDIO (AI 강화학습 스튜디오)
+       ==================================================================== -->
+  <div id="viewRlStudio" class="app-view-container">
+    <div class="subview-wrapper">
+      <div class="subview-header">
+        <div class="subview-title-group">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"></path></svg>
+            <span id="rlStudioHeaderTitle">AI 강화학습 자율 최적화 스튜디오 (Autonomous Plant Bio-RL Studio)</span>
+          </h2>
+          <p>DQN / PPO / SAC 다중 정책 신경망 기반 실시간 온라인 자율 제어 및 가상 에피소드 롤아웃 시뮬레이터</p>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="btnStudioTrainRl" class="btn btn-outline" style="font-size: 11px; padding: 6px 14px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">
+            ⚡ 200 에피소드 고속 재학습 (Retrain RL)
+          </button>
+          <button id="btnStudioDeployRl" class="btn btn-primary" style="font-size: 11px; padding: 6px 14px; background: #0284c7; border: none; font-weight: 700;">
+            🚀 학습된 AI 정책 자율 운전 배포 (Deploy)
+          </button>
+          <button id="btnStudioExportOnnx" class="btn btn-outline" style="font-size: 11px; padding: 6px 12px; color: #a855f7; border-color: rgba(168, 85, 247, 0.4); font-weight: 700;">
+            📥 ONNX/JSON 가중치
+          </button>
+          <button id="btnStudioExportCsv" class="btn btn-outline" style="font-size: 11px; padding: 6px 12px; color: #10b981; border-color: rgba(16, 185, 129, 0.4); font-weight: 700;">
+            📊 CSV 훈련 로그
+          </button>
+        </div>
+      </div>
+
+      <!-- Top KPI Row -->
+      <div class="subview-grid-4col">
+        <div class="kpi-tile" style="padding: 10px 14px; background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.35);">
+          <span style="font-size: 10px; color: var(--text-muted);">최대 누적 보상 (Best R)</span>
+          <b id="rlStudioBestRewardVal" class="kpi-big-val cyan" style="font-size: 22px;">+2,845.2 pts</b>
+          <span style="font-size: 10px; color: #38bdf8;">● 200 Epochs 훈련 완료</span>
+        </div>
+        <div class="kpi-tile" style="padding: 10px 14px; background: rgba(251, 191, 36, 0.08); border-color: rgba(251, 191, 36, 0.35);">
+          <span style="font-size: 10px; color: var(--text-muted);">AI 최적화 수율 달성</span>
+          <b id="rlStudioYieldGainVal" class="kpi-big-val gold" style="font-size: 22px;">+34.8 %</b>
+          <span id="rlStudioYieldSub" style="font-size: 10px; color: #fbbf24;">Lutein 16.8 mg/g DW</span>
+        </div>
+        <div class="kpi-tile" style="padding: 10px 14px; background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.35);">
+          <span style="font-size: 10px; color: var(--text-muted);">전력 소비량 절감률</span>
+          <b id="rlStudioEnergySavedVal" class="kpi-big-val emerald" style="font-size: 22px;">-22.4 %</b>
+          <span style="font-size: 10px; color: #34d399;">동적 주야간 DIF 광열 최적화</span>
+        </div>
+        <div class="kpi-tile" style="padding: 10px 14px; background: rgba(192, 132, 252, 0.08); border-color: rgba(192, 132, 252, 0.35);">
+          <span style="font-size: 10px; color: var(--text-muted);">신경망 정책 탐색 탐험율</span>
+          <b id="rlStudioEpsilonVal" class="kpi-big-val purple" style="font-size: 22px;">ε = 0.050</b>
+          <span style="font-size: 10px; color: #c084fc;">Greedy 최적 정책 수렴</span>
+        </div>
+      </div>
+
+      <!-- Main Studio Visualizer Row: Q-Network 60FPS Live Canvas & Convergence Chart -->
+      <div style="background: rgba(5, 10, 18, 0.92); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: var(--radius-md); padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.7);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: #38bdf8; font-weight: 700; font-size: 13px;">⚡ 4계층 정책 신경망 (Q-Network Live) & 에포크별 보상 수렴 곡선</span>
+            <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">60 FPS Real-Time Active</span>
+          </div>
+          <div style="font-size: 10.5px; color: var(--text-muted); display: flex; gap: 12px;">
+            <span>입력: <b style="color: #38bdf8;">상태 공간 S(6)</b></span>
+            <span>은닉: <b style="color: #c084fc;">H1(8) & H2(6)</b></span>
+            <span>출력: <b style="color: #fbbf24;">행동 공간 A(8)</b></span>
+          </div>
+        </div>
+        <canvas id="rlStudioMainCanvas" style="width: 100%; height: 300px; display: block; border-radius: 6px; background: rgba(3, 7, 14, 0.95);"></canvas>
+      </div>
+
+      <!-- Bottom Control Section: 2 Columns -->
+      <div class="subview-grid-2col" style="margin-top: 12px;">
+        <!-- Left Column: Algorithm Selector & Multi-Objective Reward Shaping Sliders -->
+        <div style="background: rgba(10, 18, 28, 0.82); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; font-weight: 700; color: #38bdf8;">🎛️ 강화학습 알고리즘 & 다목적 보상 함수 (Reward Shaping)</span>
+            <span style="font-size: 10px; color: var(--text-muted);">실시간 가중치 적응</span>
+          </div>
+
+          <!-- Algorithm Tabs -->
+          <div style="display: flex; gap: 6px;">
+            <button type="button" class="opt-tab active" id="tabAlgoDqn" style="flex: 1; text-align: center; padding: 6px;">DQN (Deep Q-Network)</button>
+            <button type="button" class="opt-tab" id="tabAlgoPpo" style="flex: 1; text-align: center; padding: 6px;">PPO (Actor-Critic)</button>
+            <button type="button" class="opt-tab" id="tabAlgoSac" style="flex: 1; text-align: center; padding: 6px;">SAC (Soft Actor-Critic)</button>
+          </div>
+
+          <!-- Reward Weight Sliders Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px;">
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                <span style="color: #fde68a;">🎯 유효물질 수율 가중치 (w_yield)</span>
+                <b id="lblWeightYield" style="color: #fbbf24;">3.5</b>
+              </div>
+              <input type="range" id="sliderWeightYield" min="0" max="10" step="0.5" value="3.5" style="width: 100%;">
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                <span style="color: #a7f3d0;">🌱 생체량(DW) 성장 가중치 (w_dw)</span>
+                <b id="lblWeightBiomass" style="color: #34d399;">5.2</b>
+              </div>
+              <input type="range" id="sliderWeightBiomass" min="0" max="10" step="0.5" value="5.2" style="width: 100%;">
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                <span style="color: #bae6fd;">💡 전력 에너지 절감 (w_energy)</span>
+                <b id="lblWeightEnergy" style="color: #38bdf8;">0.45</b>
+              </div>
+              <input type="range" id="sliderWeightEnergy" min="0" max="2" step="0.05" value="0.45" style="width: 100%;">
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                <span style="color: #fecdd3;">🛡️ 스트레스(VPD) 회피 (w_stress)</span>
+                <b id="lblWeightStress" style="color: #fb7185;">4.0</b>
+              </div>
+              <input type="range" id="sliderWeightStress" min="0" max="10" step="0.5" value="4.0" style="width: 100%;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Step-by-Step Rollout Player & Replay Buffer Table -->
+        <div style="background: rgba(10, 18, 28, 0.82); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; font-weight: 700; color: #34d399;">🎬 가상 에피소드 롤아웃 플레이어 & 경험 재생 버퍼 (Replay Buffer)</span>
+            <div style="display: flex; gap: 6px;">
+              <button id="btnRolloutPlay" class="btn btn-outline" style="font-size: 10px; padding: 3px 8px; color: #34d399; border-color: rgba(52, 211, 153, 0.4);">▶ 롤아웃 재생</button>
+              <button id="btnRolloutStep" class="btn btn-outline" style="font-size: 10px; padding: 3px 8px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">⏭ 1스텝 전이</button>
+              <button id="btnRolloutReset" class="btn btn-outline" style="font-size: 10px; padding: 3px 8px; color: var(--text-muted);">⏹ 리셋</button>
+            </div>
+          </div>
+
+          <!-- Replay Buffer Transition Table -->
+          <div style="max-height: 140px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; background: rgba(5, 10, 18, 0.6);">
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px; font-family: monospace;">
+              <thead>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: var(--text-muted); text-align: left;">
+                  <th style="padding: 4px 8px;">Day</th>
+                  <th style="padding: 4px 8px;">상태 State s_t</th>
+                  <th style="padding: 4px 8px;">행동 Action a_t</th>
+                  <th style="padding: 4px 8px;">보상 r_t</th>
+                  <th style="padding: 4px 8px;">다음 상태 s_t+1</th>
+                </tr>
+              </thead>
+              <tbody id="rlReplayBufferTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -2412,7 +2564,7 @@
     <div class="modal-content" style="width: 1100px; max-width: 96vw;">
       <div class="modal-header">
         <div class="modal-title-group">
-          <h3 id="rlModalTitle" style="color: #38bdf8; font-size: 20px; font-weight: 800;">🧠 Google DeepMind DQN / PPO 분자농업 강화학습(RL) 자율 최적화 에이전트</h3>
+          <h3 id="rlModalTitle" style="color: #38bdf8; font-size: 20px; font-weight: 800;">AI 강화학습(RL) 자율 최적화 에이전트</h3>
           <p style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">6차원 상태 공간(S) • 8차원 행동 공간(A) • 실시간 보상 함수(R) 역전파 • Q-Network 자율 제어 정책</p>
         </div>
         <button id="deepmindRlClose" class="modal-close">✕</button>

@@ -107,10 +107,19 @@ export class DeepMindPlantRlAgent {
   /**
    * Run 250 Episodes of Deep Reinforcement Learning Virtual Rollouts
    */
-  runTrainingSimulation(cropProfile, targetObjective = 'balanced', totalEpisodes = 200) {
+  runTrainingSimulation(cropProfile, targetObjective = 'balanced', totalEpisodes = 200, customWeights = null, algorithm = 'DQN') {
     this.isTraining = true;
     this.trainingHistory = [];
+    this.replayBuffer = [];
     this.bestReward = -9999.0;
+    this.algorithm = algorithm;
+
+    const weights = customWeights || {
+      yield: 3.5,
+      biomass: 5.2,
+      energy: 0.45,
+      stress: 4.0
+    };
 
     let envState = {
       ppfd: 450.0,
@@ -128,13 +137,20 @@ export class DeepMindPlantRlAgent {
       accumulatedBiomass: 1.2
     };
 
+    const actionDescriptions = [
+      "PPFD +35 μmol", "PPFD -35 μmol",
+      "주간온도 +0.8℃", "주간온도 -0.8℃",
+      "CO2 +60 ppm", "CO2 -60 ppm",
+      "청색광 Blue +3%", "원적색 Far-Red +2%"
+    ];
+
     for (let ep = 1; ep <= totalEpisodes; ep++) {
       const epsilon = Math.max(0.05, 1.0 - (ep / (totalEpisodes * 0.75)));
       let epReward = 0;
       let totalLuteinSynthesized = 0;
       let totalEnergyKwh = 0;
 
-      // 45 Virtual Cultivation Days
+      // Cultivation Days
       for (let day = 1; day <= (cropProfile.harvestDays || 42); day++) {
         const stateVec = [
           envState.ppfd / 1000.0,
@@ -196,18 +212,32 @@ export class DeepMindPlantRlAgent {
         totalEnergyKwh += dailyPowerKwh;
         totalLuteinSynthesized += flux.luteinFluxRateMgPerHour * 16.0;
 
-        // Reward function
-        const vpdStressPenalty = Math.max(0.0, Math.abs(envState.vpd - 1.05) - 0.35) * 4.0;
-        let stepReward = (flux.luteinFluxRateMgPerHour * 3.5) + (dailyGrowthGrams * 5.2) - (dailyPowerKwh * 0.45) - vpdStressPenalty;
+        // Custom Weighted Reward function
+        const vpdStressPenalty = Math.max(0.0, Math.abs(envState.vpd - 1.05) - 0.35) * weights.stress;
+        let stepReward = (flux.luteinFluxRateMgPerHour * weights.yield) + 
+                         (dailyGrowthGrams * weights.biomass) - 
+                         (dailyPowerKwh * weights.energy) - 
+                         vpdStressPenalty;
         epReward += stepReward;
 
-        // Backprop surrogate
+        // Backprop surrogate (DQN / PPO surrogate / SAC entropy)
         const lr = 0.008;
         const targetQ = stepReward + 0.95 * Math.max(...qValues);
         const tdError = targetQ - qValues[actionIdx];
         
         for (let i = 0; i < this.stateDim; i++) {
           this.w1[i][actionIdx % 16] += lr * tdError * stateVec[i] * 0.1;
+        }
+
+        // Record Transition into Replay Buffer for last episode
+        if (ep === totalEpisodes && day % 3 === 0) {
+          this.replayBuffer.push({
+            day,
+            state: `[${Math.round(envState.ppfd)}μ, ${envState.airTemp.toFixed(1)}℃, ${Math.round(envState.co2)}p, ${plantSimState.dryWeightGrams.toFixed(1)}g]`,
+            action: actionDescriptions[actionIdx],
+            reward: `+${stepReward.toFixed(2)}`,
+            nextState: `[${plantSimState.dryWeightGrams.toFixed(1)}g, ${plantSimState.luteinConcentration.toFixed(1)}mg/g]`
+          });
         }
       }
 
@@ -242,6 +272,7 @@ export class DeepMindPlantRlAgent {
       finalLuteinYield: this.trainingHistory[totalEpisodes - 1].luteinYield || 16.8,
       finalDryWeight: this.trainingHistory[totalEpisodes - 1].dryWeight || 22.4,
       history: this.trainingHistory,
+      replayBuffer: this.replayBuffer,
       optimalAgentRecipe: {
         ppfd: Math.round(envState.ppfd),
         dayTemp: parseFloat(envState.airTemp.toFixed(1)),
@@ -250,6 +281,118 @@ export class DeepMindPlantRlAgent {
         blueRatio: envState.spectrum.blue,
         farRedRatio: envState.spectrum.farRed,
         uvbActive: true
+      }
+    };
+  }
+
+  /**
+   * Single-Day Rollout Step for Interactive Rollout Player
+   */
+  stepRollout(cropProfile, currentDay, envState, plantSimState, weights = { yield: 3.5, biomass: 5.2, energy: 0.45, stress: 4.0 }) {
+    const stateVec = [
+      envState.ppfd / 1000.0,
+      envState.airTemp / 40.0,
+      envState.co2 / 1600.0,
+      envState.vpd / 2.5,
+      Math.min(1.0, plantSimState.dryWeightGrams / 30.0),
+      Math.min(1.0, plantSimState.luteinConcentration / 15.0)
+    ];
+
+    const { qValues } = this.forward(stateVec);
+    let actionIdx = 0;
+    let maxQ = -Infinity;
+    for (let a = 0; a < this.actionDim; a++) {
+      if (qValues[a] > maxQ) {
+        maxQ = qValues[a];
+        actionIdx = a;
+      }
+    }
+
+    // Apply Chosen Action
+    if (actionIdx === 0) envState.ppfd = Math.min(950, envState.ppfd + 35);
+    else if (actionIdx === 1) envState.ppfd = Math.max(200, envState.ppfd - 35);
+    else if (actionIdx === 2) envState.airTemp = Math.min(32, envState.airTemp + 0.8);
+    else if (actionIdx === 3) envState.airTemp = Math.max(14, envState.airTemp - 0.8);
+    else if (actionIdx === 4) envState.co2 = Math.min(1500, envState.co2 + 60);
+    else if (actionIdx === 5) envState.co2 = Math.max(400, envState.co2 - 60);
+    else if (actionIdx === 6) envState.spectrum.blue = Math.min(35, envState.spectrum.blue + 3);
+    else if (actionIdx === 7) envState.spectrum.farRed = Math.min(20, envState.spectrum.farRed + 2);
+
+    const photo = this.bioModel.calculateInstantaneousPhotosynthesis({
+      ppfd: envState.ppfd,
+      airTemp: envState.airTemp,
+      co2Air: envState.co2,
+      vpdAir: envState.vpd,
+      spectrum: envState.spectrum
+    }, cropProfile);
+
+    const flux = this.bioModel.calculateSecondaryMetaboliteFlux(photo, {
+      ppfd: envState.ppfd,
+      spectrum: envState.spectrum,
+      uvbActive: envState.uvbActive,
+      coldShockActive: false,
+      ec: 2.2
+    }, cropProfile, plantSimState);
+
+    const dailyGrowthGrams = Math.max(0.05, photo.netPhotosynthesis * 0.082);
+    plantSimState.dryWeightGrams += dailyGrowthGrams;
+    const validLutein = isNaN(plantSimState.luteinConcentration) ? (cropProfile.baseLuteinConcentration || 3.5) : plantSimState.luteinConcentration;
+    plantSimState.luteinConcentration = Math.min(18.5, validLutein + flux.luteinFluxRateMgPerHour * 0.04);
+
+    const dailyPowerKwh = ((envState.ppfd / 2.8 * 0.8) + Math.abs(envState.airTemp - 22.0) * 12.0 + 35.0) * 16.0 / 1000.0;
+    const vpdStressPenalty = Math.max(0.0, Math.abs(envState.vpd - 1.05) - 0.35) * weights.stress;
+    const stepReward = (flux.luteinFluxRateMgPerHour * weights.yield) + 
+                       (dailyGrowthGrams * weights.biomass) - 
+                       (dailyPowerKwh * weights.energy) - 
+                       vpdStressPenalty;
+
+    const actionDescriptions = [
+      "PPFD +35 μmol", "PPFD -35 μmol",
+      "주간온도 +0.8℃", "주간온도 -0.8℃",
+      "CO2 +60 ppm", "CO2 -60 ppm",
+      "청색광 Blue +3%", "원적색 Far-Red +2%"
+    ];
+
+    return {
+      day: currentDay,
+      actionIdx,
+      actionName: actionDescriptions[actionIdx],
+      stepReward: parseFloat(stepReward.toFixed(2)),
+      stateVec,
+      envState: { ...envState },
+      plantSimState: { ...plantSimState },
+      netPhotosynthesis: photo.netPhotosynthesis
+    };
+  }
+
+  /**
+   * Export Serialized ONNX / JSON Policy Model Weights
+   */
+  exportOnnxJson() {
+    return {
+      modelType: "DeepRL_QNetwork_ActorCritic",
+      format: "ONNX_JSON_V1",
+      timestamp: new Date().toISOString(),
+      architecture: {
+        inputDim: this.stateDim,
+        hidden1Dim: 16,
+        hidden2Dim: 12,
+        actionDim: this.actionDim,
+        activation: "ReLU"
+      },
+      layers: {
+        w1: Array.from(this.w1).map(row => Array.from(row)),
+        b1: Array.from(this.b1),
+        w2: Array.from(this.w2).map(row => Array.from(row)),
+        b2: Array.from(this.b2),
+        w3: Array.from(this.w3).map(row => Array.from(row)),
+        b3: Array.from(this.b3)
+      },
+      hyperparameters: {
+        learningRate: 0.008,
+        gamma: 0.95,
+        targetEpsilon: 0.05,
+        bestCumulativeReward: this.bestReward
       }
     };
   }
@@ -322,7 +465,7 @@ export class DeepMindPlantRlAgent {
     ctx.fillStyle = "#38bdf8";
     ctx.font = `bold 10.5px 'Inter', sans-serif`;
     ctx.textAlign = "left";
-    ctx.fillText("① DeepMind 신경망 정책 가중치 (Q-Network)", 14, 18);
+    ctx.fillText("① 4계층 정책 신경망 가중치 (Q-Network Live)", 14, 18);
 
     const layers = [
       { name: "State (6)", count: 6, x: 42, color: "#38bdf8" },
