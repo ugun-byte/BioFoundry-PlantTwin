@@ -504,4 +504,49 @@ export class BioPhysicalEngine {
       diurnalCurve
     };
   }
+
+  /**
+   * 14. Leaf Infrared (IR) Thermography & Transpirational Cooling Model
+   * Energy balance between net radiation (Rnet), latent heat flux (lambda*E),
+   * sensible heat (H), and leaf temperature (Tleaf).
+   */
+  calculateThermalLeafInfrared(envParams = {}, cropProfile = {}, plantState = {}) {
+    const { ppfd = 450, airTemp = 24.0, vpd = 1.05 } = envParams;
+    const stomata = this.calculateStomatalConductance(envParams, cropProfile, plantState);
+    const gs = stomata.gs; // mol m-2 s-1
+
+    // 1. Net solar radiation absorbed by canopy (W/m2)
+    const rNet = (ppfd * 0.219) * 0.85;
+
+    // 2. Latent heat flux of transpiration (lambda * E in W/m2)
+    const transpirationRate = gs * (vpd / 101.3) * 1000.0; // mmol m-2 s-1
+    const latentHeatVaporization = 44.0; // J/mmol
+    const lambdaE = Math.min(rNet * 0.95, transpirationRate * latentHeatVaporization);
+
+    // 3. Boundary layer convective conductance
+    const gb = 0.85;
+    const cpAir = 29.3;
+    const radiativeConductance = 4 * 0.98 * (5.67e-8) * Math.pow(airTemp + 273.15, 3) / cpAir;
+    const gThermal = (gb + radiativeConductance) * cpAir;
+
+    // 4. Leaf-to-Air Temperature Delta (Delta T = Tleaf - Tair)
+    const sensibleHeatH = rNet - lambdaE;
+    const deltaT = parseFloat((sensibleHeatH / Math.max(15.0, gThermal)).toFixed(2));
+    const tLeaf = parseFloat((airTemp + deltaT).toFixed(2));
+
+    // 5. Crop Water Stress Index (CWSI, 0.0 ~ 1.0)
+    const deltaTWet = -3.2; // maximum transpirational cooling
+    const deltaTDry = 4.5;  // completely closed stomata
+    const cwsi = parseFloat(Math.min(1.0, Math.max(0.0, (deltaT - deltaTWet) / (deltaTDry - deltaTWet))).toFixed(2));
+
+    return {
+      airTemp: parseFloat(airTemp.toFixed(1)),
+      leafTemp: tLeaf,
+      deltaT,
+      coolingPowerWatts: parseFloat(lambdaE.toFixed(1)),
+      cwsi,
+      transpirationMmol: parseFloat(transpirationRate.toFixed(2)),
+      thermalStatus: cwsi < 0.25 ? "풍부한 증산 냉각 (Optimal Cooling)" : (cwsi < 0.6 ? "보통 증산 (Moderate Cooling)" : "기공 폐쇄 고온 스트레스 (Thermal Stress)")
+    };
+  }
 }

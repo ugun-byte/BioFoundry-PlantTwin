@@ -1471,4 +1471,71 @@ export class ThreePlantChamber {
       if (typeof onComplete === "function") onComplete();
     }, 2800);
   }
+
+  getFlirIronbowColor(tempC) {
+    const minT = 18.0, maxT = 32.0;
+    const norm = Math.max(0.0, Math.min(1.0, (tempC - minT) / (maxT - minT)));
+
+    let r = 0, g = 0, b = 0;
+    if (norm < 0.2) {
+      const t = norm / 0.2;
+      r = 0.2 + 0.1 * t; g = 0.05 * t; b = 0.5 + 0.5 * t;
+    } else if (norm < 0.45) {
+      const t = (norm - 0.2) / 0.25;
+      r = 0.1 * (1 - t); g = 0.8 * t; b = 1.0;
+    } else if (norm < 0.7) {
+      const t = (norm - 0.45) / 0.25;
+      r = t; g = 0.9 + 0.1 * t; b = 1.0 - t;
+    } else if (norm < 0.9) {
+      const t = (norm - 0.7) / 0.2;
+      r = 1.0; g = 0.7 * (1 - t); b = 0.0;
+    } else {
+      const t = (norm - 0.9) / 0.1;
+      r = 1.0; g = 0.6 + 0.4 * t; b = t;
+    }
+    return new THREE.Color(r, g, b);
+  }
+
+  toggleThermalCameraMode(tLeaf = 22.5, airTemp = 24.0) {
+    this.isThermalMode = !this.isThermalMode;
+
+    if (this.isThermalMode) {
+      this.leaves.forEach((l, idx) => {
+        if (l.mesh && l.mesh.material) {
+          if (!l.originalColor) l.originalColor = l.mesh.material.color.clone();
+          if (!l.originalRoughness) l.originalRoughness = l.mesh.material.roughness;
+
+          const leafTempGrad = tLeaf - (0.4 * (idx % 3));
+          const thermalColor = this.getFlirIronbowColor(leafTempGrad);
+          l.mesh.material.color.copy(thermalColor);
+          l.mesh.material.emissive.copy(thermalColor).multiplyScalar(0.25);
+          l.mesh.material.roughness = 0.2;
+        }
+      });
+
+      if (this.stemMesh && this.stemMesh.material) {
+        if (!this.stemOriginalColor) this.stemOriginalColor = this.stemMesh.material.color.clone();
+        const stemColor = this.getFlirIronbowColor(airTemp + 0.6);
+        this.stemMesh.material.color.copy(stemColor);
+        this.stemMesh.material.emissive.copy(stemColor).multiplyScalar(0.2);
+      }
+
+      if (this.ambientLight) this.ambientLight.color.setHex(0x38bdf8);
+    } else {
+      this.leaves.forEach(l => {
+        if (l.mesh && l.mesh.material && l.originalColor) {
+          l.mesh.material.color.copy(l.originalColor);
+          l.mesh.material.emissive.setHex(0x000000);
+          l.mesh.material.roughness = l.originalRoughness || 0.4;
+        }
+      });
+      if (this.stemMesh && this.stemMesh.material && this.stemOriginalColor) {
+        this.stemMesh.material.color.copy(this.stemOriginalColor);
+        this.stemMesh.material.emissive.setHex(0x000000);
+      }
+      if (this.ambientLight) this.ambientLight.color.setHex(0xffffff);
+    }
+
+    return this.isThermalMode;
+  }
 }

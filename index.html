@@ -384,6 +384,10 @@
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><path d="M6 18h8M10 22h4M14 6a4 4 0 0 0-8 0v8a4 4 0 0 0 8 0V6zM18 10a4 4 0 0 1-4 4"></path></svg>
                 <span>세포 현미경 인스펙터</span>
               </button>
+              <button id="btnThermalMode" class="btn btn-outline" style="padding: 3px 9px; font-size: 11px; font-weight: 700; height: 26px; border: 1.2px solid #f59e0b; color: #fde68a; background: rgba(120, 53, 15, 0.25); backdrop-filter: blur(8px);" title="FLIR 적외선 엽온 서모그래피 3D 열화상 뷰">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
+                <span>FLIR 열화상 IR</span>
+              </button>
               <button id="btnSapFlow" class="btn btn-outline" style="padding: 3px 9px; font-size: 11px; font-weight: 700; height: 26px; border: 1.2px solid #38bdf8; color: #bae6fd; background: rgba(8, 51, 68, 0.25); backdrop-filter: blur(8px);" title="도관부 수액 유량(Sap Flow) & 3D 상승 수류 진단">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
                 <span>수액 유량 (Sap Flow)</span>
@@ -395,6 +399,10 @@
               <button id="btnPamPulse" class="btn btn-outline" style="padding: 3px 9px; font-size: 11px; font-weight: 700; height: 26px; border: 1.2px solid #f43f5e; color: #fecdd3; background: rgba(76, 5, 25, 0.25); backdrop-filter: blur(8px);" title="PAM 엽록소 형광 펄스 조사 & OJIP 진단">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fb7185" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 <span>PAM 형광 진단</span>
+              </button>
+              <button id="btnIotBridge" class="btn btn-outline" style="padding: 3px 9px; font-size: 11px; font-weight: 700; height: 26px; border: 1.2px solid #a855f7; color: #e9d5ff; background: rgba(88, 28, 135, 0.25); backdrop-filter: blur(8px);" title="스마트팜 산업용 PLC/Modbus-TCP/MQTT 브릿지">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                <span>IoT/Modbus 브릿지</span>
               </button>
               <button id="btnCapture4K" class="btn-tool-icon" title="4K 스냅샷 캡처">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
@@ -409,7 +417,21 @@
           </div>
 
           <!-- Three.js Canvas Container -->
-          <div id="plant3dContainer"></div>
+          <div id="plant3dContainer">
+            <!-- Floating FLIR Thermal IR Legend Strip -->
+            <div id="thermalLegendBar" style="display: none; position: absolute; top: 48px; left: 14px; z-index: 20; background: rgba(5, 10, 18, 0.88); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: var(--radius-sm); padding: 6px 10px; font-size: 10px; backdrop-filter: blur(12px); box-shadow: 0 6px 20px rgba(0,0,0,0.7);">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <span style="color: #67e8f9; font-weight: 700;">18°C (증산 냉각)</span>
+                <span style="color: #fbbf24; font-size: 9px; font-weight: 600;">🔥 FLIR Ironbow IR 서모그래피</span>
+                <span style="color: #f43f5e; font-weight: 700;">32°C (고온 스트레스)</span>
+              </div>
+              <div style="height: 8px; width: 260px; border-radius: 4px; background: linear-gradient(to right, #2e0854, #0066ff, #00f2fe, #10b981, #fbbf24, #f97316, #f43f5e, #ffffff);"></div>
+              <div style="margin-top: 4px; display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted);">
+                <span>평균 엽온: <b id="thermalHudLeafTemp" style="color: #fbbf24;">22.4 °C</b> (ΔT <span id="thermalHudDeltaT" style="color: #34d399;">-1.6°C</span>)</span>
+                <span>수분 스트레스(CWSI): <b id="thermalHudCwsi" style="color: #34d399;">0.12 (양호)</b></span>
+              </div>
+            </div>
+          </div>
 
           <!-- Glassmorphic HUD Card 1: 엽면 생체 분석 -->
           <div id="hudLeafCard" class="chamber-hud-card leaf-pos">
@@ -1165,6 +1187,80 @@
         <div style="display: flex; gap: 8px;">
           <button id="btnXylemSeeThrough" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
             🌊 3D 줄기 내부 투시 & 수류 파티클 가속
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 11: Industrial Smart Farm PLC / Modbus-TCP & MQTT Protocol Bridge Modal -->
+  <div id="iotBridgeModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 840px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 style="color: #c084fc; font-size: 15px;">📡 산업용 스마트팜 PLC / Modbus-TCP & MQTT 통신 브릿지</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">스마트팜 복합환경제어기 및 분자농업 생산 플랜트 표준 데이터 버스 연동 인터페이스</p>
+        </div>
+        <button id="iotBridgeClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- Protocol Selection Tabs -->
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button id="tabModbus" class="btn btn-outline active" style="padding: 4px 12px; font-size: 11px; color: #c084fc; border-color: #a855f7;">
+          ⚙️ Modbus-TCP Holding Registers (40001 ~ 40016)
+        </button>
+        <button id="tabMqtt" class="btn btn-outline" style="padding: 4px 12px; font-size: 11px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
+          🌐 MQTT JSON Telemetry Stream
+        </button>
+      </div>
+
+      <!-- Tab Content 1: Modbus Register Table -->
+      <div id="modbusTabContent" style="display: block;">
+        <div style="max-height: 250px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); margin-bottom: 10px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 10.5px; text-align: left;">
+            <thead style="background: rgba(15, 23, 42, 0.85); color: #c084fc; position: sticky; top: 0;">
+              <tr>
+                <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">주소 (Addr)</th>
+                <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">레지스터 심볼</th>
+                <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">실시간 값 (Raw)</th>
+                <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">엔지니어링 단위</th>
+                <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">스케일</th>
+                <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">설명</th>
+              </tr>
+            </thead>
+            <tbody id="modbusRegisterTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Modbus Hex Packet Monitor -->
+        <div style="background: rgba(5, 10, 18, 0.9); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: var(--radius-sm); padding: 8px 12px; font-family: monospace; font-size: 10px; color: #a78bfa;">
+          <div style="font-weight: 700; color: #e9d5ff; margin-bottom: 3px;">실시간 Modbus-TCP 응답 프레임 (Function 03)</div>
+          <div id="modbusHexDump" style="word-break: break-all; color: #34d399;">0x00 0x01 0x00 0x00 0x00 0x23 0x01 0x03 0x20 ...</div>
+        </div>
+      </div>
+
+      <!-- Tab Content 2: MQTT JSON Preview -->
+      <div id="mqttTabContent" style="display: none;">
+        <div style="background: rgba(5, 10, 18, 0.95); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px;">
+            <span style="color: #38bdf8; font-weight: 700;">토픽: <code id="mqttTopicLabel" style="color: #67e8f9;">biofoundry/v1/chamber01/telemetry</code></span>
+            <span style="color: var(--text-muted); font-size: 10px;">QoS 1 (1 Hz 전송)</span>
+          </div>
+          <pre id="mqttPayloadPre" style="max-height: 220px; overflow-y: auto; font-family: monospace; font-size: 10.5px; color: #e0f2fe; margin: 0; line-height: 1.4;">
+          </pre>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * LS산전, 지멘스 S7, 슈나이더 PLC 및 AWS IoT Core / ThingsBoard와 즉시 연동 가능한 표준 데이터 포맷입니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnCopyMqttJson" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #c084fc; border-color: rgba(168, 85, 247, 0.4);">
+            📋 MQTT JSON 페이로드 복사
           </button>
         </div>
       </div>

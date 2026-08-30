@@ -13,6 +13,7 @@ import { DataExporter } from "./data-exporter.js";
 import { AutonomousAiOptimizer } from "./autonomous-ai-optimizer.js";
 import { DiurnalScheduler } from "./diurnal-scheduler.js";
 import { I18nManager } from "./i18n.js";
+import { IndustrialIoTBridge } from "./industrial-iot-bridge.js";
 
 // Core Engines
 const bioEngine = new BioPhysicalEngine();
@@ -22,6 +23,7 @@ const audio = new CyberAudioEngine();
 const aiOptimizer = new AutonomousAiOptimizer();
 const diurnalScheduler = new DiurnalScheduler();
 const i18n = new I18nManager();
+const iotBridge = new IndustrialIoTBridge("chamber_bio_01");
 
 let plantChamber3d = null;
 let telemetryCharts = null;
@@ -249,7 +251,28 @@ const DOM = {
   sapPsiVal: document.getElementById("sapPsiVal"),
   sapPlcVal: document.getElementById("sapPlcVal"),
   sapFlowScopeCanvas: document.getElementById("sapFlowScopeCanvas"),
-  btnXylemSeeThrough: document.getElementById("btnXylemSeeThrough")
+  btnXylemSeeThrough: document.getElementById("btnXylemSeeThrough"),
+
+  // FLIR Thermal IR Elements
+  btnThermalMode: document.getElementById("btnThermalMode"),
+  thermalLegendBar: document.getElementById("thermalLegendBar"),
+  thermalHudLeafTemp: document.getElementById("thermalHudLeafTemp"),
+  thermalHudDeltaT: document.getElementById("thermalHudDeltaT"),
+  thermalHudCwsi: document.getElementById("thermalHudCwsi"),
+
+  // Industrial IoT & Modbus Bridge Modal
+  btnIotBridge: document.getElementById("btnIotBridge"),
+  iotBridgeModal: document.getElementById("iotBridgeModal"),
+  iotBridgeClose: document.getElementById("iotBridgeClose"),
+  tabModbus: document.getElementById("tabModbus"),
+  tabMqtt: document.getElementById("tabMqtt"),
+  modbusTabContent: document.getElementById("modbusTabContent"),
+  mqttTabContent: document.getElementById("mqttTabContent"),
+  modbusRegisterTableBody: document.getElementById("modbusRegisterTableBody"),
+  modbusHexDump: document.getElementById("modbusHexDump"),
+  mqttTopicLabel: document.getElementById("mqttTopicLabel"),
+  mqttPayloadPre: document.getElementById("mqttPayloadPre"),
+  btnCopyMqttJson: document.getElementById("btnCopyMqttJson")
 };
 
 function populateCropDropdown(selectedId = null) {
@@ -720,6 +743,40 @@ function bindEventListeners() {
     });
   }
 
+  // FLIR Thermal IR Camera Mode Toggle
+  if (DOM.btnThermalMode) {
+    DOM.btnThermalMode.addEventListener("click", toggleThermalCameraMode);
+  }
+
+  // Industrial IoT Bridge Modal
+  if (DOM.btnIotBridge) {
+    DOM.btnIotBridge.addEventListener("click", openIotBridgeModal);
+  }
+  if (DOM.iotBridgeClose) {
+    DOM.iotBridgeClose.addEventListener("click", () => {
+      if (DOM.iotBridgeModal) DOM.iotBridgeModal.classList.remove("active");
+    });
+  }
+  if (DOM.tabModbus && DOM.tabMqtt) {
+    DOM.tabModbus.addEventListener("click", () => {
+      audio.playClick();
+      DOM.tabModbus.classList.add("active");
+      DOM.tabMqtt.classList.remove("active");
+      if (DOM.modbusTabContent) DOM.modbusTabContent.style.display = "block";
+      if (DOM.mqttTabContent) DOM.mqttTabContent.style.display = "none";
+    });
+    DOM.tabMqtt.addEventListener("click", () => {
+      audio.playClick();
+      DOM.tabMqtt.classList.add("active");
+      DOM.tabModbus.classList.remove("active");
+      if (DOM.modbusTabContent) DOM.modbusTabContent.style.display = "none";
+      if (DOM.mqttTabContent) DOM.mqttTabContent.style.display = "block";
+    });
+  }
+  if (DOM.btnCopyMqttJson) {
+    DOM.btnCopyMqttJson.addEventListener("click", copyMqttJsonPayload);
+  }
+
   // Timeline Controls
   DOM.btnPlay.addEventListener("click", () => {
     audio.playClick();
@@ -973,6 +1030,109 @@ function openSapFlowDiagnostics() {
       telemetryCharts.renderSapFlowScope(DOM.sapFlowScopeCanvas, sapData);
     }
   }, 60);
+}
+
+function toggleThermalCameraMode() {
+  audio.playPulse();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const thermalData = bioEngine.calculateThermalLeafInfrared(envTele.sensors, crop, plantState);
+
+  if (plantChamber3d) {
+    const isThermal = plantChamber3d.toggleThermalCameraMode(thermalData.leafTemp, envTele.sensors.airTemp);
+    if (DOM.thermalLegendBar) {
+      DOM.thermalLegendBar.style.display = isThermal ? "block" : "none";
+    }
+    if (DOM.btnThermalMode) {
+      if (isThermal) {
+        DOM.btnThermalMode.style.background = "rgba(245, 158, 11, 0.45)";
+        DOM.btnThermalMode.style.borderColor = "#fbbf24";
+        DOM.btnThermalMode.style.boxShadow = "0 0 12px rgba(245, 158, 11, 0.6)";
+      } else {
+        DOM.btnThermalMode.style.background = "rgba(120, 53, 15, 0.25)";
+        DOM.btnThermalMode.style.borderColor = "#f59e0b";
+        DOM.btnThermalMode.style.boxShadow = "none";
+      }
+    }
+    if (DOM.thermalHudLeafTemp) DOM.thermalHudLeafTemp.textContent = `${thermalData.leafTemp.toFixed(1)} °C`;
+    if (DOM.thermalHudDeltaT) {
+      DOM.thermalHudDeltaT.textContent = `${thermalData.deltaT > 0 ? '+' : ''}${thermalData.deltaT.toFixed(1)}°C`;
+      DOM.thermalHudDeltaT.style.color = thermalData.deltaT < 0 ? "#34d399" : "#f43f5e";
+    }
+    if (DOM.thermalHudCwsi) {
+      DOM.thermalHudCwsi.textContent = `${thermalData.cwsi} (${thermalData.cwsi < 0.3 ? '양호' : '주의'})`;
+      DOM.thermalHudCwsi.style.color = thermalData.cwsi < 0.3 ? "#34d399" : "#f43f5e";
+    }
+  }
+}
+
+function openIotBridgeModal() {
+  audio.playPulse();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const instantPhoto = bioEngine.calculateInstantaneousPhotosynthesis(envTele.sensors, crop, plantState);
+  const sapData = bioEngine.calculateSapFlowDynamics(envTele.sensors, crop, plantState);
+  const thermalData = bioEngine.calculateThermalLeafInfrared(envTele.sensors, crop, plantState);
+
+  const bioSummary = {
+    leafTemp: thermalData.leafTemp,
+    sapFluxDensity: sapData.sapFluxDensity,
+    stemWaterPotential: sapData.stemWaterPotentialMPa,
+    cwsi: thermalData.cwsi,
+    gs: instantPhoto.stomata.gs,
+    totalMetabolite: plantState.totalLuteinAccumulatedMg
+  };
+
+  const actuators = {
+    acidPump: !!(envTele.phPid && envTele.phPid.acidPumpActive),
+    basePump: !!(envTele.phPid && envTele.phPid.basePumpActive)
+  };
+
+  // 1. Generate Modbus Holding Registers
+  const modbusList = iotBridge.generateModbusRegisterMap(envTele, bioSummary, actuators);
+  const hexFrame = iotBridge.generateModbusTcpHexFrame();
+
+  if (DOM.modbusRegisterTableBody) {
+    DOM.modbusRegisterTableBody.innerHTML = modbusList.map(reg => `
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <td style="padding: 5px 10px; font-family: monospace; color: #a78bfa;">${reg.addr}</td>
+        <td style="padding: 5px 10px; font-family: monospace; color: #e9d5ff; font-weight: 600;">${reg.name}</td>
+        <td style="padding: 5px 10px; font-family: monospace; color: #34d399; font-weight: 700;">${reg.value}</td>
+        <td style="padding: 5px 10px; color: var(--text-muted);">${reg.unit}</td>
+        <td style="padding: 5px 10px; color: #38bdf8;">${reg.scale}</td>
+        <td style="padding: 5px 10px; color: var(--text-secondary); font-size: 10px;">${reg.desc}</td>
+      </tr>
+    `).join("");
+  }
+
+  if (DOM.modbusHexDump) {
+    DOM.modbusHexDump.textContent = hexFrame.hexDump;
+  }
+
+  // 2. Generate MQTT JSON Payload
+  const mqttData = iotBridge.generateMqttPayloads(envTele, bioSummary, crop);
+  if (DOM.mqttTopicLabel) {
+    DOM.mqttTopicLabel.textContent = mqttData.telemetryTopic;
+  }
+  if (DOM.mqttPayloadPre) {
+    DOM.mqttPayloadPre.textContent = JSON.stringify(mqttData.telemetryPayload, null, 2);
+  }
+
+  // 3. Show Modal
+  if (DOM.iotBridgeModal) {
+    DOM.iotBridgeModal.classList.add("active");
+  }
+}
+
+function copyMqttJsonPayload() {
+  if (DOM.mqttPayloadPre) {
+    navigator.clipboard.writeText(DOM.mqttPayloadPre.textContent).then(() => {
+      DOM.btnCopyMqttJson.textContent = "✅ 복사 완료";
+      setTimeout(() => {
+        DOM.btnCopyMqttJson.textContent = "📋 MQTT JSON 페이로드 복사";
+      }, 1200);
+    });
+  }
 }
 
 function openElectrophysDiagnostics() {
@@ -1246,6 +1406,18 @@ function simulationLoop(now) {
         DOM.pumpBaseBadge.style.borderColor = "rgba(255, 255, 255, 0.1)";
         DOM.pumpBaseBadge.style.color = "var(--text-muted)";
         DOM.pumpBaseBadge.textContent = "알칼리(KOH) 펌프: 대기";
+      }
+    // 9c. Update Thermal IR HUD Legend if Active
+    if (plantChamber3d && plantChamber3d.isThermalMode) {
+      const thermalLive = bioEngine.calculateThermalLeafInfrared(envTele.sensors, crop, plantState);
+      if (DOM.thermalHudLeafTemp) DOM.thermalHudLeafTemp.textContent = `${thermalLive.leafTemp.toFixed(1)} °C`;
+      if (DOM.thermalHudDeltaT) {
+        DOM.thermalHudDeltaT.textContent = `${thermalLive.deltaT > 0 ? '+' : ''}${thermalLive.deltaT.toFixed(1)}°C`;
+        DOM.thermalHudDeltaT.style.color = thermalLive.deltaT < 0 ? "#34d399" : "#f43f5e";
+      }
+      if (DOM.thermalHudCwsi) {
+        DOM.thermalHudCwsi.textContent = `${thermalLive.cwsi} (${thermalLive.cwsi < 0.3 ? '양호' : '주의'})`;
+        DOM.thermalHudCwsi.style.color = thermalLive.cwsi < 0.3 ? "#34d399" : "#f43f5e";
       }
     }
 
