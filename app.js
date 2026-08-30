@@ -259,6 +259,8 @@ function initApp() {
     console.error("i18n error:", e);
   }
 
+  updatePlayButtonUI();
+
   try {
     populateCropDropdown();
   } catch (e) {
@@ -691,9 +693,7 @@ function bindEventListeners() {
   DOM.btnPlay.addEventListener("click", () => {
     audio.playClick();
     isRunning = !isRunning;
-    DOM.btnPlay.innerHTML = isRunning 
-      ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
-      : `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+    updatePlayButtonUI();
   });
 
   DOM.btnReset.addEventListener("click", () => {
@@ -1415,6 +1415,14 @@ function showGenericCodeModal(title, payload) {
   DOM.genericModalCode.textContent = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
   DOM.exportModal.classList.remove("active");
   DOM.genericCodeModal.classList.add("active");
+}
+
+function updatePlayButtonUI() {
+  if (!DOM.btnPlay) return;
+  DOM.btnPlay.innerHTML = isRunning 
+    ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
+    : `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+  DOM.btnPlay.title = isRunning ? "일시정지" : "재생";
 }
 
 function copyGenericModalCode() {
