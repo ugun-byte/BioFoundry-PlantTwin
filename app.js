@@ -350,6 +350,21 @@ const DOM = {
   btnRescanMeristem: document.getElementById("btnRescanMeristem"),
   btnExportMeristemCSV: document.getElementById("btnExportMeristemCSV"),
 
+  // ABA Calcium Wave Modal Elements
+  btnAbaCalciumScope: document.getElementById("btnAbaCalciumScope"),
+  abaCalciumModal: document.getElementById("abaCalciumModal"),
+  abaCalciumClose: document.getElementById("abaCalciumClose"),
+  abaCalciumModalTitle: document.getElementById("abaCalciumModalTitle"),
+  abaCa2Val: document.getElementById("abaCa2Val"),
+  abaSignalingPhaseBadge: document.getElementById("abaSignalingPhaseBadge"),
+  abaConcVal: document.getElementById("abaConcVal"),
+  abaOst1Val: document.getElementById("abaOst1Val"),
+  abaSlac1Val: document.getElementById("abaSlac1Val"),
+  abaCalciumCanvas: document.getElementById("abaCalciumCanvas"),
+  abaCalciumTableBody: document.getElementById("abaCalciumTableBody"),
+  btnInjectAbaPulse: document.getElementById("btnInjectAbaPulse"),
+  btnExportAbaCSV: document.getElementById("btnExportAbaCSV"),
+
   // Sub-Views
   viewOverview: document.getElementById("viewOverview"),
   viewTelemetry: document.getElementById("viewTelemetry"),
@@ -1050,10 +1065,29 @@ function bindEventListeners() {
     });
   }
   if (DOM.btnRescanMeristem) {
-    DOM.btnRescanMeristem.addEventListener("click", openMeristemModal);
+    DOM.btnRescanMeristem.addEventListener("click", () => {
+      audio.playMitosisPulseSound();
+      openMeristemModal();
+    });
   }
   if (DOM.btnExportMeristemCSV) {
     DOM.btnExportMeristemCSV.addEventListener("click", exportMeristemDataCSV);
+  }
+
+  // ABA Calcium Wave Scope Modal
+  if (DOM.btnAbaCalciumScope) {
+    DOM.btnAbaCalciumScope.addEventListener("click", openAbaCalciumModal);
+  }
+  if (DOM.abaCalciumClose) {
+    DOM.abaCalciumClose.addEventListener("click", () => {
+      if (DOM.abaCalciumModal) DOM.abaCalciumModal.classList.remove("active");
+    });
+  }
+  if (DOM.btnInjectAbaPulse) {
+    DOM.btnInjectAbaPulse.addEventListener("click", injectAbaPulseTest);
+  }
+  if (DOM.btnExportAbaCSV) {
+    DOM.btnExportAbaCSV.addEventListener("click", exportAbaDataCSV);
   }
 
   // Timeline Controls
@@ -1821,6 +1855,107 @@ function exportMeristemDataCSV() {
   document.body.removeChild(link);
 }
 
+let isExogenousAbaActive = false;
+
+function openAbaCalciumModal() {
+  audio.playCalciumWaveSound();
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const abaData = bioEngine.calculateAbaCalciumSignalingDynamics(envTele.sensors, crop, plantState, { exogenousPulse: isExogenousAbaActive });
+
+  if (DOM.abaCalciumModalTitle) {
+    DOM.abaCalciumModalTitle.textContent = `⚡ ${crop.name}: 공변세포 ABA 신호전달 & 세포내 칼슘 파동([Ca²⁺]cyt) 분자 동역학`;
+  }
+  if (DOM.abaCa2Val) DOM.abaCa2Val.textContent = `${Math.round(abaData.cytosolicCa2nM)} nM`;
+  if (DOM.abaSignalingPhaseBadge) {
+    DOM.abaSignalingPhaseBadge.textContent = `● ${abaData.signalingPhase}`;
+    DOM.abaSignalingPhaseBadge.style.color = abaData.ost1KinaseActivityPct < 30 ? "#34d399" : (abaData.ost1KinaseActivityPct < 65 ? "#fbbf24" : "#f43f5e");
+  }
+  if (DOM.abaConcVal) DOM.abaConcVal.textContent = `${abaData.abaConcentrationUm} μM`;
+  if (DOM.abaOst1Val) DOM.abaOst1Val.textContent = `${abaData.ost1KinaseActivityPct} %`;
+  if (DOM.abaSlac1Val) DOM.abaSlac1Val.textContent = `${abaData.slac1AnionCurrentPicoA} pA / ${abaData.currentVmMv} mV`;
+
+  // Pathway Breakdown Table
+  const steps = [
+    { step: "1. 수분 결핍/VPD 감지", mol: "NCED3 / ABA 합성", mech: "수분 스트레스 시 근권 및 엽육에서 ABA 급증", val: `${abaData.abaConcentrationUm} μM`, state: "호르몬 감지" },
+    { step: "2. 수용체 결합 & 억제 해제", mol: "PYR/PYL ↔ PP2C", mech: "ABA가 수용체에 결합하여 PP2C 탈인산화효소 억제", val: "복합체 형성", state: "신호 결합" },
+    { step: "3. OST1/SnRK2 인산화", mol: "OST1 (SnRK2.6)", mech: "하위 이온 채널 및 NADPH 산화효소(Rboh) 인산화", val: `${abaData.ost1KinaseActivityPct}% 활성`, state: "인산화 전달" },
+    { step: "4. 세포질 칼슘 파동 유도", mol: "[Ca²⁺]cyt / TPC1", mech: "액포 및 세포막 Ca²⁺ 채널 개방으로 칼슘 진동 파동", val: `${Math.round(abaData.cytosolicCa2nM)} nM (${abaData.caWaveFrequencyHz} Hz)`, state: "칼슘 파동" },
+    { step: "5. SLAC1 음이온 방출", mol: "SLAC1 / QUAC1", mech: "Cl⁻ 및 말산(Malate²⁻) 유출로 막전위 급격 탈분극", val: `${abaData.slac1AnionCurrentPicoA} pA (${abaData.currentVmMv} mV)`, state: "탈분극 유도" },
+    { step: "6. GORK K⁺ 탈수 기공 폐쇄", mol: "GORK / Aquaporin", mech: "K⁺ 및 수분 대량 유출로 공변세포 팽압 붕괴", val: `폭: ${abaData.stomaApertureUm} μm (부피: ${abaData.guardCellVolumeFl} fL)`, state: "기공 폐쇄" }
+  ];
+
+  if (DOM.abaCalciumTableBody) {
+    DOM.abaCalciumTableBody.innerHTML = steps.map(s => `
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <td style="padding: 5px 8px; font-weight: 700; color: #34d399;">${s.step}</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: #38bdf8;">${s.mol}</td>
+        <td style="padding: 5px 8px; color: #cbd5e1;">${s.mech}</td>
+        <td style="padding: 5px 8px; font-family: monospace; color: #fbbf24;">${s.val}</td>
+        <td style="padding: 5px 8px; color: #34d399; font-weight: 600;">${s.state}</td>
+      </tr>
+    `).join("");
+  }
+
+  if (DOM.abaCalciumModal) {
+    DOM.abaCalciumModal.classList.add("active");
+  }
+
+  setTimeout(() => {
+    if (telemetryCharts && DOM.abaCalciumCanvas) {
+      telemetryCharts.renderAbaCaWaveScope(DOM.abaCalciumCanvas, abaData);
+    }
+  }, 60);
+}
+
+function injectAbaPulseTest() {
+  audio.playCalciumWaveSound();
+  isExogenousAbaActive = true;
+  if (DOM.btnInjectAbaPulse) {
+    DOM.btnInjectAbaPulse.textContent = "⚡ 5μM ABA 펄스 반응 중! (기공 강제 폐쇄)";
+    DOM.btnInjectAbaPulse.style.color = "#f43f5e";
+    DOM.btnInjectAbaPulse.style.borderColor = "#f43f5e";
+  }
+
+  openAbaCalciumModal();
+
+  setTimeout(() => {
+    isExogenousAbaActive = false;
+    if (DOM.btnInjectAbaPulse) {
+      DOM.btnInjectAbaPulse.textContent = "🧪 5μM ABA 펄스 주입 시험 (Inject ABA)";
+      DOM.btnInjectAbaPulse.style.color = "#fbbf24";
+      DOM.btnInjectAbaPulse.style.borderColor = "rgba(251, 191, 36, 0.4)";
+    }
+    if (DOM.abaCalciumModal && DOM.abaCalciumModal.classList.contains("active")) {
+      openAbaCalciumModal();
+    }
+  }, 10000);
+}
+
+function exportAbaDataCSV() {
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const abaData = bioEngine.calculateAbaCalciumSignalingDynamics(envTele.sensors, crop, plantState, { exogenousPulse: isExogenousAbaActive });
+
+  const header = `# BioFoundry PlantTwin - Guard Cell ABA Signaling & Calcium Wave Oscilloscope Dataset\n` +
+    `# Crop: ${crop.name} (${crop.scientificName})\n` +
+    `# Endogenous ABA: ${abaData.abaConcentrationUm} uM | OST1 Activity: ${abaData.ost1KinaseActivityPct}%\n` +
+    `# Peak [Ca2+]cyt: ${abaData.cytosolicCa2nM} nM | Frequency: ${abaData.caWaveFrequencyHz} Hz\n` +
+    `# SLAC1 Anion Current: ${abaData.slac1AnionCurrentPicoA} pA | Membrane Vm: ${abaData.currentVmMv} mV\n` +
+    `# Stomatal Aperture Width: ${abaData.stomaApertureUm} um | Guard Cell Turgor: ${abaData.guardCellTurgorMPa} MPa\n\n` +
+    `Time_sec,Cytosolic_Ca2_nM,Membrane_Potential_Vm_mV,SLAC1_Anion_Current_pA\n` +
+    abaData.wavePoints.map(p => `${p.timeSec},${p.ca2nM},${p.vmMv},${p.slac1Pa}`).join("\n");
+
+  const blob = new Blob(["\uFEFF" + header], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `BioFoundry_ABA_Ca2Wave_${crop.id}_Day${DOM.teleDay ? DOM.teleDay.textContent : '01'}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 function openElectrophysDiagnostics() {
   audio.playPulse();
   const crop = profileManager.getActiveProfile();
@@ -2290,7 +2425,24 @@ function updateActiveDiagnosticsModals(envTele, crop, plantState, instantPhoto, 
       telemetryCharts.renderMeristemCellCycleScope(DOM.meristemScopeCanvas, meristemData);
     }
   }
+
+  // 10. Guard Cell ABA Calcium Wave Modal
+  if (DOM.abaCalciumModal && DOM.abaCalciumModal.classList.contains("active")) {
+    const abaData = bioEngine.calculateAbaCalciumSignalingDynamics(envTele.sensors, crop, plantState, { exogenousPulse: isExogenousAbaActive });
+    if (DOM.abaCa2Val) DOM.abaCa2Val.textContent = `${Math.round(abaData.cytosolicCa2nM)} nM`;
+    if (DOM.abaSignalingPhaseBadge) {
+      DOM.abaSignalingPhaseBadge.textContent = `● ${abaData.signalingPhase}`;
+      DOM.abaSignalingPhaseBadge.style.color = abaData.ost1KinaseActivityPct < 30 ? "#34d399" : (abaData.ost1KinaseActivityPct < 65 ? "#fbbf24" : "#f43f5e");
+    }
+    if (DOM.abaConcVal) DOM.abaConcVal.textContent = `${abaData.abaConcentrationUm} μM`;
+    if (DOM.abaOst1Val) DOM.abaOst1Val.textContent = `${abaData.ost1KinaseActivityPct} %`;
+    if (DOM.abaSlac1Val) DOM.abaSlac1Val.textContent = `${abaData.slac1AnionCurrentPicoA} pA / ${abaData.currentVmMv} mV`;
+    if (shouldRenderCanvas && DOM.abaCalciumCanvas && telemetryCharts) {
+      telemetryCharts.renderAbaCaWaveScope(DOM.abaCalciumCanvas, abaData);
+    }
+  }
 }
+
 
 /**
  * Updates static instantaneous physics when sliders change, even if paused

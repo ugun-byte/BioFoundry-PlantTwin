@@ -437,6 +437,10 @@
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
                 <span>세포 분열주기(SAM)</span>
               </button>
+              <button id="btnAbaCalciumScope" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #10b981; color: #a7f3d0; background: rgba(6, 78, 59, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="공변세포 ABA 신호전달 & 세포내 칼슘 파동([Ca²⁺]cyt) 분자 동역학 스코프">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                <span>ABA 칼슘 파동(Ca²⁺)</span>
+              </button>
               <button id="btnIotBridge" class="btn btn-outline" style="padding: 2px 7px; font-size: 10.5px; font-weight: 700; height: 25px; border: 1.2px solid #a855f7; color: #e9d5ff; background: rgba(88, 28, 135, 0.25); backdrop-filter: blur(8px); white-space: nowrap;" title="스마트팜 산업용 PLC/Modbus-TCP/MQTT 브릿지">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
                 <span>IoT/Modbus 브릿지</span>
@@ -2000,6 +2004,81 @@
           </button>
           <button id="btnExportMeristemCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
             📋 세포분열 주기 CSV 내보내기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 17: Guard Cell ABA Signaling & Cytosolic Calcium Wave ([Ca2+]cyt) Molecular Scope Modal -->
+  <div id="abaCalciumModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 880px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="abaCalciumModalTitle" style="color: #34d399; font-size: 15px;">⚡ 공변세포 ABA 신호전달 & 세포내 칼슘 파동([Ca²⁺]cyt) 분자 동역학 스코프</h3>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">수분 스트레스/VPD 감지 • PYR/PYL 수용체 • OST1 키나아제 • SLAC1 음이온 유출 • GORK K⁺ 탈수 기공 폐쇄</p>
+        </div>
+        <button id="abaCalciumClose" class="modal-close">✕</button>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1.2fr; gap: 8px; margin-bottom: 12px;">
+        <div class="kpi-tile" style="padding: 8px 12px; background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.35);">
+          <span style="font-size: 9px; color: var(--text-muted);">세포질 칼슘 농도 ([Ca²⁺]cyt)</span>
+          <b id="abaCa2Val" class="kpi-big-val emerald" style="font-size: 20px;">120 nM</b>
+          <span id="abaSignalingPhaseBadge" style="font-size: 9px; color: #34d399; font-weight: 600; margin-top: 2px;">● 기공 정상 개방 (Low ABA)</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">공변세포 ABA 농도 ([ABA]guard)</span>
+          <b id="abaConcVal" class="kpi-big-val gold" style="font-size: 16px;">0.45 μM</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">VPD 유도 합성 농도</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">OST1 키나아제 활성도</span>
+          <b id="abaOst1Val" class="kpi-big-val cyan" style="font-size: 16px;">22.4 %</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">SnRK2.6 인산화 유도</span>
+        </div>
+        <div class="kpi-tile" style="padding: 8px 10px;">
+          <span style="font-size: 9px; color: var(--text-muted);">SLAC1 음이온 전류 / Vm</span>
+          <b id="abaSlac1Val" class="kpi-big-val red" style="font-size: 16px;">-45 pA / -125 mV</b>
+          <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Cl⁻ & Mal²⁻ 유출 탈분극</span>
+        </div>
+      </div>
+
+      <!-- Dual Canvas (Left: Guard Cell Fluo-4 glow | Right: 60s Multi-Trace Waveform) -->
+      <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: var(--radius-sm); padding: 12px; position: relative; margin-bottom: 12px;">
+        <canvas id="abaCalciumCanvas" style="width: 100%; height: 220px; display: block;"></canvas>
+      </div>
+
+      <!-- Molecular Signaling Pathway Breakdown Table -->
+      <div style="max-height: 120px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); margin-bottom: 10px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+          <thead style="background: rgba(15, 23, 42, 0.9); color: #34d399; position: sticky; top: 0;">
+            <tr>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">신호전달 단계 (Step)</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">핵심 분자 단백질</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">생화학적 작용 기전</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">실시간 정량 지표</th>
+              <th style="padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">기공 조절 상태</th>
+            </tr>
+          </thead>
+          <tbody id="abaCalciumTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <div style="font-size: 10px; color: var(--text-muted);">
+          * VPD가 1.5 kPa 이상으로 상승하거나 외생 ABA가 주입되면 [Ca²⁺] 파동이 폭증하며 기공이 강제 폐쇄됩니다.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnInjectAbaPulse" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); font-weight: 700;">
+            🧪 5μM ABA 펄스 주입 시험 (Inject ABA)
+          </button>
+          <button id="btnExportAbaCSV" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
+            📋 [Ca²⁺] 파동 시계열 CSV 내보내기
           </button>
         </div>
       </div>

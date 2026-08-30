@@ -989,7 +989,96 @@ export class BioPhysicalEngine {
       spatialGradient
     };
   }
+
+  /**
+   * 20. Guard Cell ABA Signaling & Cytosolic Calcium ([Ca2+]cyt) Wave Molecular Dynamics Model
+   * Simulates the drought/VPD-induced PYR/PYL -> PP2C/OST1 -> [Ca2+]cyt oscillations ->
+   * SLAC1 anion channel activation -> membrane depolarization -> GORK K+ efflux -> stomatal closure.
+   */
+  calculateAbaCalciumSignalingDynamics(envParams = {}, cropProfile = {}, plantState = {}, options = {}) {
+    const { vpd = 1.05, ec = 2.2 } = envParams;
+    const isExogenousPulse = !!options.exogenousPulse;
+
+    // 1. Guard Cell Endogenous ABA Concentration (μM)
+    const vpdStressFactor = Math.max(0.0, (vpd - 0.8) / 1.4);
+    const ecStressFactor = Math.max(0.0, (ec - 2.0) / 1.5);
+    let abaConcentrationUm = 0.12 + 1.85 * vpdStressFactor + 0.85 * ecStressFactor;
+    if (isExogenousPulse) {
+      abaConcentrationUm += 4.5; // Exogenous 5μM ABA pulse injection
+    }
+    abaConcentrationUm = parseFloat(Math.min(6.5, abaConcentrationUm).toFixed(2));
+
+    // 2. PYR/PYL Receptor Binding & SnRK2.6/OST1 Kinase Activation (%)
+    const kd = 0.85;
+    const n = 2.2;
+    const powAba = Math.pow(abaConcentrationUm, n);
+    const ost1KinaseActivityPct = parseFloat(((powAba / (Math.pow(kd, n) + powAba)) * 100.0).toFixed(1));
+
+    // 3. Cytosolic Calcium Concentration [Ca2+]cyt (nM) Oscillations
+    const baseCa2nM = 75.0;
+    const peakCa2nM = baseCa2nM + (ost1KinaseActivityPct / 100.0) * 850.0;
+    const caWaveFrequencyHz = parseFloat((0.025 + (ost1KinaseActivityPct / 100.0) * 0.045).toFixed(3));
+
+    // 4. SLAC1 / QUAC1 Slow Anion Channel Activation Current (pA)
+    const maxSlac1Current = -380.0;
+    const slac1AnionCurrentPicoA = parseFloat((maxSlac1Current * (ost1KinaseActivityPct / 100.0) * (peakCa2nM / 900.0)).toFixed(1));
+
+    // 5. Guard Cell Membrane Depolarization (mV)
+    const restVm = -145.0;
+    const depolarizedVm = restVm + ((ost1KinaseActivityPct / 100.0) * 95.0);
+    const currentVmMv = parseFloat(depolarizedVm.toFixed(1));
+
+    // 6. GORK (Guard cell Outward Rectifying K+ Channel) Efflux & Guard Cell Turgor Collapse
+    const gorkActivation = Math.max(0.0, (currentVmMv - (-75.0)) / 35.0);
+    const gorkKOutfluxFlux = parseFloat((25.0 + gorkActivation * 280.0).toFixed(1));
+
+    // 7. Guard Cell Volume (fL) and Pore Aperture Width (μm)
+    const baseVolumeFl = 4200.0;
+    const volumeLossFl = (ost1KinaseActivityPct / 100.0) * 1600.0;
+    const guardCellVolumeFl = Math.round(baseVolumeFl - volumeLossFl);
+    const stomaApertureUm = parseFloat(Math.max(0.4, 9.5 * (1.0 - (ost1KinaseActivityPct / 100.0) * 0.88)).toFixed(2));
+    const guardCellTurgorMPa = parseFloat(Math.max(0.4, 3.2 * (1.0 - (ost1KinaseActivityPct / 100.0) * 0.82)).toFixed(2));
+
+    // 8. 60-Second Time-Series Simulation of Calcium Wave & Membrane Potential
+    const wavePoints = [];
+    for (let t = 0; t <= 60; t += 0.5) {
+      const omega = 2 * Math.PI * caWaveFrequencyHz;
+      const wavePhase = Math.sin(omega * t);
+      const rectifiedWave = Math.max(0.0, wavePhase);
+      const instantCa2 = baseCa2nM + (peakCa2nM - baseCa2nM) * (0.25 + 0.75 * rectifiedWave);
+      const instantVm = restVm + (depolarizedVm - restVm) * (0.3 + 0.7 * rectifiedWave);
+      const instantSlac1 = slac1AnionCurrentPicoA * (0.3 + 0.7 * rectifiedWave);
+
+      wavePoints.push({
+        timeSec: t,
+        ca2nM: parseFloat(instantCa2.toFixed(1)),
+        vmMv: parseFloat(instantVm.toFixed(1)),
+        slac1Pa: parseFloat(instantSlac1.toFixed(1))
+      });
+    }
+
+    const signalingPhase = ost1KinaseActivityPct < 20.0
+      ? "기공 정상 개방 (Basal Open - Low ABA)"
+      : (ost1KinaseActivityPct < 60.0 ? "ABA 수용체 활성화 & [Ca²⁺] 파동 유도" : "SLAC1 음이온 유출 & GORK K⁺ 탈수 기공 완전 폐쇄");
+
+    return {
+      abaConcentrationUm,
+      ost1KinaseActivityPct,
+      cytosolicCa2nM: parseFloat(peakCa2nM.toFixed(1)),
+      caWaveFrequencyHz,
+      slac1AnionCurrentPicoA,
+      currentVmMv,
+      gorkKOutfluxFlux,
+      guardCellVolumeFl,
+      stomaApertureUm,
+      guardCellTurgorMPa,
+      signalingPhase,
+      isExogenousPulse,
+      wavePoints
+    };
+  }
 }
+
 
 
 

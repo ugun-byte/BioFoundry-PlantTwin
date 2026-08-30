@@ -1552,4 +1552,218 @@ export class LiveTelemetryCharts {
       ctx.fillText(`● 옥신 IAA (엽원기 PZ 피크)`, pane2L + 10 * dpr, padT + 28 * dpr);
     }
   }
+
+  /**
+   * 15. Guard Cell ABA Signaling & Cytosolic Calcium Wave ([Ca2+]cyt) Dual-Pane Scope
+   * Left: Guard Cell fluo-4 Ca2+ green glow & SLAC1/GORK channel gates
+   * Right: 60-Second multi-channel molecular wave oscilloscope ([Ca2+]cyt, SLAC1 current, Vm, Aperture)
+   */
+  renderAbaCaWaveScope(canvas, abaData = {}) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width || 800;
+    const h = rect.height || 220;
+
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Dark Background Grid
+    ctx.fillStyle = "rgba(4, 8, 15, 0.95)";
+    ctx.fillRect(0, 0, w, h);
+
+    const midX = w * 0.42;
+
+    // Divider Line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(midX, 10);
+    ctx.lineTo(midX, h - 10);
+    ctx.stroke();
+
+    // ==========================================
+    // LEFT PANE: Guard Cell Molecular Micro-Diagram
+    // ==========================================
+    const leftW = midX;
+    const centerX = leftW * 0.5;
+    const centerY = h * 0.52;
+
+    ctx.fillStyle = "#34d399";
+    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("① 공변세포 칼슘 형광(Fluo-4) & 채널 동역학", 14 * dpr, 18 * dpr);
+
+    const ca2Val = abaData.cytosolicCa2nM || 120.0;
+    const ost1Pct = abaData.ost1KinaseActivityPct || 10.0;
+    const apertureUm = abaData.stomaApertureUm || 8.5;
+
+    // Calcium glow intensity (0.1 ~ 0.95)
+    const caIntensity = Math.min(1.0, (ca2Val - 70.0) / 800.0);
+    const poreOpeningHalf = Math.max(2, (apertureUm / 12.0) * 26);
+
+    // Left Guard Cell
+    ctx.save();
+    ctx.translate(centerX - poreOpeningHalf - 22, centerY);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 20, 52, -0.15, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(16, 185, 129, ${0.25 + caIntensity * 0.55})`;
+    ctx.fill();
+    ctx.strokeStyle = `rgba(52, 211, 153, ${0.4 + caIntensity * 0.6})`;
+    ctx.lineWidth = 2 * dpr;
+    ctx.shadowColor = "#34d399";
+    ctx.shadowBlur = (4 + caIntensity * 16) * dpr;
+    ctx.stroke();
+
+    // Vacuole inside Left Guard Cell
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 10, 32, -0.15, 0, 2 * Math.PI);
+    ctx.fillStyle = "rgba(56, 189, 248, 0.25)";
+    ctx.fill();
+    ctx.restore();
+
+    // Right Guard Cell
+    ctx.save();
+    ctx.translate(centerX + poreOpeningHalf + 22, centerY);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 20, 52, 0.15, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(16, 185, 129, ${0.25 + caIntensity * 0.55})`;
+    ctx.fill();
+    ctx.strokeStyle = `rgba(52, 211, 153, ${0.4 + caIntensity * 0.6})`;
+    ctx.lineWidth = 2 * dpr;
+    ctx.shadowColor = "#34d399";
+    ctx.shadowBlur = (4 + caIntensity * 16) * dpr;
+    ctx.stroke();
+
+    // Vacuole inside Right Guard Cell
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 10, 32, 0.15, 0, 2 * Math.PI);
+    ctx.fillStyle = "rgba(56, 189, 248, 0.25)";
+    ctx.fill();
+    ctx.restore();
+
+    // Stomatal Pore Aperture Gap
+    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+    ctx.beginPath();
+    ctx.ellipse(centerX, centerY, Math.max(1, poreOpeningHalf), 42, 0, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // Channel Efflux Indicators
+    if (ost1Pct > 35.0) {
+      // SLAC1 Anion Efflux (Cl-, Malate2-) Orange arrows
+      ctx.fillStyle = "#f97316";
+      ctx.font = `bold ${8 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText("◀ SLAC1 (Cl⁻/Mal²⁻ 유출)", centerX - 85, centerY - 28);
+
+      // GORK K+ Efflux Cyan arrows
+      ctx.fillStyle = "#00f2fe";
+      ctx.fillText("GORK (K⁺ 유출) ▶", centerX + 30, centerY + 36);
+    }
+
+    // Status Label below Left Pane
+    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.font = `${8.5 * dpr}px 'Inter', sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText(`기공 폭: ${apertureUm}μm | Vm: ${abaData.currentVmMv}mV | [Ca²⁺]: ${Math.round(ca2Val)}nM`, centerX, h - 12 * dpr);
+    ctx.textAlign = "left";
+
+    // ==========================================
+    // RIGHT PANE: 60-Second Multi-Trace Oscilloscope
+    // ==========================================
+    const rightL = midX + 18;
+    const rightW = w - rightL - 18;
+    const plotT = 32;
+    const plotH = h - 60;
+
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = `bold ${10 * dpr}px 'Inter', sans-serif`;
+    ctx.fillText("② 60초 분자 파동 스코프 ([Ca²⁺]cyt, SLAC1 전류, 막전위 Vm)", rightL, 18 * dpr);
+
+    // Horizontal Grid Lines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+    ctx.lineWidth = 1;
+    for (let y = plotT; y <= plotT + plotH; y += plotH / 4) {
+      ctx.beginPath(); ctx.moveTo(rightL, y); ctx.lineTo(rightL + rightW, y); ctx.stroke();
+    }
+
+    // Vertical Time Grid Lines (0s, 15s, 30s, 45s, 60s)
+    for (let s = 0; s <= 60; s += 15) {
+      const x = rightL + (s / 60.0) * rightW;
+      ctx.beginPath(); ctx.moveTo(x, plotT); ctx.lineTo(x, plotT + plotH); ctx.stroke();
+      ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.font = `${8 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`${s}s`, x - 6 * dpr, plotT + plotH + 14 * dpr);
+    }
+
+    const wavePoints = abaData.wavePoints || [];
+    if (wavePoints.length > 1) {
+      // 1. Plot [Ca2+]cyt (Green trace)
+      ctx.save();
+      ctx.strokeStyle = "#34d399";
+      ctx.shadowColor = "#34d399";
+      ctx.shadowBlur = 6 * dpr;
+      ctx.lineWidth = 2 * dpr;
+      ctx.beginPath();
+      wavePoints.forEach((pt, i) => {
+        const x = rightL + (pt.timeSec / 60.0) * rightW;
+        const norm = Math.max(0.0, Math.min(1.0, (pt.ca2nM - 50.0) / 1000.0));
+        const y = plotT + plotH - (norm * plotH);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // 2. Plot Membrane Potential Vm (Cyan trace)
+      ctx.save();
+      ctx.strokeStyle = "#00f2fe";
+      ctx.shadowColor = "#00f2fe";
+      ctx.shadowBlur = 4 * dpr;
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.beginPath();
+      wavePoints.forEach((pt, i) => {
+        const x = rightL + (pt.timeSec / 60.0) * rightW;
+        const norm = Math.max(0.0, Math.min(1.0, (pt.vmMv - (-150.0)) / 110.0));
+        const y = plotT + plotH - (norm * plotH);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // 3. Plot SLAC1 Current (Orange trace)
+      ctx.save();
+      ctx.strokeStyle = "#f97316";
+      ctx.shadowColor = "#f97316";
+      ctx.shadowBlur = 4 * dpr;
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.beginPath();
+      wavePoints.forEach((pt, i) => {
+        const x = rightL + (pt.timeSec / 60.0) * rightW;
+        const norm = Math.max(0.0, Math.min(1.0, Math.abs(pt.slac1Pa) / 400.0));
+        const y = plotT + plotH - (norm * plotH * 0.7);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // Oscilloscope Legend Pills
+      ctx.fillStyle = "#34d399";
+      ctx.font = `bold ${8.5 * dpr}px 'Inter', sans-serif`;
+      ctx.fillText(`● [Ca²⁺]cyt (${Math.round(ca2Val)} nM)`, rightL + 8 * dpr, plotT + 14 * dpr);
+
+      ctx.fillStyle = "#00f2fe";
+      ctx.fillText(`● Vm 탈분극 (${abaData.currentVmMv} mV)`, rightL + 125 * dpr, plotT + 14 * dpr);
+
+      ctx.fillStyle = "#f97316";
+      ctx.fillText(`● SLAC1 전류 (${abaData.slac1AnionCurrentPicoA} pA)`, rightL + 250 * dpr, plotT + 14 * dpr);
+    }
+  }
 }
+
