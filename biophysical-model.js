@@ -175,4 +175,49 @@ export class BioPhysicalEngine {
       stressMultiplier: parseFloat((coldActivation * ecStressFactor).toFixed(2))
     };
   }
+
+  /**
+   * 8. Michaelis-Menten Root Ion Uptake Kinetics (Nitrate NO3-, Phosphate H2PO4-, Potassium K+)
+   * Flux I_i = I_max * (C_i - C_min) / (K_m + (C_i - C_min)) * TempFactor * O2Factor
+   */
+  calculateRootIonUptake(envParams, cropProfile, plantState = {}) {
+    const { ec = 2.2, airTemp = 24.0, humidity = 70.0 } = envParams;
+    const rootTemp = Math.max(12, airTemp - 2.0); // root zone temp typically cooler
+    const dissolvedO2 = 21.0; // dissolved O2 %
+
+    // Convert EC (mS/cm) to approximate macronutrient concentrations (uM)
+    // Typical Hoagland solution standard: EC 2.0 -> N: 15mM, P: 1mM, K: 6mM
+    const concFactor = ec / 2.0;
+    const cN = Math.max(0, 15000 * concFactor); // uM NO3-
+    const cP = Math.max(0, 1000 * concFactor);  // uM H2PO4-
+    const cK = Math.max(0, 6000 * concFactor);  // uM K+
+
+    // Michaelis constants (Km in uM) and Imax (umol / g DW root / h)
+    const Km_N = 45.0, Imax_N = 18.0;
+    const Km_P = 12.0, Imax_P = 5.2;
+    const Km_K = 25.0, Imax_K = 22.0;
+
+    // Root Temperature factor (Q10 enzyme kinetics peaking around 22-25°C)
+    const tempFactor = Math.exp(-0.5 * Math.pow((rootTemp - 23.5) / 5.5, 2));
+
+    // Oxygen factor (Root respiration ATP driven H+-ATPase proton pump)
+    const o2Factor = Math.min(1.0, dissolvedO2 / 20.0);
+
+    // Uptake fluxes (umol / g DW / h)
+    const fluxN = Imax_N * (cN / (Km_N + cN)) * tempFactor * o2Factor;
+    const fluxP = Imax_P * (cP / (Km_P + cP)) * tempFactor * o2Factor;
+    const fluxK = Imax_K * (cK / (Km_K + cK)) * tempFactor * o2Factor;
+
+    // Total root ion absorption score (0.0 ~ 1.0)
+    const absorptionRatio = Math.min(1.0, (fluxN / Imax_N + fluxP / Imax_P + fluxK / Imax_K) / 3.0);
+
+    return {
+      fluxN: parseFloat(fluxN.toFixed(2)),
+      fluxP: parseFloat(fluxP.toFixed(2)),
+      fluxK: parseFloat(fluxK.toFixed(2)),
+      absorptionRatio: parseFloat(absorptionRatio.toFixed(3)),
+      rootTemp: parseFloat(rootTemp.toFixed(1)),
+      dissolvedO2: parseFloat(dissolvedO2.toFixed(1))
+    };
+  }
 }

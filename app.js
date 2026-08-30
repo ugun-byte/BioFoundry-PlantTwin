@@ -827,11 +827,24 @@ function simulationLoop(now) {
     DOM.metaPpfd.textContent = Math.round(envTele.sensors.ppfd);
     DOM.metaAn.textContent = instantPhoto.netAn.toFixed(1);
     
-    const isDay = envTele.simulatedHour >= 6.0 && envTele.simulatedHour < 22.0;
-    const diurnalKey = isDay ? "diurnalDay" : "diurnalNight";
-    DOM.diurnalStatusLabel.textContent = `${i18n.t(diurnalKey)} ${envTele.timeFormatted}`;
+    // 5. Calculate Michaelis-Menten Root Ion Uptake Kinetics (NO3-, H2PO4-, K+)
+    const ionUptake = biophysicalEngine.calculateRootIonUptake(envTele.sensors, crop, plantState);
 
-    // 6. Update 8 Telemetry Tiles
+    // 6. Update Top Diurnal Status Label with Time of Day Phase
+    const hour = envTele.simulatedHour;
+    let diurnalPhaseText = "☀️ 주간 피크 광합성";
+    if (hour >= 5.0 && hour < 8.5) {
+      diurnalPhaseText = "🌅 일출 램프업";
+    } else if (hour >= 8.5 && hour < 17.0) {
+      diurnalPhaseText = "☀️ 주간 피크 광합성";
+    } else if (hour >= 17.0 && hour < 21.0) {
+      diurnalPhaseText = "🌆 일몰 & Far-Red";
+    } else {
+      diurnalPhaseText = "🌙 야간 변온 DIF";
+    }
+    DOM.diurnalStatusLabel.textContent = `${diurnalPhaseText} ${envTele.timeFormatted}`;
+
+    // 7. Update 8 Telemetry Tiles
     DOM.teleSensPpfd.textContent = Math.round(envTele.sensors.ppfd);
     DOM.teleSensRh.textContent = envTele.sensors.humidity.toFixed(1);
     DOM.teleSensAirTemp.textContent = envTele.sensors.airTemp.toFixed(1);
@@ -841,7 +854,7 @@ function simulationLoop(now) {
     DOM.teleSensVpd.textContent = envTele.sensors.vpd.toFixed(2);
     DOM.teleSensFvFm.textContent = instantPhoto.fvFm.toFixed(3);
 
-    // 7. Update 6 KPI Tiles
+    // 8. Update 6 KPI Tiles
     DOM.kpiTotalLutein.textContent = `${plantState.totalLuteinAccumulatedMg.toFixed(1)} mg`;
     DOM.kpiYieldGain.textContent = `+${Math.min(185, Math.round((plantState.luteinConcentration / crop.baseLuteinConcentration) * 100))}%`;
     DOM.kpiLuteinConc.textContent = `${plantState.luteinConcentration.toFixed(1)} mg/g DW`;
@@ -850,15 +863,15 @@ function simulationLoop(now) {
     const ledKw = (envTele.sensors.ppfd / 2.8 * 0.8 + 35) / 1000;
     DOM.kpiEnergyEff.textContent = `${(molecularFlux.hourlyPlantFlux / (ledKw + 0.01)).toFixed(1)} mg/kWh`;
 
-    // 8. Update Glassmorphic 3D Chamber HUD Cards
+    // 9. Update Glassmorphic 3D Chamber HUD Cards (Leaf & Root with NPK Flux)
     DOM.hudChlAb.textContent = (3.15 + Math.sin(now * 0.001) * 0.08).toFixed(2);
     DOM.hudStomatalGs.textContent = `${instantPhoto.stomata.gs.toFixed(2)} mol m⁻² s⁻¹`;
     DOM.hudNpq.textContent = (1.25 + Math.cos(now * 0.001) * 0.05).toFixed(2);
     DOM.hudRootRh.textContent = `${(98.5 + Math.sin(now * 0.002) * 0.4).toFixed(1)} %`;
-    DOM.hudRootTemp.textContent = `${(envTele.sensors.airTemp - 2.2).toFixed(1)} °C`;
-    DOM.hudRootO2.textContent = `${(21.2 + Math.cos(now * 0.002) * 0.2).toFixed(1)} %`;
+    DOM.hudRootTemp.textContent = `${ionUptake.rootTemp} °C`;
+    DOM.hudRootO2.textContent = `${(ionUptake.absorptionRatio * 100).toFixed(1)}% (NPK)`;
 
-    // 9. Update Timeline Scrubber Text
+    // 10. Update Timeline Scrubber Text
     DOM.teleDay.textContent = String(envTele.simulatedDay).padStart(2, '0');
     if (DOM.teleTimeFormatted) {
       DOM.teleTimeFormatted.textContent = `(${envTele.timeFormatted})`;
@@ -869,7 +882,7 @@ function simulationLoop(now) {
     DOM.teleStage.textContent = i18n.t(stageKey);
     DOM.timelineSlider.value = envTele.simulatedDay;
 
-    // 10. Push Telemetry Point to Oscilloscopes & Sparklines
+    // 11. Push Telemetry Point to Oscilloscopes & Sparklines
     if (telemetryCharts) {
       telemetryCharts.pushTelemetryPoint({
         an: instantPhoto.netAn,
@@ -892,9 +905,9 @@ function simulationLoop(now) {
       });
     }
 
-    // 11. 3D Chamber Growth Dynamics
+    // 12. 3D Chamber Growth Dynamics & Diurnal Lighting & Root Heatmap
     if (plantChamber3d) {
-      plantChamber3d.updateSimulation(plantState, envTele, crop);
+      plantChamber3d.updateSimulation(plantState, envTele, crop, ionUptake);
     }
   }
 

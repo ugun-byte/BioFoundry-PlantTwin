@@ -772,9 +772,72 @@ export class ThreePlantChamber {
   }
 
   /**
+   * 24-Hour Diurnal Lighting & Sun/Shadow Transition Engine
+   */
+  updateDiurnalLighting(simulatedHour, isLightOn, sensors) {
+    if (!this.growSpotLight || !this.ledHaloMat || !this.ambientLight) return;
+
+    if (!isLightOn || sensors.ppfd < 10) {
+      // Night DIF mode
+      this.growSpotLight.color.setHex(0x0f172a);
+      this.growSpotLight.intensity = 0.25;
+      this.ledHaloMat.emissive.setHex(0x09131d);
+      this.ledHaloMat.emissiveIntensity = 0.2;
+      this.ambientLight.color.setHex(0x060c16);
+      this.ambientLight.intensity = 0.6;
+      return;
+    }
+
+    // Spectrum Color based on sliders
+    const r = Math.min(1.0, (sensors.spectrum.red / 100) * 1.3 + 0.1);
+    const g = Math.min(1.0, (sensors.spectrum.green / 100) * 0.9 + 0.1);
+    const b = Math.min(1.0, (sensors.spectrum.blue / 100) * 1.4 + 0.2);
+    const spectrumColor = new THREE.Color(r, g, b);
+
+    // Diurnal Time-of-Day Transition (06h Sunrise -> 12h Peak -> 18h Sunset -> 22h Night)
+    if (simulatedHour >= 5.0 && simulatedHour < 8.5) {
+      // Sunrise Dawn Ramp-up
+      const p = (simulatedHour - 5.0) / 3.5;
+      const dawnColor = new THREE.Color(0xffaa66).lerp(spectrumColor, p);
+      this.growSpotLight.color.copy(dawnColor);
+      this.growSpotLight.intensity = (sensors.ppfd / 800) * (1.2 + p * 3.8);
+      this.ledHaloMat.emissive.copy(dawnColor);
+      this.ledHaloMat.emissiveIntensity = 0.8 + p * 2.4;
+      this.ambientLight.color.setHex(0x1a2130);
+      this.ambientLight.intensity = 1.0 + p * 0.6;
+    } else if (simulatedHour >= 8.5 && simulatedHour < 17.0) {
+      // Peak Daytime Photosynthesis
+      this.growSpotLight.color.copy(spectrumColor);
+      this.growSpotLight.intensity = (sensors.ppfd / 800) * 5.2;
+      this.ledHaloMat.emissive.copy(spectrumColor);
+      this.ledHaloMat.emissiveIntensity = Math.min(3.6, (sensors.ppfd / 800) * 3.2 + 0.4);
+      this.ambientLight.color.setHex(0x1e293b);
+      this.ambientLight.intensity = 1.6;
+    } else if (simulatedHour >= 17.0 && simulatedHour < 21.0) {
+      // Sunset & Far-Red Twilight
+      const p = (simulatedHour - 17.0) / 4.0;
+      const sunsetColor = spectrumColor.clone().lerp(new THREE.Color(0xff5522), p * 0.75);
+      this.growSpotLight.color.copy(sunsetColor);
+      this.growSpotLight.intensity = (sensors.ppfd / 800) * Math.max(0.4, 5.2 * (1 - p * 0.8));
+      this.ledHaloMat.emissive.copy(sunsetColor);
+      this.ledHaloMat.emissiveIntensity = Math.max(0.4, 3.2 * (1 - p * 0.7));
+      this.ambientLight.color.setHex(0x1e1620);
+      this.ambientLight.intensity = Math.max(0.7, 1.6 - p * 0.8);
+    } else {
+      // Night Respiration
+      this.growSpotLight.color.setHex(0x0f172a);
+      this.growSpotLight.intensity = 0.25;
+      this.ledHaloMat.emissive.setHex(0x09131d);
+      this.ledHaloMat.emissiveIntensity = 0.2;
+      this.ambientLight.color.setHex(0x060c16);
+      this.ambientLight.intensity = 0.6;
+    }
+  }
+
+  /**
    * Automated Diurnal Simulation Update
    */
-  updateSimulation(plantState, envTelemetry, cropProfile) {
+  updateSimulation(plantState, envTelemetry, cropProfile, ionUptake = null) {
     if (!this.isInitialized || !this.plantGroup) return;
 
     const { dryWeightGrams, luteinConcentration, heightCm } = plantState;
@@ -782,34 +845,8 @@ export class ThreePlantChamber {
     this.simulatedHour = simulatedHour;
     this.isLightOn = isLightOn;
 
-    // 1. Lighting Spectrum & Intensity
-    const isDay = simulatedHour >= 6.0 && simulatedHour < 22.0;
-
-    if (isDay && isLightOn && sensors.ppfd > 10) {
-      const r = Math.min(1.0, (sensors.spectrum.red / 100) * 1.3 + 0.1);
-      const g = Math.min(1.0, (sensors.spectrum.green / 100) * 0.9 + 0.1);
-      const b = Math.min(1.0, (sensors.spectrum.blue / 100) * 1.4 + 0.2);
-      const spectrumColor = new THREE.Color(r, g, b);
-
-      this.growSpotLight.color.lerp(spectrumColor, 0.1);
-      this.growSpotLight.intensity = (sensors.ppfd / 800) * 5.2;
-
-      if (this.ledHaloMat) {
-        this.ledHaloMat.emissive.lerp(spectrumColor, 0.1);
-        this.ledHaloMat.emissiveIntensity = Math.min(3.5, (sensors.ppfd / 800) * 3.2 + 0.4);
-      }
-
-      this.ambientLight.color.setHex(0x1e293b);
-      this.ambientLight.intensity = 1.6;
-    } else {
-      this.growSpotLight.intensity = 0.2;
-      if (this.ledHaloMat) {
-        this.ledHaloMat.emissive.setHex(0x0f283d);
-        this.ledHaloMat.emissiveIntensity = 0.25;
-      }
-      this.ambientLight.color.setHex(0x090e15);
-      this.ambientLight.intensity = 0.5;
-    }
+    // 1. 24-Hour Diurnal Lighting & Spectrum
+    this.updateDiurnalLighting(simulatedHour, isLightOn, sensors);
 
     // 2. Mist opacity
     if (sensors.vpd > 1.4 || sensors.humidity > 70) {
@@ -822,6 +859,39 @@ export class ThreePlantChamber {
     const simulatedDay = envTelemetry.simulatedDay || 1;
     const harvestDays = cropProfile.harvestDays || 42;
     const dayRatio = Math.min(1.0, Math.max(0.01, simulatedDay / harvestDays));
+
+    // Dynamic 3D Root Architecture Elongation & Michaelis-Menten Root Ion Heatmap
+    if (this.rootGroup) {
+      const rootScale = Math.min(1.30, 0.12 + dayRatio * 1.18);
+      this.rootGroup.scale.set(rootScale, rootScale * 1.15, rootScale);
+
+      // Calculate Michaelis-Menten Root Ion Uptake Heatmap (Cyan -> Emerald -> Radiant Gold)
+      const absRatio = ionUptake && typeof ionUptake.absorptionRatio === "number" ? ionUptake.absorptionRatio : 0.72;
+      
+      const heatColor = new THREE.Color();
+      if (absRatio < 0.5) {
+        // Low: Cyan (0x00f2fe) -> Emerald (0x10b981)
+        const t = absRatio / 0.5;
+        heatColor.setRGB(0.0, 0.95 * (1 - t) + 0.72 * t, 1.0 * (1 - t) + 0.50 * t);
+      } else {
+        // High: Emerald (0x10b981) -> Radiant Gold/Amber (0xfbbf24)
+        const t = (absRatio - 0.5) / 0.5;
+        heatColor.setRGB(0.06 * (1 - t) + 0.98 * t, 0.72 * (1 - t) + 0.75 * t, 0.50 * (1 - t) + 0.14 * t);
+      }
+
+      if (this.taprootMesh && this.taprootMesh.material) {
+        this.taprootMesh.material.emissive.lerp(heatColor, 0.12);
+        this.taprootMesh.material.emissiveIntensity = 0.25 + absRatio * 0.35;
+      }
+      if (this.lateralRoots) {
+        this.lateralRoots.forEach((lat) => {
+          if (lat.mesh && lat.mesh.material) {
+            lat.mesh.material.emissive.lerp(heatColor, 0.12);
+            lat.mesh.material.emissiveIntensity = 0.25 + absRatio * 0.35;
+          }
+        });
+      }
+    }
 
     // Sigmoid height curve (seedling sprout at Day 1 ~ 5, exponential elongation, plateau)
     const heightProgress = 1.0 / (1.0 + Math.exp(-0.18 * (simulatedDay - 18)));
@@ -877,12 +947,6 @@ export class ThreePlantChamber {
         l.mesh.scale.set(0.0001, 0.0001, 0.0001);
       }
     });
-
-    // Dynamic 3D Root Architecture Elongation: Day 1 sprout (0.12) -> Full Root System (1.25)
-    if (this.rootGroup) {
-      const rootScale = Math.min(1.30, 0.12 + dayRatio * 1.18);
-      this.rootGroup.scale.set(rootScale, rootScale * 1.15, rootScale);
-    }
 
     // Flower Blooming Ontogeny: ONLY appears after Day 26 (Budding) and fully blooms on Day 34~42
     if (this.flowerGroup) {
