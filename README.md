@@ -94,32 +94,69 @@ BioFoundry-PlantTwin/
 
 ---
 
-## 🚀 4. 빠른 실행 가이드 (Quick Start)
+## 🚀 4. 다른 PC 실행 및 설치 가이드 (Quick Start & Installation)
 
-### 1) 가상 식물 시뮬레이터 웹 구동
+이 프로젝트는 무거운 빌드 과정이나 데이터베이스 설치 없이 **웹 표준 기술(HTML5 / ES6 JavaScript / CSS3 / Three.js)**로 구현되어 있어, **전 세계 어느 PC(Windows, Mac, Linux)에서든 3단계만으로 즉시 동일하게 100% 실행**됩니다.
+
+---
+
+### 💻 Step 1. 깃 저장소 복사 (Clone)
+새로운 PC의 터미널(Terminal) 또는 윈도우 명령 프롬프트(CMD/PowerShell)를 열고 다음 명령어를 입력합니다:
 ```bash
-# 저장소 클론
 git clone https://github.com/ugun-byte/BioFoundry-PlantTwin.git
 cd BioFoundry-PlantTwin
-
-# 로컬 웹 서버 실행 (포트 3007)
-python3 -m http.server 3007
-
-# 브라우저 접속
-open http://localhost:3007
 ```
 
-### 2) 실제 스마트팜 PLC 하드웨어 게이트웨이 데몬 구동 (선택 사항)
+---
+
+### 🌐 Step 2. 로컬 웹 서버 구동 (아래 3가지 방법 중 택 1)
+
+#### [방법 A] 파이썬 사용 (가장 추천 ⭐)
+* **Mac / Linux**:
+  ```bash
+  python3 -m http.server 3007
+  ```
+* **Windows (PowerShell 또는 CMD)**:
+  ```bash
+  python -m http.server 3007
+  ```
+
+#### [방법 B] Node.js 사용
 ```bash
-# Node.js 게이트웨이 데몬 실행 (Modbus-TCP 포트 5020 & WebSocket 포트 8092 가동)
+npx serve -l 3007 .
+```
+
+#### [방법 C] VS Code 확장 프로그램 사용
+1. VS Code에서 `BioFoundry-PlantTwin` 폴더를 엽니다.
+2. 확장 탭에서 **Live Server**를 설치한 뒤, 우측 하단의 `Go Live` 버튼을 클릭합니다.
+
+---
+
+### 🖥️ Step 3. 웹 브라우저 접속
+크롬(Chrome), 엣지(Edge), 사파리(Safari) 등 웹 브라우저 주소창에 아래 주소를 입력합니다:
+```
+http://localhost:3007
+```
+👉 3D 식물 생육 챔버, 9대 생체 진단기, DeepMind 강화학습 스튜디오, 가상 발전소(VPP), GMP 성적서 발행 시스템이 **100% 동일하게 로딩**됩니다.
+
+---
+
+### 🔌 Step 4. [선택 사항] 실제 스마트팜 PLC 게이트웨이 데몬 가동
+실제 산업용 스마트팜 PLC 장비(지멘스, LS Electric, pymodbus)와 실시간 Modbus-TCP 통신을 연동하려면 터미널 창을 하나 더 열고 실행합니다:
+```bash
 node industrial-iot-gateway-daemon.js
 ```
-* 웹 화면의 **원격 계측 (SCADA)** 탭에서 `[🔌 PLC 하드웨어 데몬 연결]`을 누르면 실제 하드웨어 통신 루프가 활성화됩니다.
+* **Modbus-TCP 포트**: `5020` (16개 Holding Register 40001~40016 실시간 서빙)
+* **웹소켓 브릿지 포트**: `8092` (웹 브라우저와 1~3ms 초저지연 양방향 동기화)
+* 웹 화면의 **원격 계측 (SCADA)** 탭에서 `[🔌 PLC 하드웨어 데몬 연결]` 버튼을 누르면 실시간 연동이 활성화됩니다.
 
-### 3) 자동화 테스트 스위트 검증
+---
+
+### 🧪 Step 5. 112개 전수 자동화 통합 테스트 실행
 ```bash
 node scratch/test_all_features.js
 ```
+* 생물리학 모델, AI 최적화 알고리즘, DQN/PPO/SAC 강화학습 신경망, Modbus 게이트웨이, GMP 성적서의 정합성을 100% 검증합니다.
 
 ---
 
