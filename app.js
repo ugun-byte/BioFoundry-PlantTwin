@@ -1626,16 +1626,63 @@ function bindEventListeners() {
     });
   }
 
-  // Crop Selector
+  // Crop Selector Live Synchronization
   DOM.cropSelect.addEventListener("change", (e) => {
     audio.playPulse();
     const cropId = e.target.value;
     profileManager.setActiveProfile(cropId);
     const crop = profileManager.getActiveProfile();
-    DOM.metaTargetMolecule.textContent = `${crop.targetMolecule} (${crop.chemicalFormula})`;
+    const isEn = i18n.getLanguage() === "en";
+    const targetName = isEn && crop.targetMoleculeEn ? crop.targetMoleculeEn : crop.targetMolecule;
+    
+    if (DOM.metaTargetMolecule) {
+      DOM.metaTargetMolecule.textContent = `${targetName} (${crop.chemicalFormula})`;
+    }
+    
     if (plantChamber3d) plantChamber3d.setCropSpecies(crop);
     buildParamEditor();
     resetPlantState();
+
+    // If AI AutoPilot is active, immediately deploy new crop's optimal recipe
+    if (typeof isAiAutoPilotActive !== "undefined" && isAiAutoPilotActive) {
+      const res = aiOptimizer.searchOptimalEnvironment(crop, currentOptimizationObjective);
+      const rec = res.optimalRecipe;
+      envEngine.updateSetpoints({
+        ppfdTarget: rec.ppfd,
+        dayTempTarget: rec.dayTemp,
+        nightTempTarget: rec.nightTemp,
+        co2Target: rec.co2,
+        humidityTarget: rec.humidity,
+        ecTarget: rec.ec,
+        spectrum: rec.spectrum,
+        uvbActive: rec.uvbActive,
+        coldShiftActive: rec.coldShiftActive,
+        photoperiodHours: rec.photoperiod
+      });
+      if (DOM.sliderPpfd) DOM.sliderPpfd.value = rec.ppfd; if (DOM.inputPpfd) DOM.inputPpfd.value = rec.ppfd;
+      if (DOM.sliderDayTemp) DOM.sliderDayTemp.value = rec.dayTemp; if (DOM.inputDayTemp) DOM.inputDayTemp.value = rec.dayTemp;
+      if (DOM.sliderNightTemp) DOM.sliderNightTemp.value = rec.nightTemp; if (DOM.inputNightTemp) DOM.inputNightTemp.value = rec.nightTemp;
+      if (DOM.sliderCo2) DOM.sliderCo2.value = rec.co2; if (DOM.inputCo2) DOM.inputCo2.value = rec.co2;
+      if (DOM.sliderHumidity) DOM.sliderHumidity.value = rec.humidity; if (DOM.inputHumidity) DOM.inputHumidity.value = rec.humidity;
+      if (DOM.sliderEc) DOM.sliderEc.value = rec.ec; if (DOM.inputEc) DOM.inputEc.value = rec.ec;
+    }
+
+    // Immediately re-render active subview in real time
+    const activeTab = document.querySelector(".nav-tab-btn.active");
+    if (activeTab) {
+      const tabKey = activeTab.getAttribute("data-tab");
+      if (tabKey === "telemetry" && typeof renderScadaTelemetryView === "function") {
+        renderScadaTelemetryView();
+      } else if (tabKey === "optimization" && typeof renderOptimizationStudioView === "function") {
+        renderOptimizationStudioView(currentOptimizationObjective);
+      } else if (tabKey === "rlstudio" && typeof renderRlStudioView === "function") {
+        renderRlStudioView();
+      } else if (tabKey === "experiments" && typeof renderFactorialExperimentsView === "function") {
+        renderFactorialExperimentsView();
+      } else if (tabKey === "reports" && typeof renderQualityReportView === "function") {
+        renderQualityReportView();
+      }
+    }
   });
 
   // Two-way synchronization binding for slider and direct number input
@@ -3133,15 +3180,28 @@ function openPlant2HumanModal() {
 
 function selectP2hMolecule(cropId) {
   audio.playPulse();
-  if (profileManager.getProfile(cropId)) {
+  if (profileManager.getProfile ? profileManager.getProfile(cropId) : profileManager.getAllProfiles().some(p => p.id === cropId)) {
     profileManager.setActiveProfile(cropId);
     if (DOM.cropSelect) DOM.cropSelect.value = cropId;
     const crop = profileManager.getActiveProfile();
-    DOM.metaTargetMolecule.textContent = `${crop.targetMolecule} (${crop.chemicalFormula})`;
+    const isEn = i18n.getLanguage() === "en";
+    const targetName = isEn && crop.targetMoleculeEn ? crop.targetMoleculeEn : crop.targetMolecule;
+    DOM.metaTargetMolecule.textContent = `${targetName} (${crop.chemicalFormula})`;
     if (plantChamber3d) plantChamber3d.setCropSpecies(crop);
     buildParamEditor();
     resetPlantState();
     updatePlant2HumanJsonScreens();
+
+    // Re-render active subview
+    const activeTab = document.querySelector(".nav-tab-btn.active");
+    if (activeTab) {
+      const tabKey = activeTab.getAttribute("data-tab");
+      if (tabKey === "telemetry" && typeof renderScadaTelemetryView === "function") renderScadaTelemetryView();
+      else if (tabKey === "optimization" && typeof renderOptimizationStudioView === "function") renderOptimizationStudioView(currentOptimizationObjective);
+      else if (tabKey === "rlstudio" && typeof renderRlStudioView === "function") renderRlStudioView();
+      else if (tabKey === "experiments" && typeof renderFactorialExperimentsView === "function") renderFactorialExperimentsView();
+      else if (tabKey === "reports" && typeof renderQualityReportView === "function") renderQualityReportView();
+    }
   }
 }
 window.selectP2hMolecule = selectP2hMolecule;
@@ -4852,9 +4912,24 @@ function submitNewCropForm() {
   const registered = profileManager.registerNewSpecies(newProfile);
   populateCropDropdown(registered.id);
   profileManager.setActiveProfile(registered.id);
-  DOM.metaTargetMolecule.textContent = `${registered.targetMolecule} (${registered.chemicalFormula})`;
+  const isEn = i18n.getLanguage() === "en";
+  const targetName = isEn && registered.targetMoleculeEn ? registered.targetMoleculeEn : registered.targetMolecule;
+  DOM.metaTargetMolecule.textContent = `${targetName} (${registered.chemicalFormula})`;
   if (plantChamber3d) plantChamber3d.setCropSpecies(registered);
   resetPlantState();
+  buildParamEditor();
+
+  // Re-render active subview
+  const activeTab = document.querySelector(".nav-tab-btn.active");
+  if (activeTab) {
+    const tabKey = activeTab.getAttribute("data-tab");
+    if (tabKey === "telemetry" && typeof renderScadaTelemetryView === "function") renderScadaTelemetryView();
+    else if (tabKey === "optimization" && typeof renderOptimizationStudioView === "function") renderOptimizationStudioView(currentOptimizationObjective);
+    else if (tabKey === "rlstudio" && typeof renderRlStudioView === "function") renderRlStudioView();
+    else if (tabKey === "experiments" && typeof renderFactorialExperimentsView === "function") renderFactorialExperimentsView();
+    else if (tabKey === "reports" && typeof renderQualityReportView === "function") renderQualityReportView();
+  }
+
   DOM.newCropModal.classList.remove("active");
   alert(`✨ [${registered.name}] 신규 작물이 바이오파운드리에 등록되었습니다!`);
 }

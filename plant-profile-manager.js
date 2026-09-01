@@ -290,6 +290,14 @@ export class PlantProfileManager {
     return false;
   }
 
+  getProfile(id) {
+    return this.profiles[id] || null;
+  }
+
+  registerNewSpecies(profileData) {
+    return this.registerNewProfile(profileData);
+  }
+
   /**
    * Register a new custom plant species
    */
