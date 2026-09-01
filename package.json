@@ -1,13 +1,25 @@
 {
-  "name": "plant-growth-molecular-farming-simulator",
+  "name": "biofoundry-planttwin",
   "version": "1.0.0",
   "description": "Virtual Plant Growth and Molecular Farming Digital Twin Simulator by Google DeepMind Open Stack",
-  "main": "index.html",
+  "type": "module",
+  "main": "run.js",
   "scripts": {
-    "dev": "npx serve -l 3007 .",
-    "start": "npx serve -l 3007 ."
+    "start": "node run.js",
+    "dev": "node run.js",
+    "daemon": "node industrial-iot-gateway-daemon.js",
+    "test": "node scratch/test_all_features.js"
   },
-  "keywords": ["simulation", "digital-twin", "molecular-farming", "smart-farm", "photosynthesis", "lutein"],
+  "keywords": [
+    "simulation",
+    "digital-twin",
+    "molecular-farming",
+    "smart-farm",
+    "photosynthesis",
+    "lutein",
+    "deepmind",
+    "reinforcement-learning"
+  ],
   "author": "BioFoundry AI",
   "license": "Apache-2.0"
 }

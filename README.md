@@ -94,13 +94,25 @@ BioFoundry-PlantTwin/
 
 ---
 
-## 🚀 4. 다른 PC 실행 및 설치 가이드 (Quick Start & Installation)
+## 🚀 4. 다른 PC 원클릭 100% 실행 및 설치 가이드 (Quick Start & Installation)
 
-이 프로젝트는 무거운 빌드 과정이나 데이터베이스 설치 없이 **웹 표준 기술(HTML5 / ES6 JavaScript / CSS3 / Three.js)**로 구현되어 있어, **전 세계 어느 PC(Windows, Mac, Linux)에서든 3단계만으로 즉시 동일하게 100% 실행**됩니다.
+이 프로젝트는 무거운 빌드 과정이나 데이터베이스 설치 없이 **웹 표준 기술(HTML5 / ES6 JavaScript / CSS3 / Three.js)**로 구현되어 있어, **전 세계 어느 PC(Windows, Mac, Linux)에서든 더블클릭 한 번으로 100% 동일하게 즉시 실행**됩니다.
 
 ---
 
-### 💻 Step 1. 깃 저장소 복사 (Clone)
+### ⚡ [초간단] 원클릭 1초 실행 파일 (One-Click Launchers)
+
+저장소를 클론(`git clone`)한 후, 본인의 운영체제에 맞는 파일을 **마우스로 더블클릭**만 하시면 웹 서버 실행 및 브라우저 창이 자동으로 열립니다!
+
+* 🪟 **Windows 사용자**: **`start_planttwin.bat`** 더블클릭 실행!
+* 🍎 **Mac / Linux 사용자**: **`./start_planttwin.sh`** (또는 터미널에서 `./start_planttwin.sh`) 실행!
+* 📦 **Node.js / npm 사용자**: **`npm start`** 또는 **`node run.js`** 실행!
+
+---
+
+### 💻 [수동 실행] 터미널 명령어 3단계
+
+#### Step 1. 깃 저장소 복사 (Clone)
 새로운 PC의 터미널(Terminal) 또는 윈도우 명령 프롬프트(CMD/PowerShell)를 열고 다음 명령어를 입력합니다:
 ```bash
 git clone https://github.com/ugun-byte/BioFoundry-PlantTwin.git
@@ -109,26 +121,24 @@ cd BioFoundry-PlantTwin
 
 ---
 
-### 🌐 Step 2. 로컬 웹 서버 구동 (아래 3가지 방법 중 택 1)
+#### Step 2. 로컬 웹 서버 구동 (아래 방법 중 택 1)
 
-#### [방법 A] 파이썬 사용 (가장 추천 ⭐)
-* **Mac / Linux**:
+* **방법 1 (원클릭 Node.js 러너 - 가장 추천 ⭐)**:
   ```bash
-  python3 -m http.server 3007
+  npm start
+  # 또는
+  node run.js
   ```
-* **Windows (PowerShell 또는 CMD)**:
+* **방법 2 (파이썬이 설치되어 있을 때)**:
+  * Mac/Linux: `python3 -m http.server 3007`
+  * Windows: `python -m http.server 3007`
+* **방법 3 (VS Code 확장 프로그램)**:
+  1. VS Code에서 `BioFoundry-PlantTwin` 폴더를 엽니다.
+  2. 확장 탭에서 **Live Server**를 설치한 뒤, 우측 하단의 `Go Live` 버튼을 클릭합니다.
+* **방법 4 (npx serve)**:
   ```bash
-  python -m http.server 3007
+  npx serve -l 3007 .
   ```
-
-#### [방법 B] Node.js 사용
-```bash
-npx serve -l 3007 .
-```
-
-#### [방법 C] VS Code 확장 프로그램 사용
-1. VS Code에서 `BioFoundry-PlantTwin` 폴더를 엽니다.
-2. 확장 탭에서 **Live Server**를 설치한 뒤, 우측 하단의 `Go Live` 버튼을 클릭합니다.
 
 ---
 
