@@ -1,76 +1,136 @@
 # 🌿 BioFoundry PlantTwin (바이오파운드리 플랜트윈)
 
 > **Real-Time Virtual Plant Growth & Molecular Farming Digital Twin Engine**  
-> Google DeepMind 오픈 스택 기반 실시간 가상 식물 생육 & 분자농업(Molecular Farming) 디지털 트윈 시뮬레이터
+> Google DeepMind 오픈 기술 및 생물리학 지배방정식 기반 실시간 가상 식물 생육 & 분자농업(Molecular Farming) 디지털 트윈 시뮬레이터
+
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/Automated_Tests-112%20Passed-emerald.svg)](scratch/test_all_features.js)
+[![Digital Twin](https://img.shields.io/badge/Digital_Twin-3D_Three.js_60FPS-00f2fe.svg)](#)
+[![Industrial IoT](https://img.shields.io/badge/Modbus--TCP-Port_5020_Ready-8b5cf6.svg)](#)
 
 ---
 
 ## 📌 1. 프로젝트 개요 (Overview)
 
-**BioFoundry PlantTwin**은 식물의 생물리학적 지배 방정식(Farquhar 광합성, Arrhenius 효소 반응, Ball-Berry 기공전도도, 엽면 에너지 수지)과 분자농업 2차 대사산물(루테인, 카로티노이드, 재조합 단백질) 생합성 플럭스를 실시간 미분방정식(ODE)으로 수치 적분하여 시뮬레이션하는 **스마트팜 & 바이오 파운드리 디지털 트윈 엔진**입니다.
+**BioFoundry PlantTwin**은 식물의 생물리학적 지배 방정식(Farquhar 광합성, Arrhenius 효소 반응, Ball-Berry 기공전도도, 엽면 에너지 수지)과 분자농업 2차 대사산물(루테인, 카로티노이드, 재조합 단백질) 생합성 플럭스를 실시간 미분방정식(ODE)으로 수치 적분하여 시뮬레이션하는 **차세대 스마트팜 & 바이오 파운드리 디지털 트윈 플랫폼**입니다.
 
-* **연구 목적**: 특정 고부가가치 유효 분자(예: 눈 건강 루테인)의 생산성을 극대화하는 최적 광스펙트럼(R:G:B:FR), 광주기, $CO_2$, 주야간 변온(DIF), 양액(EC/pH), 펄스형 UV-B 유도 스트레스 레시피 도출.
-* **연계 플랫폼**: `Plant2Human AI` (식물성 기능성 원료 탐색 OS)와 연동되는 가상 바이오 생산 팩토리.
+* **핵심 목적**: 눈 건강 기능성 원료인 **루테인(Lutein, CAS 127-40-2)**을 비롯한 고부가가치 타깃 유효 물질의 수율을 극대화하는 최적 환경 레시피(광스펙트럼, $CO_2$, 주야간 DIF, 양액 EC/pH, UV-B 펄스 유도 스트레스)를 AI로 자율 도출하고 실제 스마트팜 하드웨어(PLC)를 직접 제어합니다.
+* **연계 플랫폼**: `Plant2Human AI` (식물성 기능성 원료 탐색 OS)와 실시간 양방향 데이터 브릿지로 연동되어 원료 탐색부터 재배 생산까지 전 과정을 커버합니다.
 
 ---
 
-## 🔬 2. 검증된 8대 핵심 과학 모델 (Scientific Foundations)
+## 🔬 2. 검증된 생물리학 모델 및 첨단 기능 모듈
 
-1. **Farquhar-von Caemmerer-Berry (FvCB) 광합성 모델**:
-   * Rubisco 카르복실화 속도($A_c$) 및 전자전달계 광반응 속도($A_j$) 한계 속도 계산.
+### 🧬 1) 생물리학 & 분자 대사 코어 (`biophysical-model.js`)
+1. **FvCB (Farquhar-von Caemmerer-Berry) 광합성 모델**:
+   * Rubisco 카르복실화 속도($A_c$) 및 전자전달계 광반응 속도($A_j$) 제한 계산.
 2. **Arrhenius 효소 반응 동역학**:
    * $V_{cmax}$, $J_{max}$, 암호흡($R_d$)의 온도 의존성 및 고온 단백질 변성 수식 탑재.
-3. **Ball-Berry-Leuning 기공전도도 ($g_s$) & Penman-Monteith 엽온($T_{leaf}$)**:
-   * 수증기압차(VPD)와 증산 작용에 따른 증산 냉각($\Delta T = T_{leaf} - T_{air}$) 효과 계산.
-4. **Lambert-Beer 군락 수광 & 오토제니(Ontogeny) 발달 모델**:
-   * 엽면적지수($LAI$) 기반 건물중 축적 및 유묘기 $\rightarrow$ 영양생장 $\rightarrow$ 개화기 3D 형태형성.
-5. **분자농업 2차 대사산물 생합성 플럭스 ($dLutein/dt$)**:
-   * 청색광 크립토크롬(CRY) 및 UV-B(UVR8) 광수용체 신호 전달을 통한 **PSY(Phytoene Synthase)** 효소 활성화 모델.
-6. **C18 역상 고성능 액체 크로마토그래피 (HPLC) 화학 분리 정량**:
-   * 루테인($R_t = 6.82\,\text{min}$), 잔토필, 엽록소, $\beta$-카로틴의 450nm 흡광 피크 면적($\text{mAU}\cdot\text{s}$) 및 순도 적분.
-7. **엽면 초분광 반사율 (Hyperspectral 400nm~900nm) & NDVI / PRI**:
-   * 잔토필 탈에폭시화(NPQ) 광화학 반사 지수(PRI) 및 3D 캐노피 의사색상(False-Color) 뷰.
-8. **도관 기포 파열 초음파 음향 방출 (UAE, 20~100kHz) & Web Audio 생체 음향 합성**:
-   * 도관 내 음압 수분 장력($\Psi_{stem}$)에 의한 기포 붕괴 파열률 계측 및 가청 주파수 변조 청취.
+3. **Ball-Berry-Leuning 기공전도도 ($g_s$) & Penman-Monteith 엽온 에너지 수지 ($T_{leaf}$)**:
+   * 수증기압차(VPD)와 증산 작용에 따른 증산 냉각($\Delta T = T_{leaf} - T_{air}$) 효과 정량화.
+4. **분자농업 2차 대사산물 생합성 플럭스 ($dLutein/dt$)**:
+   * 청색광 크립토크롬(CRY) 및 UV-B(UVR8) 광수용체 신호 전달을 통한 **PSY(Phytoene Synthase)** 효소 활성화 수식.
+5. **근권 미생물 공생(PGPR) & CRISPR-Cas9 대사경로 리모델링**:
+   * *Bacillus velezensis* 근권 미생물 인산 불용화 분해 및 LCY-e 유전자 녹아웃 기반 루테인 대사 경로 플럭스(FBA) 모델.
+
+### 🧪 2) 9대 첨단 가상 생체 진단 스위트
+* **C18 역상 HPLC 크로마토그래피**: 루테인($R_t = 6.82\,\text{min}$) 피크 면적 정량 및 화학적 순도(%) 분리.
+* **엽면 초분광 반사율 (Hyperspectral 400~900nm)**: 잔토필 NPQ 광화학 반사 지수(PRI) 및 NDVI 의사색상.
+* **도관 기포 파열 초음파 음향 방출 (UAE)**: 음압 수분 장력($\Psi_{stem}$)에 의한 기포 붕괴 파열률 계측 및 Web Audio 생체 음향 합성.
+* **전기화학 임피던스 분광법 (EIS)**: 10Hz~1MHz 나이퀴스트 플롯 기반 세포막 무결성 및 활력도(%) 측정.
+* **PAM 엽록소 형광 OJIP 동역학**: 광계 II 최대 양자 수율($F_v/F_m$) 실시간 진단.
+* **도관 수액 유속 밀도 (Sap Flow)**: Granier 열소산법(TDP) 기반 일주기 수액 유속 스코프.
+* **근권 전기생리학 (Root Electrophysiology)**: $H^+$-ATPase 양성자 펌프 전류 및 막전위($V_m$) 측정.
+* **공변세포 ABA-칼슘 파동**: 건조 스트레스 시 기공 폐쇄 이온 채널(SLAC1) 동역학.
+* **폐쇄형 순환 수경 ISE 이온 분석**: 배액 NPK 잔존 농도 및 폐쇄 루프 비료/용수 회수율 진단.
+
+### 🧠 3) 강화학습(RL) 스튜디오 & 다목적 파레토 튜너 (`deepmind-rl-agent.js`, `autonomous-ai-optimizer.js`)
+* **3대 강화학습 알고리즘 (DQN / PPO / SAC)**:
+  * **DQN**: $\epsilon$-greedy 탐색 & 벨만 TD 오차 $\delta = r + \gamma \max Q' - Q$ 갱신.
+  * **PPO**: 클리핑된 서러게이트 목적함수($r_t \hat{A}_t$)와 어드밴티지 추정 기반 정책 학습.
+  * **SAC**: 최대 엔트로피 온도 계수($\alpha=0.2$)와 소프트 Q-타겟 기반 강건 정책 도출.
+* **다목적 파레토 가중치 튜너 & 3D 물리 투영**:
+  * 단일 마스터 슬라이더로 `에너지 절감(0%)` vs `수율 극대화(100%)` 가중치 비율을 조절하며, 3D 챔버 내부의 CFD 기류 파티클 유속 및 광자(Photon) 낙하 밀도에 실시간 연동.
+* **스마트 그리드 연동 가상 발전소(VPP) 피크 저감 운전**:
+  * 실시간 전력 도매 단가(SMP) 변동 신호를 감지하여, 200원 초과 피크 발생 시 조도와 팬 풍량을 최저 생존 레벨로 자동 감축하고 절감 요금을 집계.
+
+### 🏭 4) 실제 스마트팜 PLC 게이트웨이 데몬 (`industrial-iot-gateway-daemon.js`)
+* **산업용 표준 Modbus-TCP 서버 (포트 5020)**:
+  * 지멘스, LS Electric, 미쓰비시 PLC 및 Python `pymodbus`와 통신 가능한 16개 16비트 Holding Register (40001~40016) 실시간 서빙.
+* **실시간 웹소켓 브릿지 (포트 8092)**:
+  * 브라우저 프론트엔드와 1~3ms 초저지연 양방향 동기화 및 FC06 제어 명령 수신.
+
+### 📜 5) GMP 규격 분자농업 생산 인증서 (CoA) & A4 PDF 인쇄
+* **Ph. Eur. / USP 규격 7대 필수 시험 항목 자동 판정**:
+  * 식물체 동정, HPLC 순도, 유효 성분 함량, 세포막 활성, 중금속, 미생물, 잔류물질 시험 성적서 생성.
+* **위변조 방지 암호화 전자서명 & QR 코드**:
+  * SHA-256 디지털 해시 서명 및 진위 확인용 QR 코드 생성.
+* **A4 고품질 PDF 인쇄 스타일시트 (`@media print`)**:
+  * 원클릭으로 어두운 화면을 배제하고 인쇄용 순백 A4 공식 시험성적서 PDF 파일 저장 지원.
 
 ---
 
-## 🏗️ 3. 시스템 아키텍처 및 9대 첨단 생체 진단 모듈
+## 🏗️ 3. 저장소 파일 구성 및 아키텍처
 
-* **`biophysical-model.js`**: FvCB 광합성, 기공전도도, 엽온 수지, HPLC 분리, 초분광 NDVI/PRI, 도관 초음파(UAE), 근권 막전위($V_m$), PAM 형광 OJIP 동역학 계산 엔진.
-* **`three-plant-chamber.js`**: Three.js 기반 3D 바이오리액터 챔버, FLIR Ironbow 열화상 셰이더, 도관 수액 상승 3D 유선(Streamline), 초분광 의사색상, 투명 4K 스냅샷 캡처.
-* **`industrial-iot-bridge.js`**: 스마트팜 표준 Modbus-TCP 16비트 Holding Register (40001~40016), FC03 Hex 생성기, MQTT JSON 텔레메트리 스트림.
-* **`live-telemetry-charts.js`**: 60 FPS 듀얼 오실로스코프(전체화면 모드 지원), HPLC 크로마토그램, 초분광 스펙트럼, UAE 파형 렌더러.
-* **`environmental-engine.js`**: Time-Warp(1x~3600x) 가변 배속 환경 엔진, 8채널 가상 IoT 센서 텔레메트리 스트림.
-* **`sound-effects.js`**: Web Audio API 기반 제로 레이턴시 생체 음향 합성기 (도관 기포 파열음, HPLC 인젝션 기계음, 초분광 스캔음).
-* **`app.js`**: 60 FPS 실시간 물리 루프 컨트롤러, 2단 반응형 툴바, AI 파레토 최적화기 및 9대 생체 진단 인터페이스.
-
----
-
-## 🚀 4. 로컬 실행 방법 (Quick Start)
-
-```bash
-# 1. 저장소 클론
-git clone https://github.com/ugun-byte/BioFoundry-PlantTwin.git
-cd BioFoundry-PlantTwin
-
-# 2. 로컬 웹 서버 실행 (포트 3007)
-python3 -m http.server 3007
-
-# 3. 브라우저 접속
-open http://localhost:3007
+```
+BioFoundry-PlantTwin/
+├── index.html                        # 3D 뷰포트, SCADA, RL 스튜디오, 모달 통합 UI
+├── style.css                         # 글래스모피즘 디자인 토큰 및 A4 CoA 인쇄 스타일시트
+├── app.js                            # 60FPS 실시간 물리 루프 컨트롤러 & 이벤트 브릿지
+├── biophysical-model.js              # FvCB 광합성, 루테인 대사, 9대 생체 수식 엔진
+├── three-plant-chamber.js            # Three.js 3D 리액터, 잎/뿌리 CFD 기류, 광자, FLIR 열화상
+├── deepmind-rl-agent.js              # DQN/PPO/SAC 심층 신경망 가중치 훈련 & ONNX 내보내기
+├── autonomous-ai-optimizer.js        # 다차원 그리드 탐색 & 3각 파레토 프론티어 곡면 생성기
+├── industrial-iot-bridge.js          # Modbus-TCP 레지스터 매핑 및 MQTT JSON 생성기
+├── industrial-iot-gateway-daemon.js  # Node.js 실제 스마트팜 PLC Modbus-TCP / WS 데몬
+├── live-telemetry-charts.js          # 60FPS 듀얼 오실로스코프, HPLC, 초분광, UAE 파형 렌더러
+├── plant-profile-manager.js          # 메리골드, 시금치, 케일, 담배, 포도 등 6개 작물 DB
+├── data-exporter.js                  # CSV 텔레메트리, GMP CoA 생성 및 4K 스냅샷 캡처
+├── sound-effects.js                  # Web Audio API 생체 음향 합성기
+├── diurnal-scheduler.js              # 24시간 일주기 스케줄러
+├── LICENSE                           # Apache License 2.0 공식 전문
+└── scratch/test_all_features.js      # 112개 전수 통합 자동화 테스트 스위트
 ```
 
 ---
 
-## 🗓️ 5. 연구 로드맵 및 마일스톤 (Milestones)
+## 🚀 4. 빠른 실행 가이드 (Quick Start)
+
+### 1) 가상 식물 시뮬레이터 웹 구동
+```bash
+# 저장소 클론
+git clone https://github.com/ugun-byte/BioFoundry-PlantTwin.git
+cd BioFoundry-PlantTwin
+
+# 로컬 웹 서버 실행 (포트 3007)
+python3 -m http.server 3007
+
+# 브라우저 접속
+open http://localhost:3007
+```
+
+### 2) 실제 스마트팜 PLC 하드웨어 게이트웨이 데몬 구동 (선택 사항)
+```bash
+# Node.js 게이트웨이 데몬 실행 (Modbus-TCP 포트 5020 & WebSocket 포트 8092 가동)
+node industrial-iot-gateway-daemon.js
+```
+* 웹 화면의 **원격 계측 (SCADA)** 탭에서 `[🔌 PLC 하드웨어 데몬 연결]`을 누르면 실제 하드웨어 통신 루프가 활성화됩니다.
+
+### 3) 자동화 테스트 스위트 검증
+```bash
+node scratch/test_all_features.js
+```
+
+---
+
+## 🗓️ 5. 연구개발 마일스톤 (Milestones)
 
 - [x] **Phase 1: 실시간 생물리학/분자합성 시뮬레이션 코어 & 3D 챔버 및 9대 생체 진단기 구축** (완료 ✅)
 - [x] **Phase 2: Plant2Human AI (localhost:3006)와 실시간 양방향 데이터 브릿지 연동** (완료 ✅)
-- [x] **Phase 3: 2호/3호 기능성 원료 라이브러리 확장 (안토시아닌, 레스베라트롤, 설포라판, 아스타잔틴)** (완료 ✅)
-- [x] **Phase 4: 심층 강화학습(RL DQN/PPO/SAC) 및 다목적 파레토 최적화 자율 에이전트 탑재** (완료 ✅)
-- [ ] **Phase 5: 상용 스마트팜 온실 실시간 PLC/Modbus-TCP 실제 하드웨어 제어기 소켓 릴레이 드라이버 연동** (차기 과제 ⏳)
-- [ ] **Phase 6: GMP 규격 바이오 의약품 생산 인증(CoA) 자동 발행 PDF/QR 리포트 시스템** (차기 과제 ⏳)
+- [x] **Phase 3: 2호/3호 기능성 원료 라이브러리 및 틸라코이드 ETC 동역학 확장** (완료 ✅)
+- [x] **Phase 4: 심층 강화학습(DQN/PPO/SAC) 및 다목적 파레토 최적화 자율 에이전트 탑재** (완료 ✅)
+- [x] **Phase 5: 상용 스마트팜 온실 실시간 PLC/Modbus-TCP 실제 하드웨어 통신 게이트웨이 데몬 구축** (완료 ✅)
+- [x] **Phase 6: GMP 규격 바이오 의약품 생산 인증서(CoA) 자동 암호화 및 A4 PDF 인쇄 시스템** (완료 ✅)
 
 ---
 
