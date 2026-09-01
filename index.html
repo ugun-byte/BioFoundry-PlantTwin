@@ -1204,7 +1204,7 @@
 
       <!-- 4 Objective Selection Tabs -->
       <div style="display: flex; gap: 8px;">
-        <button type="button" class="opt-tab active" data-studio-obj="maxYield">🎯 유효 분자(루테인) 최대 생산 (Max Yield)</button>
+        <button type="button" id="optTabMaxYield" class="opt-tab active" data-studio-obj="maxYield">🎯 유효 분자 최대 생산 (Max Yield)</button>
         <button type="button" class="opt-tab" data-studio-obj="fastHarvest">⚡ 재배 주기 단축 (Fast Harvest)</button>
         <button type="button" class="opt-tab" data-studio-obj="energyEff">💡 전력당 에너지 효율 극대화 (Energy Eff)</button>
         <button type="button" class="opt-tab" data-studio-obj="balanced">⚖️ 생체량 & 대사산물 균형 생산 (Balanced)</button>
@@ -1215,12 +1215,12 @@
         <div class="kpi-tile" style="padding: 10px 14px; background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.35);">
           <span style="font-size: 10px; color: var(--text-muted);">예상 유효성분 수율 향상</span>
           <b id="optStudioGainVal" class="kpi-big-val emerald" style="font-size: 22px;">+48.5 %</b>
-          <span style="font-size: 10px; color: #34d399;">대사 플럭스 dLutein/dt 극대화</span>
+          <span id="optStudioFluxSubtext" style="font-size: 10px; color: #34d399;">대사 플럭스 d[Metabolite]/dt 극대화</span>
         </div>
         <div class="kpi-tile" style="padding: 10px 14px;">
           <span style="font-size: 10px; color: var(--text-muted);">재배 기간 단축 효과</span>
           <b id="optStudioDaysVal" class="kpi-big-val cyan" style="font-size: 22px;">-6 일 단축</b>
-          <span style="font-size: 10px; color: var(--text-muted);">36일차 조기 수확 가능</span>
+          <span style="font-size: 10px; color: var(--text-muted);">조기 수확 가속</span>
         </div>
         <div class="kpi-tile" style="padding: 10px 14px;">
           <span style="font-size: 10px; color: var(--text-muted);">순 광합성 속도 (Net An)</span>
@@ -1239,7 +1239,7 @@
         <!-- Pareto Canvas -->
         <div style="background: rgba(5, 10, 18, 0.85); border: 1px solid rgba(251, 191, 36, 0.25); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: #fbbf24;">
-            <span>📈 2D 파레토 프론티어 산점도 (광합성 An vs 루테인 플럭스)</span>
+            <span id="optStudioChartTitle">📈 2D 파레토 프론티어 산점도 (광합성 An vs 대사체 플럭스)</span>
             <span style="font-size: 10.5px; color: #facc15;">★ 최적점 | ● 비지배 해 | ○ 일반 해</span>
           </div>
           <canvas id="viewParetoCanvas" style="width: 100%; height: 260px; display: block;"></canvas>

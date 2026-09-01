@@ -8,11 +8,11 @@ export class PlantProfileManager {
     this.defaultProfiles = {
       marigold_lutein: {
         id: "marigold_lutein",
-        name: "메리골드 (Tagetes erecta)",
-        nameEn: "Marigold (Tagetes erecta)",
+        name: "메리골드",
+        nameEn: "Marigold",
         scientificName: "Tagetes erecta L.",
-        targetMolecule: "눈 건강 고순도 루테인 (Lutein)",
-        targetMoleculeEn: "High-Purity Lutein (C40H56O2)",
+        targetMolecule: "루테인",
+        targetMoleculeEn: "Lutein (C40H56O2)",
         chemicalFormula: "C₄₀H₅₆O₂",
         pubchemCid: 5281243,
         molecularWeight: 568.87,
@@ -48,10 +48,10 @@ export class PlantProfileManager {
 
       spinach_carotenoid: {
         id: "spinach_carotenoid",
-        name: "유기농 시금치 (Spinacia oleracea)",
-        nameEn: "Organic Spinach (Spinacia oleracea)",
+        name: "유기농 시금치",
+        nameEn: "Organic Spinach",
         scientificName: "Spinacia oleracea",
-        targetMolecule: "복합 카로티노이드/엽록소",
+        targetMolecule: "복합 카로티노이드",
         targetMoleculeEn: "Carotenoid Complex & Chlorophyll",
         chemicalFormula: "C₄₀H₅₆ / C₄₀H₅₆O₂",
         pubchemCid: 5280489,
@@ -88,10 +88,10 @@ export class PlantProfileManager {
 
       kale_antioxidant: {
         id: "kale_antioxidant",
-        name: "슈퍼푸드 케일 (Brassica oleracea)",
-        nameEn: "Superfood Kale (Brassica oleracea)",
+        name: "슈퍼푸드 케일",
+        nameEn: "Superfood Kale",
         scientificName: "Brassica oleracea var. sabellica",
-        targetMolecule: "설포라판 & 퀘르세틴 (Sulforaphane)",
+        targetMolecule: "설포라판 & 퀘르세틴",
         targetMoleculeEn: "Sulforaphane & Quercetin",
         chemicalFormula: "C₆H₁₁NOS₂ / C₁₅H₁₀O₇",
         pubchemCid: 5350,
@@ -128,10 +128,10 @@ export class PlantProfileManager {
 
       tobacco_recombinant: {
         id: "tobacco_recombinant",
-        name: "담배 (Nicotiana benthamiana)",
-        nameEn: "Bio-Tobacco (Nicotiana benthamiana)",
+        name: "바이오 담배",
+        nameEn: "Bio-Tobacco",
         scientificName: "Nicotiana benthamiana",
-        targetMolecule: "치료용 재조합 단백질 (Recombinant mAb)",
+        targetMolecule: "치료용 재조합 단백질",
         targetMoleculeEn: "Recombinant Therapeutic mAb",
         chemicalFormula: "Recombinant Biomacromolecule",
         pubchemCid: 0,
@@ -168,10 +168,10 @@ export class PlantProfileManager {
 
       grape_resveratrol: {
         id: "grape_resveratrol",
-        name: "호장근/포도 (Polygonum / Vitis)",
-        nameEn: "Knotweed / Grape (Polygonum / Vitis)",
-        scientificName: "Polygonum cuspidatum Sieb. et Zucc.",
-        targetMolecule: "항노화 트랜스-레스베라트롤 (Resveratrol)",
+        name: "호장근 / 포도",
+        nameEn: "Knotweed / Grape",
+        scientificName: "Polygonum / Vitis",
+        targetMolecule: "트랜스-레스베라트롤",
         targetMoleculeEn: "trans-Resveratrol (Anti-Aging)",
         chemicalFormula: "C₁₄H₁₂O₃",
         pubchemCid: 445154,
@@ -208,10 +208,10 @@ export class PlantProfileManager {
 
       algae_astaxanthin: {
         id: "algae_astaxanthin",
-        name: "미세조류 헤마토코쿠스 (H. pluvialis)",
-        nameEn: "Microalgae (Haematococcus pluvialis)",
+        name: "미세조류 헤마토코쿠스",
+        nameEn: "Microalgae Haematococcus",
         scientificName: "Haematococcus pluvialis",
-        targetMolecule: "초강력 항산화 아스타잔틴 (Astaxanthin)",
+        targetMolecule: "천연 아스타잔틴",
         targetMoleculeEn: "Natural Astaxanthin (Anti-Oxidant)",
         chemicalFormula: "C₄₀H₅₂O₄",
         pubchemCid: 5281224,

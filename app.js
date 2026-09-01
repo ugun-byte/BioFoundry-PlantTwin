@@ -5025,11 +5025,33 @@ function renderScadaTelemetryView() {
 function renderOptimizationStudioView(objKey = "maxYield") {
   const crop = profileManager.getActiveProfile();
   const res = aiOptimizer.searchOptimalEnvironment(crop, objKey);
+  const isEn = i18n.getLanguage() === "en";
+  const targetName = isEn && crop.targetMoleculeEn ? crop.targetMoleculeEn : crop.targetMolecule;
+
+  // Update Dynamic Objective Tab & Titles
+  const btnOptMax = document.getElementById("optTabMaxYield");
+  if (btnOptMax) {
+    btnOptMax.textContent = isEn 
+      ? `🎯 Maximize ${targetName} (Max Yield)` 
+      : `🎯 유효 분자(${targetName}) 최대 생산 (Max Yield)`;
+  }
+  const fluxSub = document.getElementById("optStudioFluxSubtext");
+  if (fluxSub) {
+    fluxSub.textContent = isEn 
+      ? `Maximizing d[${targetName}]/dt Metabolic Flux` 
+      : `대사 플럭스 d[${targetName}]/dt 극대화`;
+  }
+  const chartTitle = document.getElementById("optStudioChartTitle");
+  if (chartTitle) {
+    chartTitle.textContent = isEn 
+      ? `📈 2D Pareto Frontier (Net Photosynthesis An vs ${targetName} Flux)` 
+      : `📈 2D 파레토 프론티어 산점도 (광합성 An vs ${targetName} 플럭스)`;
+  }
 
   if (DOM.optStudioGainVal) DOM.optStudioGainVal.textContent = `+${res.improvements.yieldGainPercent} %`;
-  if (DOM.optStudioDaysVal) DOM.optStudioDaysVal.textContent = `-${res.improvements.daysSaved} 일 단축`;
+  if (DOM.optStudioDaysVal) DOM.optStudioDaysVal.textContent = isEn ? `-${res.improvements.daysSaved} Days Saved` : `-${res.improvements.daysSaved} 일 단축`;
   if (DOM.optStudioAnVal) DOM.optStudioAnVal.textContent = `${res.improvements.netPhotosynthesis} μmol`;
-  if (DOM.optStudioSolutionsVal) DOM.optStudioSolutionsVal.textContent = `${res.totalSimulations.toLocaleString()} 개`;
+  if (DOM.optStudioSolutionsVal) DOM.optStudioSolutionsVal.textContent = `${res.totalSimulations.toLocaleString()} ${isEn ? 'Points' : '개'}`;
 
   // Draw Pareto Landscape Canvas
   if (DOM.viewParetoCanvas && res.landscape) {
