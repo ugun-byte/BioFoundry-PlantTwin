@@ -8,7 +8,8 @@
     "start": "node run.js",
     "dev": "node run.js",
     "daemon": "node industrial-iot-gateway-daemon.js",
-    "test": "node scratch/test_all_features.js"
+    "test": "node scratch/test_all_features.js",
+    "validate": "node scratch/scientific_benchmark_validation.js"
   },
   "keywords": [
     "simulation",

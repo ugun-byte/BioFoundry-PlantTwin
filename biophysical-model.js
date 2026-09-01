@@ -34,37 +34,40 @@ export class BioPhysicalEngine {
 
   /**
    * Calculate Stomatal Conductance (gs), Intercellular CO2 (Ci), and Leaf Temperature (T_leaf)
+   * Based on Medlyn et al. (2011) & Campbell & Norman (1998) Penman-Monteith Energy Balance
    */
   calculateStomataAndEnergyBalance(params, cropProfile) {
-    const { ppfd, airTemp, humidity, co2Air, vpdAir, windSpeed = 0.3 } = params;
+    const { ppfd = 0, airTemp = 25.0, humidity = 70.0, co2Air = 400.0, vpdAir = 1.0, windSpeed = 0.3 } = params;
 
-    // Saturation vapor pressure (kPa)
+    // 1. Stomatal sensitivity to VPD (Medlyn et al. 2011 / Ball-Berry model)
+    const gs_min = 0.015;
+    const lightOpening = ppfd > 0 ? (ppfd / (ppfd + 85.0)) : 0;
+    const vpdStress = 1.0 / (1.0 + Math.max(0, (vpdAir - 0.5) / 1.5));
+    const gs = Math.max(gs_min, gs_min + (cropProfile.gs_max - gs_min) * lightOpening * vpdStress);
+
+    // 2. Intercellular CO2 (Ci in ppm) via Fick's diffusion & photosynthetic demand
+    const ciRatio = ppfd > 0 
+      ? Math.max(0.45, Math.min(0.92, 1.0 - 0.30 * (ppfd / (ppfd + 140.0)) * Math.max(0.6, 1.0 - (vpdAir - 1.0) * 0.15)))
+      : 1.0;
+    const ci = co2Air * ciRatio;
+
+    // 3. Saturation vapor pressure (Tetens formula in kPa)
     const esat_air = 0.61078 * Math.exp((17.27 * airTemp) / (airTemp + 237.3));
     const e_air = esat_air * (humidity / 100);
 
-    // Leaf Temperature estimation via energy balance (Transpirational cooling / Radiative heating)
-    // High PPFD adds radiative heat load, transpiration (cooling) subtracts heat
-    const netRadiation = (ppfd * 0.22); // W/m2 approximate absorbed PAR energy
-    const coolingPotential = Math.max(0.2, vpdAir) * 1.6;
-    const tLeafOffset = (netRadiation / 120.0) - coolingPotential;
-    const leafTemp = Math.max(5, Math.min(48, airTemp + tLeafOffset));
-
-    // Stomatal sensitivity to VPD (Ball-Berry model)
-    const vpdStress = 1.0 / (1.0 + Math.max(0, vpdAir - cropProfile.vpdOptMin) * 0.85);
-
-    // Light-driven stomatal opening
-    const lightOpening = ppfd / (ppfd + 120.0);
-    const gs = Math.max(0.02, cropProfile.gs_max * lightOpening * vpdStress * Math.min(1.0, co2Air / 400.0));
-
-    // Estimate Intercellular CO2 (Ci in ppm) based on stomatal conductance
-    // In typical C3 plants, Ci/Ca is ~0.7 under unstressed conditions
-    const ciRatio = Math.max(0.25, Math.min(0.88, 0.72 * (gs / cropProfile.gs_max)));
-    const ci = co2Air * ciRatio;
-
+    // 4. Penman-Monteith Leaf Energy Balance (Campbell & Norman 1998)
+    // netRadiation in W/m2, latentHeatFlux in W/m2
+    const netRadiation = ppfd * 0.18; // W/m2 absorbed PAR energy
+    const gH = 32.0 + 15.0 * Math.sqrt(Math.max(0.1, windSpeed));
+    
     // Transpiration rate E (mmol H2O / m2 / s)
+    const vpdLeafApprox = Math.max(0.1, vpdAir);
+    const transpirationRate = gs * (vpdLeafApprox / 101.3) * 1000.0; // mmol/m2/s
+    const latentHeatFlux = (transpirationRate / 1000.0) * 44000.0; // W/m2 (44 kJ/mol H2O)
+    const tLeafOffset = (netRadiation - latentHeatFlux) / gH;
+    const leafTemp = Math.max(2, Math.min(50, airTemp + tLeafOffset));
     const esat_leaf = 0.61078 * Math.exp((17.27 * leafTemp) / (leafTemp + 237.3));
     const vpdLeaf = Math.max(0.05, esat_leaf - e_air);
-    const transpirationRate = gs * (vpdLeaf / 101.3) * 1000.0; // mmol/m2/s
 
     return {
       leafTemp: parseFloat(leafTemp.toFixed(2)),
@@ -81,52 +84,59 @@ export class BioPhysicalEngine {
 
   /**
    * Full Farquhar-von Caemmerer-Berry (FvCB) Photosynthesis Kinetics
+   * Farquhar et al. (1980) & Bernacchi et al. (2001) C3 model
    */
   calculateInstantaneousPhotosynthesis(envParams, cropProfile) {
     const stomata = this.calculateStomataAndEnergyBalance(envParams, cropProfile);
-    const { ppfd, spectrum } = envParams;
-    const T = stomata.leafTemp;
-    const Ci = stomata.ci;
+    const { ppfd = 0, spectrum = {} } = envParams;
+    const T = envParams.leafTemp !== undefined ? envParams.leafTemp : stomata.leafTemp;
+    const Ci = envParams.ci !== undefined ? envParams.ci : stomata.ci;
 
-    // 1. Kinetic constants adjusted for leaf temperature
+    // 1. Kinetic constants adjusted for leaf temperature (Bernacchi et al. 2001)
     const Vcmax = this.arrheniusWithDeactivation(cropProfile.vcmax25, cropProfile.ea_vcmax, T);
     const Jmax = this.arrheniusWithDeactivation(cropProfile.jmax25, cropProfile.ea_jmax, T);
     const Rd = cropProfile.rd25 * Math.exp(0.069 * (T - 25));
 
-    // Michaelis-Menten constants for CO2 (Kc) and O2 (Ko)
+    // Michaelis-Menten constants for CO2 (Kc) and O2 (Ko) & CO2 compensation point (GammaStar)
     const Kc = 404.9 * Math.exp((79430 * (T - 25)) / (298.15 * this.R * (T + 273.15)));
     const Ko = 278.4 * Math.exp((36380 * (T - 25)) / (298.15 * this.R * (T + 273.15)));
     const GammaStar = 42.75 * Math.exp((37830 * (T - 25)) / (298.15 * this.R * (T + 273.15)));
 
     // 2. Spectrum Weighted Action Efficiency
-    // Red (660nm) quantum yield = 1.00, Blue (450nm) = 0.88, Far-Red = 0.82, Green = 0.68
+    const specRed = spectrum.red !== undefined ? spectrum.red : 65;
+    const specBlue = spectrum.blue !== undefined ? spectrum.blue : 20;
+    const specGreen = spectrum.green !== undefined ? spectrum.green : 10;
+    const specFR = spectrum.farRed !== undefined ? spectrum.farRed : 5;
     const spectrumFactor = (
-      (spectrum.red / 100) * 1.05 +
-      (spectrum.blue / 100) * 0.92 +
-      (spectrum.green / 100) * 0.72 +
-      (spectrum.farRed / 100) * 0.86
+      (specRed / 100) * 1.05 +
+      (specBlue / 100) * 0.95 +
+      (specGreen / 100) * 0.72 +
+      (specFR / 100) * 0.88
     );
 
-    // 3. Electron Transport Rate (J)
-    const alpha = 0.35 * spectrumFactor; // Apparent quantum yield of PSII
-    const theta = 0.75; // Curvature factor
-    const I2 = ppfd * (1 - 0.15) * 0.5 * alpha; // Absorbed light by PSII
-
-    const J = (I2 + Jmax - Math.sqrt(Math.pow(I2 + Jmax, 2) - 4 * theta * I2 * Jmax)) / (2 * theta);
+    // 3. Electron Transport Rate (J) (Farquhar et al. 1980 / Bernacchi et al. 2001)
+    // Absorptance (0.85), PSII partition (0.50), Apparent quantum yield of PSII (0.85)
+    // I2 = PPFD * (1 - 0.15) * 0.5 * 0.85 * spectrumFactor = PPFD * 0.36125 * spectrumFactor
+    const theta = 0.72; // Curvature factor
+    const I2 = ppfd * 0.36125 * spectrumFactor;
+    const J = ppfd > 0 
+      ? (I2 + Jmax - Math.sqrt(Math.max(0, Math.pow(I2 + Jmax, 2) - 4 * theta * I2 * Jmax))) / (2 * theta)
+      : 0;
 
     // 4. Rubisco-limited rate (Ac)
-    const Ac = (Vcmax * (Ci - GammaStar)) / (Ci + Kc * (1 + this.O2_ATM / Ko));
+    const Ac = Math.max(0, (Vcmax * (Ci - GammaStar)) / (Ci + Kc * (1 + this.O2_ATM / Ko)));
 
     // 5. RuBP regeneration-limited rate (Aj)
-    const Aj = (J * (Ci - GammaStar)) / (4 * Ci + 8 * GammaStar);
+    const Aj = Math.max(0, (J * (Ci - GammaStar)) / (4 * Ci + 8 * GammaStar));
 
     // 6. Net CO2 Assimilation Rate (An)
-    const An = Math.max(-Rd, Math.min(Ac, Aj) - Rd);
+    const grossA = ppfd > 0 ? Math.min(Ac, Aj) : 0;
+    const An = grossA - Rd;
 
     // 7. Photosystem II Quantum Yield (Fv/Fm proxy) & Non-Photochemical Quenching (NPQ)
     const lightSaturationRatio = ppfd / Math.max(100, cropProfile.lightSaturationPoint);
     const npq = Math.max(0, (lightSaturationRatio - 0.7) * 1.8);
-    const fvFm = Math.max(0.45, Math.min(0.84, 0.83 - (npq * 0.08) - (stomata.vpdLeaf > 1.6 ? 0.08 : 0)));
+    const fvFm = Math.max(0.45, Math.min(0.84, 0.832 - (npq * 0.08) - (stomata.vpdLeaf > 1.6 ? 0.08 : 0)));
 
     return {
       netAn: parseFloat(An.toFixed(2)),
@@ -248,14 +258,14 @@ export class BioPhysicalEngine {
 
     // Environmental Stress Factors
     const tempDeviation = Math.max(0, Math.abs(airTemp - (cropProfile.tempOpt || 24.0)) - 4.0);
-    const heatStress = Math.min(0.40, tempDeviation * 0.04);
-    const npqQuenching = Math.max(0, (ppfd - 600) / 1200) * 0.25;
+    const heatStress = Math.min(0.65, tempDeviation * 0.05);
+    const npqQuenching = Math.max(0, (ppfd - 600) / 1000) * 0.35;
 
     // Modulated cardinal points
-    const Fo = Math.round(ojip.fo * (1.0 + heatStress * 0.45));
-    const Fm = Math.round(ojip.fm * (1.0 - heatStress * 0.35 - npqQuenching));
-    const Fv = Fm - Fo;
-    const FvFm = Math.max(0.40, Math.min(0.85, Fv / Fm));
+    const Fo = Math.round(ojip.fo * (1.0 + heatStress * 0.60));
+    const Fm = Math.round(ojip.fm * (1.0 - heatStress * 0.40 - npqQuenching));
+    const Fv = Math.max(0, Fm - Fo);
+    const FvFm = Math.max(0.20, Math.min(0.85, Fv / Math.max(1, Fm)));
 
     const Fj = Math.round(ojip.fj * (1.0 + heatStress * 0.20));
     const Fi = Math.round(ojip.fi * (1.0 - npqQuenching * 0.5));
@@ -312,7 +322,10 @@ export class BioPhysicalEngine {
       speciesId: cropProfile.id || "marigold_lutein",
       speciesName: cropProfile.name || "작물",
       cardinalPoints: { Fo, Fj, Fi, Fm, Fv },
+      phiPo: parseFloat(FvFm.toFixed(3)),
+      fvFm: parseFloat(FvFm.toFixed(3)),
       jipMetrics: {
+        phiPo: parseFloat(FvFm.toFixed(3)),
         fvFm: parseFloat(FvFm.toFixed(3)),
         vj: parseFloat(Vj.toFixed(3)),
         vi: parseFloat(Vi.toFixed(3)),
