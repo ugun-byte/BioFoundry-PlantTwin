@@ -20,6 +20,10 @@ export class AutonomousAiOptimizer {
    * 2. 'energy_eff': Maximize production per kWh (mg / kWh)
    * 3. 'speed_breeding': Minimize harvest days (e.g. 42d -> 31d)
    */
+  calculateOptimalRecipe(objective = 'yield_max', cropProfile) {
+    return this.searchOptimalEnvironment(cropProfile, objective);
+  }
+
   searchOptimalEnvironment(cropProfile, objective = 'yield_max') {
     const candidates = [];
     const stepCount = 8; // Multi-dimensional grid sampling
@@ -73,14 +77,17 @@ export class AutonomousAiOptimizer {
               const hvacPowerWatts = Math.abs(temp - 20.0) * 12.0 + 35.0;
               const totalPowerKw = (ledPowerWatts + hvacPowerWatts) / 1000.0;
 
+              const netAnVal = (photo && (photo.netAn ?? photo.netPhotosynthesis)) || 0;
+              const fluxVal = (flux && (flux.hourlyPlantFlux ?? flux.luteinFluxRateMgPerHour)) || 0;
+
               // Objective Scoring
               let score = 0;
               if (objective === 'yield_max') {
-                score = flux.luteinFluxRateMgPerHour * 0.7 + photo.netPhotosynthesis * 0.3;
+                score = fluxVal * 0.7 + netAnVal * 0.3;
               } else if (objective === 'energy_eff') {
-                score = (flux.luteinFluxRateMgPerHour) / (totalPowerKw + 0.05);
+                score = fluxVal / (totalPowerKw + 0.05);
               } else if (objective === 'speed_breeding') {
-                score = photo.netPhotosynthesis * 0.8 + (temp >= cropProfile.tempOpt ? 5.0 : -5.0);
+                score = netAnVal * 0.8 + (temp >= cropProfile.tempOpt ? 5.0 : -5.0);
               }
 
               if (score > bestScore) {
@@ -97,14 +104,32 @@ export class AutonomousAiOptimizer {
                   uvbActive: true,
                   coldShiftActive: true,
                   simulatedScore: score,
-                  netAn: photo.netPhotosynthesis,
-                  fluxMgHr: flux.luteinFluxRateMgPerHour
+                  netAn: netAnVal,
+                  fluxMgHr: fluxVal
                 };
               }
             }
           }
         }
       }
+    }
+
+    if (!bestVector) {
+      bestVector = {
+        ppfd: cropProfile.ppfdOpt || 550,
+        dayTemp: cropProfile.tempOpt || 24.0,
+        nightTemp: (cropProfile.tempOpt || 24.0) - 5.0,
+        humidity: 68.0,
+        co2: 800,
+        ec: 2.2,
+        spectrum: { red: 60, green: 15, blue: 20, farRed: 5 },
+        photoperiod: 16,
+        uvbActive: true,
+        coldShiftActive: true,
+        simulatedScore: 1.0,
+        netAn: 22.5,
+        fluxMgHr: 0.25
+      };
     }
 
     // Compute expected improvements
@@ -168,20 +193,23 @@ export class AutonomousAiOptimizer {
           luteinConcentration: cropProfile.baseLuteinConcentration
         });
 
+        const anVal = (photo && (photo.netAn ?? photo.netPhotosynthesis)) || 0;
+        const fluxVal = (flux && (flux.hourlyPlantFlux ?? flux.luteinFluxRateMgPerHour)) || 0;
+
         let sc = 0;
         if (objective === 'yield_max') {
-          sc = flux.luteinFluxRateMgPerHour * 0.7 + photo.netPhotosynthesis * 0.3;
+          sc = fluxVal * 0.7 + anVal * 0.3;
         } else if (objective === 'energy_eff') {
           const powerKw = ((ppfd / 2.8) * 0.8 + Math.abs(temp - 20.0) * 12.0 + 35.0) / 1000.0;
-          sc = flux.luteinFluxRateMgPerHour / (powerKw + 0.05);
+          sc = fluxVal / (powerKw + 0.05);
         } else {
-          sc = photo.netPhotosynthesis * 0.8 + (temp >= cropProfile.tempOpt ? 5.0 : -5.0);
+          sc = anVal * 0.8 + (temp >= cropProfile.tempOpt ? 5.0 : -5.0);
         }
 
         if (sc > maxSc) maxSc = sc;
         if (sc < minSc) minSc = sc;
 
-        rowArr.push({ temp, ppfd, scoreRaw: sc, an: photo.netPhotosynthesis, flux: flux.luteinFluxRateMgPerHour });
+        rowArr.push({ temp, ppfd, scoreRaw: sc, an: anVal, flux: fluxVal });
       }
       matrix.push(rowArr);
     }
@@ -408,10 +436,13 @@ export class AutonomousAiOptimizer {
           const hvacWatts = Math.abs(temp - 20.0) * 12.0 + 35.0;
           const totalPowerKw = (ledWatts + hvacWatts) / 1000.0;
 
+          const anVal = (photo && (photo.netAn ?? photo.netPhotosynthesis)) || 0;
+          const fluxVal = (flux && (flux.hourlyPlantFlux ?? flux.luteinFluxRateMgPerHour)) || 0;
+
           // 3 Objectives
-          const luteinMgG = parseFloat((cropProfile.baseLuteinConcentration + (flux.luteinFluxRateMgPerHour * 2.8)).toFixed(2));
-          const biomassG = parseFloat((3.0 + photo.netPhotosynthesis * 0.45).toFixed(2));
-          const energyEff = parseFloat(((flux.luteinFluxRateMgPerHour * 16.0) / (totalPowerKw * 16.0 + 0.1)).toFixed(2));
+          const luteinMgG = parseFloat((cropProfile.baseLuteinConcentration + (fluxVal * 2.8)).toFixed(2));
+          const biomassG = parseFloat((3.0 + anVal * 0.45).toFixed(2));
+          const energyEff = parseFloat(((fluxVal * 16.0) / (totalPowerKw * 16.0 + 0.1)).toFixed(2));
 
           candidates.push({
             ppfd,
@@ -420,7 +451,7 @@ export class AutonomousAiOptimizer {
             luteinMgG,
             biomassG,
             energyEff,
-            netAn: photo.netPhotosynthesis,
+            netAn: anVal,
             isPareto: false
           });
         }

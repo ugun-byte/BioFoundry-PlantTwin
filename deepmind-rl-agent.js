@@ -164,14 +164,28 @@ export class DeepMindPlantRlAgent {
         const { qValues } = this.forward(stateVec);
         let actionIdx = 0;
 
-        if (Math.random() < epsilon) {
-          actionIdx = Math.floor(Math.random() * this.actionDim);
-        } else {
-          let maxQ = -Infinity;
+        if (this.algorithm === 'PPO' || this.algorithm === 'SAC') {
+          // Softmax Exploration for Policy Gradient / Maximum Entropy
+          const tau = this.algorithm === 'SAC' ? 1.5 : (1.0 + epsilon);
+          const expQ = qValues.map(q => Math.exp(Math.min(15, q / tau)));
+          const sumExp = expQ.reduce((a, b) => a + b, 0);
+          const probs = expQ.map(e => e / sumExp);
+          let r = Math.random();
           for (let a = 0; a < this.actionDim; a++) {
-            if (qValues[a] > maxQ) {
-              maxQ = qValues[a];
-              actionIdx = a;
+            if (r < probs[a]) { actionIdx = a; break; }
+            r -= probs[a];
+          }
+        } else {
+          // Epsilon-Greedy for DQN
+          if (Math.random() < epsilon) {
+            actionIdx = Math.floor(Math.random() * this.actionDim);
+          } else {
+            let maxQ = -Infinity;
+            for (let a = 0; a < this.actionDim; a++) {
+              if (qValues[a] > maxQ) {
+                maxQ = qValues[a];
+                actionIdx = a;
+              }
             }
           }
         }
@@ -203,30 +217,57 @@ export class DeepMindPlantRlAgent {
           ec: 2.2
         }, cropProfile, plantSimState);
 
-        const dailyGrowthGrams = Math.max(0.05, photo.netPhotosynthesis * 0.082);
+        const netAnVal = (photo && (photo.netAn ?? photo.netPhotosynthesis)) || 0;
+        const fluxVal = (flux && (flux.hourlyPlantFlux ?? flux.luteinFluxRateMgPerHour)) || 0;
+
+        const dailyGrowthGrams = Math.max(0.05, netAnVal * 0.082);
         plantSimState.dryWeightGrams += dailyGrowthGrams;
         const validLutein = isNaN(plantSimState.luteinConcentration) ? (cropProfile.baseLuteinConcentration || 3.5) : plantSimState.luteinConcentration;
-        plantSimState.luteinConcentration = Math.min(18.5, validLutein + flux.luteinFluxRateMgPerHour * 0.04);
+        plantSimState.luteinConcentration = Math.min(18.5, validLutein + fluxVal * 0.04);
         
         const dailyPowerKwh = ((envState.ppfd / 2.8 * 0.8) + Math.abs(envState.airTemp - 22.0) * 12.0 + 35.0) * 16.0 / 1000.0;
         totalEnergyKwh += dailyPowerKwh;
-        totalLuteinSynthesized += flux.luteinFluxRateMgPerHour * 16.0;
+        totalLuteinSynthesized += fluxVal * 16.0;
 
         // Custom Weighted Reward function
         const vpdStressPenalty = Math.max(0.0, Math.abs(envState.vpd - 1.05) - 0.35) * weights.stress;
-        let stepReward = (flux.luteinFluxRateMgPerHour * weights.yield) + 
+        let stepReward = (fluxVal * weights.yield) + 
                          (dailyGrowthGrams * weights.biomass) - 
                          (dailyPowerKwh * weights.energy) - 
                          vpdStressPenalty;
         epReward += stepReward;
 
-        // Backprop surrogate (DQN / PPO surrogate / SAC entropy)
+        // Algorithm-Specific Optimization Update
         const lr = 0.008;
-        const targetQ = stepReward + 0.95 * Math.max(...qValues);
-        const tdError = targetQ - qValues[actionIdx];
-        
-        for (let i = 0; i < this.stateDim; i++) {
-          this.w1[i][actionIdx % 16] += lr * tdError * stateVec[i] * 0.1;
+        if (this.algorithm === 'DQN') {
+          // Deep Q-Network: Standard TD-error Bellman update
+          const targetQ = stepReward + 0.95 * Math.max(...qValues);
+          const tdError = targetQ - qValues[actionIdx];
+          for (let i = 0; i < this.stateDim; i++) {
+            this.w1[i][actionIdx % 16] += lr * tdError * stateVec[i] * 0.1;
+          }
+        } else if (this.algorithm === 'PPO') {
+          // Proximal Policy Optimization: Clipped surrogate objective & advantage
+          const baselineV = qValues.reduce((a, b) => a + b, 0) / this.actionDim;
+          const advantage = stepReward + 0.95 * Math.max(...qValues) - baselineV;
+          const clipEps = 0.2;
+          const ratio = Math.exp(Math.min(1.0, (qValues[actionIdx] - baselineV) * 0.05));
+          const surr1 = ratio * advantage;
+          const surr2 = Math.min(1.0 + clipEps, Math.max(1.0 - clipEps, ratio)) * advantage;
+          const ppoGrad = Math.min(surr1, surr2);
+          for (let i = 0; i < this.stateDim; i++) {
+            this.w1[i][actionIdx % 16] += lr * ppoGrad * stateVec[i] * 0.08;
+          }
+        } else if (this.algorithm === 'SAC') {
+          // Soft Actor-Critic: Maximum Entropy Soft Q-target with temperature alpha
+          const alpha = 0.2;
+          const logSumExp = Math.log(qValues.reduce((acc, q) => acc + Math.exp(Math.min(10, q * 0.1)), 0));
+          const softValue = logSumExp / 0.1;
+          const softTargetQ = stepReward + 0.95 * (softValue - alpha * Math.log(1 / this.actionDim));
+          const softTdError = softTargetQ - qValues[actionIdx];
+          for (let i = 0; i < this.stateDim; i++) {
+            this.w1[i][actionIdx % 16] += lr * softTdError * stateVec[i] * 0.12;
+          }
         }
 
         // Record Transition into Replay Buffer for last episode
@@ -334,14 +375,17 @@ export class DeepMindPlantRlAgent {
       ec: 2.2
     }, cropProfile, plantSimState);
 
-    const dailyGrowthGrams = Math.max(0.05, photo.netPhotosynthesis * 0.082);
+    const netAnVal = (photo && (photo.netAn ?? photo.netPhotosynthesis)) || 0;
+    const fluxVal = (flux && (flux.hourlyPlantFlux ?? flux.luteinFluxRateMgPerHour)) || 0;
+
+    const dailyGrowthGrams = Math.max(0.05, netAnVal * 0.082);
     plantSimState.dryWeightGrams += dailyGrowthGrams;
     const validLutein = isNaN(plantSimState.luteinConcentration) ? (cropProfile.baseLuteinConcentration || 3.5) : plantSimState.luteinConcentration;
-    plantSimState.luteinConcentration = Math.min(18.5, validLutein + flux.luteinFluxRateMgPerHour * 0.04);
+    plantSimState.luteinConcentration = Math.min(18.5, validLutein + fluxVal * 0.04);
 
     const dailyPowerKwh = ((envState.ppfd / 2.8 * 0.8) + Math.abs(envState.airTemp - 22.0) * 12.0 + 35.0) * 16.0 / 1000.0;
     const vpdStressPenalty = Math.max(0.0, Math.abs(envState.vpd - 1.05) - 0.35) * weights.stress;
-    const stepReward = (flux.luteinFluxRateMgPerHour * weights.yield) + 
+    const stepReward = (fluxVal * weights.yield) + 
                        (dailyGrowthGrams * weights.biomass) - 
                        (dailyPowerKwh * weights.energy) - 
                        vpdStressPenalty;
@@ -361,7 +405,8 @@ export class DeepMindPlantRlAgent {
       stateVec,
       envState: { ...envState },
       plantSimState: { ...plantSimState },
-      netPhotosynthesis: photo.netPhotosynthesis
+      netAn: netAnVal,
+      netPhotosynthesis: netAnVal
     };
   }
 
@@ -676,3 +721,5 @@ export class DeepMindPlantRlAgent {
     ctx.restore();
   }
 }
+
+export const DeepMindRLAgent = DeepMindPlantRlAgent;

@@ -154,8 +154,6 @@ export class ThreePlantChamber {
       reflectivity: 0.95,
       clearcoat: 1.0,
       clearcoatRoughness: 0.03,
-      specularIntensity: 2.0,
-      specularColor: new THREE.Color(0xffffff),
       side: THREE.DoubleSide,
       depthWrite: false
     });

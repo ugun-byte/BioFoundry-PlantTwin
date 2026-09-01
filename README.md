@@ -63,14 +63,17 @@ open http://localhost:3007
 
 ---
 
-## 🗓️ 5. 연구 로드맵 및 마일스톤
+## 🗓️ 5. 연구 로드맵 및 마일스톤 (Milestones)
 
 - [x] **Phase 1: 실시간 생물리학/분자합성 시뮬레이션 코어 & 3D 챔버 및 9대 생체 진단기 구축** (완료 ✅)
-- [ ] **Phase 2: Plant2Human AI (localhost:3006)와 실시간 양방향 데이터 브릿지 연동**
-- [ ] **Phase 3: 2호/3호 기능성 원료 라이브러리 확장 (안토시아닌, 레스베라트롤, 설포라판)**
-- [ ] **Phase 4: Google DeepMind 강화학습(RL) 기반 AI 자율 재배 에이전트 탑재**
+- [x] **Phase 2: Plant2Human AI (localhost:3006)와 실시간 양방향 데이터 브릿지 연동** (완료 ✅)
+- [x] **Phase 3: 2호/3호 기능성 원료 라이브러리 확장 (안토시아닌, 레스베라트롤, 설포라판, 아스타잔틴)** (완료 ✅)
+- [x] **Phase 4: 심층 강화학습(RL DQN/PPO/SAC) 및 다목적 파레토 최적화 자율 에이전트 탑재** (완료 ✅)
+- [ ] **Phase 5: 상용 스마트팜 온실 실시간 PLC/Modbus-TCP 실제 하드웨어 제어기 소켓 릴레이 드라이버 연동** (차기 과제 ⏳)
+- [ ] **Phase 6: GMP 규격 바이오 의약품 생산 인증(CoA) 자동 발행 PDF/QR 리포트 시스템** (차기 과제 ⏳)
 
 ---
 
 ## 📄 라이선스 (License)
-Apache-2.0 License
+
+This project is licensed under the **Apache-2.0 License** - see the [LICENSE](LICENSE) file for details.

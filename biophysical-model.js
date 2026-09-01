@@ -130,6 +130,7 @@ export class BioPhysicalEngine {
 
     return {
       netAn: parseFloat(An.toFixed(2)),
+      netPhotosynthesis: parseFloat(An.toFixed(2)), // Compatibility alias
       grossAg: parseFloat((An + Rd).toFixed(2)),
       vcmax: parseFloat(Vcmax.toFixed(1)),
       jmax: parseFloat(Jmax.toFixed(1)),
@@ -176,6 +177,7 @@ export class BioPhysicalEngine {
     return {
       dailyFluxPerGram: parseFloat(dailyFluxPerGram.toFixed(4)),
       hourlyPlantFlux: parseFloat(hourlyPlantFlux.toFixed(4)),
+      luteinFluxRateMgPerHour: parseFloat(hourlyPlantFlux.toFixed(4)), // Compatibility alias
       psyEnzymeActivityRatio: parseFloat((blueActivation * uvbActivation).toFixed(2)),
       stressMultiplier: parseFloat((coldActivation * ecStressFactor).toFixed(2))
     };
