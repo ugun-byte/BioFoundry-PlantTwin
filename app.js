@@ -599,14 +599,21 @@ const DOM = {
 
 function populateCropDropdown(selectedId = null) {
   const profiles = profileManager.getAllProfiles();
+  const isEn = i18n.getLanguage() === "en";
   DOM.cropSelect.innerHTML = "";
   profiles.forEach((p) => {
     const opt = document.createElement("option");
     opt.value = p.id;
-    opt.textContent = `${p.name} (${p.scientificName})`;
+    const nameStr = isEn && p.nameEn ? p.nameEn : p.name;
+    opt.textContent = `${nameStr} (${p.scientificName})`;
     if (selectedId && p.id === selectedId) opt.selected = true;
     DOM.cropSelect.appendChild(opt);
   });
+  const activeCrop = profileManager.getActiveProfile();
+  if (activeCrop && DOM.metaTargetMolecule) {
+    const molStr = isEn && activeCrop.targetMoleculeEn ? activeCrop.targetMoleculeEn : activeCrop.targetMolecule;
+    DOM.metaTargetMolecule.textContent = `${molStr} (${activeCrop.chemicalFormula})`;
+  }
 }
 
 function initApp() {
@@ -1382,7 +1389,7 @@ function initDraggableTools() {
       audio.playClick();
       const isExpanded = wrapper.classList.toggle("is-expanded");
       if (toggleText) {
-        toggleText.textContent = isExpanded ? "접기 ▴" : "펼치기 ▾";
+        toggleText.textContent = i18n.t(isExpanded ? "toolsCollapse" : "toolsExpand");
       }
       const icon = toggleBtn.querySelector("svg");
       if (icon) {
@@ -1469,6 +1476,17 @@ function bindEventListeners() {
       const nextLang = current === "ko" ? "en" : "ko";
       i18n.setLanguage(nextLang);
       populateCropDropdown(profileManager.getActiveProfile().id);
+
+      // Re-render active view if on subviews
+      const activeTab = document.querySelector(".nav-tab-btn.active");
+      if (activeTab) {
+        const tabKey = activeTab.getAttribute("data-tab");
+        if (tabKey === "telemetry" && typeof renderScadaTelemetryView === "function") renderScadaTelemetryView();
+        else if (tabKey === "optimization" && typeof renderOptimizationStudioView === "function") renderOptimizationStudioView(currentOptimizationObjective);
+        else if (tabKey === "rlstudio" && typeof renderRlStudioView === "function") renderRlStudioView();
+        else if (tabKey === "experiments" && typeof renderExperimentsLabView === "function") renderExperimentsLabView();
+        else if (tabKey === "reports" && typeof renderGmpReportView === "function") renderGmpReportView();
+      }
     });
   }
 
