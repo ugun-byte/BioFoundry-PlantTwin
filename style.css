@@ -2043,3 +2043,62 @@ input:checked + .switch-slider:before {
   transform: translateX(16px);
 }
 
+/* ==========================================================================
+   GMP Certificate of Analysis (CoA) High-Resolution A4 Print Stylesheet
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #coaReportModal,
+  #coaReportModal .modal-content,
+  #printableCoaArea,
+  #printableCoaArea * {
+    visibility: visible;
+  }
+
+  #coaReportModal {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    background: transparent !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  #coaReportModal .modal-header,
+  #coaReportModal button,
+  #coaReportModal .modal-close {
+    display: none !important;
+  }
+
+  #printableCoaArea {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+}
+
