@@ -41,6 +41,18 @@ export class IndustrialIoTBridge {
   }
 
   /**
+   * Returns formatted Modbus-TCP holding registers with address and rawHex fields
+   */
+  getModbusRegisters(envTele = {}, bioState = {}, actuators = {}) {
+    const rawMap = this.generateModbusRegisterMap(envTele, bioState, actuators);
+    return rawMap.map(r => ({
+      ...r,
+      address: r.addr,
+      rawHex: "0x" + ((r.value || 0) & 0xFFFF).toString(16).padStart(4, "0").toUpperCase()
+    }));
+  }
+
+  /**
    * Builds Hexadecimal Modbus-TCP Frame Simulation (Function Code 03: Read Holding Registers)
    */
   generateModbusTcpHexFrame() {

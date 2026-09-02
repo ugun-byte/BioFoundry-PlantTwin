@@ -25,6 +25,8 @@ const aiOptimizer = new AutonomousAiOptimizer();
 const diurnalScheduler = new DiurnalScheduler();
 const i18n = new I18nManager();
 const iotBridge = new IndustrialIoTBridge("chamber_bio_01");
+window.iotBridge = iotBridge;
+window.industrialIotBridge = iotBridge;
 const rlAgent = new DeepMindPlantRlAgent();
 
 let plantChamber3d = null;
@@ -5075,11 +5077,14 @@ function renderScadaTelemetryView() {
   }
 
   // Modbus Registers & Hex Dump
-  if (DOM.scadaModbusTableBody && industrialIotBridge) {
-    const registers = industrialIotBridge.getModbusRegisters();
-    DOM.scadaModbusTableBody.innerHTML = registers.slice(0, 8).map(reg => `
+  if (DOM.scadaModbusTableBody && typeof iotBridge !== "undefined") {
+    const registers = iotBridge.getModbusRegisters(envTele, plantState, {
+      acidPump: envTele.phPid ? envTele.phPid.acidPumpActive : false,
+      basePump: envTele.phPid ? envTele.phPid.basePumpActive : false
+    });
+    DOM.scadaModbusTableBody.innerHTML = registers.slice(0, 16).map(reg => `
       <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-        <td style="padding: 5px 10px; color: #fbbf24; font-family: monospace;">${reg.address}</td>
+        <td style="padding: 5px 10px; color: #fbbf24; font-family: monospace;">${reg.address || reg.addr}</td>
         <td style="padding: 5px 10px; font-weight: 600; color: #fff;">${reg.name}</td>
         <td style="padding: 5px 10px; font-family: monospace; color: #34d399;">${reg.rawHex} (${reg.value})</td>
         <td style="padding: 5px 10px; color: var(--text-muted);">${reg.scale}</td>
@@ -5089,7 +5094,8 @@ function renderScadaTelemetryView() {
     `).join("");
 
     if (DOM.scadaModbusHexDump) {
-      DOM.scadaModbusHexDump.textContent = `[TX] 0x01 0x03 0x00 0x01 0x00 0x10 0x15 0xC6 | [RX] 0x01 0x03 0x20 ${registers.slice(0, 8).map(r => r.rawHex).join(" ")} ... [CRC-16 OK]`;
+      const hexList = registers.slice(0, 16).map(r => r.rawHex.replace("0x", "")).join(" ");
+      DOM.scadaModbusHexDump.textContent = `[TX] 0x01 0x03 0x00 0x01 0x00 0x10 0x15 0xC6 | [RX] 0x01 0x03 0x20 ${hexList} ... [CRC-16 OK]`;
     }
   }
 }

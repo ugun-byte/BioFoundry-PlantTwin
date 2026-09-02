@@ -9,6 +9,7 @@
 
 import net from 'net';
 import http from 'http';
+import crypto from 'crypto';
 
 const MODBUS_PORT = process.env.MODBUS_PORT || 5020;
 const HTTP_WS_PORT = process.env.WS_PORT || 8092;
@@ -135,7 +136,6 @@ httpServer.on('upgrade', (req, socket, head) => {
     return;
   }
 
-  const crypto = awaitImportCrypto();
   const acceptKey = crypto.createHash('sha1')
     .update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
     .digest('base64');
@@ -237,19 +237,6 @@ function sendWsMessage(socket, obj) {
 
 function broadcastToWebClients(obj) {
   webSockets.forEach(sock => sendWsMessage(sock, obj));
-}
-
-function awaitImportCrypto() {
-  const cryptoModule = net.crypto || (globalThis.crypto ? { createHash: (algo) => {
-    // Node standard import
-    return importSyncCrypto();
-  }} : null);
-  return cryptoModule;
-}
-
-import crypto from 'crypto';
-function importSyncCrypto() {
-  return crypto;
 }
 
 httpServer.listen(HTTP_WS_PORT, () => {
