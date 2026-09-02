@@ -17,23 +17,26 @@ export class IndustrialIoTBridge {
     const s = envTele.sensors || {};
     const p = bioState || {};
 
+    const isPlcConnected = this.isPlcConnected;
+    const realOrSim = isPlcConnected ? "REAL" : "SIM";
+
     const registers = [
-      { addr: 40001, name: "SETPOINT_PPFD", value: Math.round(s.ppfd || 450), unit: "μmol/m²s", scale: 1, type: "INT16", desc: "LED 광량 제어 설정값" },
-      { addr: 40002, name: "ACTUAL_PPFD", value: Math.round(s.ppfd || 450), unit: "μmol/m²s", scale: 1, type: "INT16", desc: "챔버 상단 실제 광량 센서" },
-      { addr: 40003, name: "ACTUAL_AIR_TEMP", value: Math.round((s.airTemp || 24.0) * 10), unit: "0.1 °C", scale: 0.1, type: "INT16", desc: "챔버 내부 대기 온도" },
-      { addr: 40004, name: "ACTUAL_LEAF_TEMP", value: Math.round((p.leafTemp || 22.5) * 10), unit: "0.1 °C", scale: 0.1, type: "INT16", desc: "IR 비접촉 엽온 센서" },
-      { addr: 40005, name: "ACTUAL_HUMIDITY", value: Math.round((s.humidity || 65.0) * 10), unit: "0.1 %", scale: 0.1, type: "INT16", desc: "상대 습도 (RH)" },
-      { addr: 40006, name: "ACTUAL_CO2", value: Math.round(s.co2 || 800), unit: "ppm", scale: 1, type: "INT16", desc: "NDIR CO2 가스 센서" },
-      { addr: 40007, name: "ACTUAL_EC", value: Math.round((s.ec || 2.2) * 100), unit: "0.01 dS/m", scale: 0.01, type: "INT16", desc: "양액 전기전도도 (EC)" },
-      { addr: 40008, name: "ACTUAL_PH", value: Math.round((s.ph || 6.2) * 100), unit: "0.01 pH", scale: 0.01, type: "INT16", desc: "근권 순환 양액 산도 (pH)" },
-      { addr: 40009, name: "VPD_DEFICIT", value: Math.round((s.vpd || 1.05) * 100), unit: "0.01 kPa", scale: 0.01, type: "INT16", desc: "포화수증기압차 (VPD)" },
-      { addr: 40010, name: "SAP_FLUX_DENSITY", value: Math.round((p.sapFluxDensity || 16.4) * 10), unit: "0.1 cm/h", scale: 0.1, type: "INT16", desc: "TDP 도관 수액 유속 밀도 (Js)" },
-      { addr: 40011, name: "CWSI_STRESS_INDEX", value: Math.round((p.cwsi || 0.15) * 100), unit: "%", scale: 1, type: "INT16", desc: "식물 수분 스트레스 지수" },
-      { addr: 40012, name: "STOMATAL_GS", value: Math.round((p.gs || 0.38) * 1000), unit: "mmol/m²s", scale: 0.001, type: "INT16", desc: "기공전도도 (gs)" },
-      { addr: 40013, name: "METABOLITE_ACCUM", value: Math.round((p.totalMetabolite || 18.5) * 10), unit: "0.1 mg", scale: 0.1, type: "INT16", desc: "유효 대사체 총 축적량" },
-      { addr: 40014, name: "PUMP_ACID_ACTIVE", value: (actuators.acidPump ? 1 : 0), unit: "BOOL", scale: 1, type: "UINT16", desc: "HNO3 산 중화 펌프 릴레이" },
-      { addr: 40015, name: "PUMP_BASE_ACTIVE", value: (actuators.basePump ? 1 : 0), unit: "BOOL", scale: 1, type: "UINT16", desc: "KOH 알칼리 중화 펌프 릴레이" },
-      { addr: 40016, name: "LIGHT_RELAY_STATE", value: (s.isLightOn ? 1 : 0), unit: "BOOL", scale: 1, type: "UINT16", desc: "주간 LED 조명 메인 릴레이" }
+      { addr: 40001, name: "SETPOINT_PPFD", value: Math.round(s.ppfd || 450), unit: "μmol/m²s", scale: 1, type: "INT16", source: "SET", desc: "LED 광량 제어 설정값" },
+      { addr: 40002, name: "ACTUAL_PPFD", value: Math.round(s.ppfd || 450), unit: "μmol/m²s", scale: 1, type: "INT16", source: realOrSim, desc: "챔버 상단 실제 광량 센서" },
+      { addr: 40003, name: "ACTUAL_AIR_TEMP", value: Math.round((s.airTemp || 24.0) * 10), unit: "0.1 °C", scale: 0.1, type: "INT16", source: realOrSim, desc: "챔버 내부 대기 온도" },
+      { addr: 40004, name: "ACTUAL_LEAF_TEMP", value: Math.round((p.leafTemp || 22.5) * 10), unit: "0.1 °C", scale: 0.1, type: "INT16", source: "SIM", desc: "IR 엽온 에너지수지 모델" },
+      { addr: 40005, name: "ACTUAL_HUMIDITY", value: Math.round((s.humidity || 65.0) * 10), unit: "0.1 %", scale: 0.1, type: "INT16", source: realOrSim, desc: "상대 습도 (RH)" },
+      { addr: 40006, name: "ACTUAL_CO2", value: Math.round(s.co2 || 800), unit: "ppm", scale: 1, type: "INT16", source: realOrSim, desc: "NDIR CO2 가스 센서" },
+      { addr: 40007, name: "ACTUAL_EC", value: Math.round((s.ec || 2.2) * 100), unit: "0.01 dS/m", scale: 0.01, type: "INT16", source: realOrSim, desc: "양액 전기전도도 (EC)" },
+      { addr: 40008, name: "ACTUAL_PH", value: Math.round((s.ph || 6.2) * 100), unit: "0.01 pH", scale: 0.01, type: "INT16", source: realOrSim, desc: "근권 순환 양액 산도 (pH)" },
+      { addr: 40009, name: "VPD_DEFICIT", value: Math.round((s.vpd || 1.05) * 100), unit: "0.01 kPa", scale: 0.01, type: "INT16", source: "CALC", desc: "포화수증기압차 (VPD)" },
+      { addr: 40010, name: "SAP_FLUX_DENSITY", value: Math.round((p.sapFluxDensity || 16.4) * 10), unit: "0.1 cm/h", scale: 0.1, type: "INT16", source: "SIM", desc: "TDP 도관 수액 유속 모델 (Js)" },
+      { addr: 40011, name: "CWSI_STRESS_INDEX", value: Math.round((p.cwsi || 0.15) * 100), unit: "%", scale: 1, type: "INT16", source: "SIM", desc: "식물 수분 스트레스 지수" },
+      { addr: 40012, name: "STOMATAL_GS", value: Math.round((p.gs || 0.38) * 1000), unit: "mmol/m²s", scale: 0.001, type: "INT16", source: "SIM", desc: "Ball-Berry 기공전도도 (gs)" },
+      { addr: 40013, name: "METABOLITE_ACCUM", value: Math.round((p.totalMetabolite || 18.5) * 10), unit: "0.1 mg", scale: 0.1, type: "INT16", source: "SIM", desc: "유효 대사체 생합성 축적 모델" },
+      { addr: 40014, name: "PUMP_ACID_ACTIVE", value: (actuators.acidPump ? 1 : 0), unit: "BOOL", scale: 1, type: "UINT16", source: "ACT", desc: "HNO3 산 중화 펌프 릴레이" },
+      { addr: 40015, name: "PUMP_BASE_ACTIVE", value: (actuators.basePump ? 1 : 0), unit: "BOOL", scale: 1, type: "UINT16", source: "ACT", desc: "KOH 알칼리 중화 펌프 릴레이" },
+      { addr: 40016, name: "LIGHT_RELAY_STATE", value: (s.isLightOn ? 1 : 0), unit: "BOOL", scale: 1, type: "UINT16", source: "ACT", desc: "주간 LED 조명 메인 릴레이" }
     ];
 
     this.lastModbusMap = registers;

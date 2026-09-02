@@ -738,6 +738,7 @@ function initApp() {
   bindEventListeners();
   buildParamEditor();
   resetPlantState();
+  updatePlcConnectionUI(false);
 
   // Trigger initial resize once the layout has fully settled in the DOM
   setTimeout(() => {
@@ -4018,6 +4019,35 @@ function togglePlcHardwareDaemon() {
 }
 
 function updatePlcConnectionUI(connected) {
+  if (typeof iotBridge !== "undefined") {
+    iotBridge.isPlcConnected = connected;
+  }
+
+  // Dynamically toggle sensor badges between REAL (live hardware) and SIM (standalone twin)
+  const badgeMap = [
+    { id: "badgeSensPpfd", name: "PPFD" },
+    { id: "badgeSensRh", name: "RH" },
+    { id: "badgeSensAirTemp", name: "Temp" },
+    { id: "badgeSensCo2", name: "CO2" },
+    { id: "badgeSensEc", name: "EC" },
+    { id: "metaPpfdBadge", name: "PPFD" }
+  ];
+
+  badgeMap.forEach(item => {
+    const el = document.getElementById(item.id);
+    if (el) {
+      if (connected) {
+        el.className = "data-badge-real";
+        el.textContent = "REAL";
+        el.title = "실시간 PLC 온실 하드웨어 센서 수신치 (Live Hardware)";
+      } else {
+        el.className = "data-badge-sim";
+        el.textContent = "SIM";
+        el.title = "디지털 트윈 환경 시뮬레이터 모델치 (Standalone Twin)";
+      }
+    }
+  });
+
   if (DOM.plcDaemonStatusBadge) {
     if (connected) {
       DOM.plcDaemonStatusBadge.textContent = "🟢 실시간 PLC 연결됨 (Live Link)";
@@ -5329,16 +5359,33 @@ function renderScadaTelemetryView() {
       acidPump: envTele.phPid ? envTele.phPid.acidPumpActive : false,
       basePump: envTele.phPid ? envTele.phPid.basePumpActive : false
     });
-    DOM.scadaModbusTableBody.innerHTML = registers.slice(0, 16).map(reg => `
-      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-        <td style="padding: 5px 10px; color: #fbbf24; font-family: monospace;">${reg.address || reg.addr}</td>
-        <td style="padding: 5px 10px; font-weight: 600; color: #fff;">${reg.name}</td>
-        <td style="padding: 5px 10px; font-family: monospace; color: #34d399;">${reg.rawHex} (${reg.value})</td>
-        <td style="padding: 5px 10px; color: var(--text-muted);">${reg.scale}</td>
-        <td style="padding: 5px 10px; color: var(--text-secondary);">${reg.unit}</td>
-        <td style="padding: 5px 10px; color: var(--text-muted);">${reg.desc}</td>
-      </tr>
-    `).join("");
+    DOM.scadaModbusTableBody.innerHTML = registers.slice(0, 16).map(reg => {
+      let badgeHtml = '';
+      const src = reg.source || 'SIM';
+      if (src === 'REAL') {
+        badgeHtml = `<span class="data-badge-real" title="PLC 온실 실제 계측치">REAL 실측</span>`;
+      } else if (src === 'SIM') {
+        badgeHtml = `<span class="data-badge-sim" title="생물리 트윈 모델 연산치">SIM 모델</span>`;
+      } else if (src === 'CALC') {
+        badgeHtml = `<span class="data-badge-calc" title="수학적 산출치">CALC 산출</span>`;
+      } else if (src === 'SET') {
+        badgeHtml = `<span class="data-badge-set" title="사용자/AI 설정값">SET 설정</span>`;
+      } else {
+        badgeHtml = `<span class="data-badge-act" title="제어 릴레이/액추에이터">ACT 제어</span>`;
+      }
+
+      return `
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+          <td style="padding: 5px 10px; color: #fbbf24; font-family: monospace;">${reg.address || reg.addr}</td>
+          <td style="padding: 5px 10px;">${badgeHtml}</td>
+          <td style="padding: 5px 10px; font-weight: 600; color: #fff;">${reg.name}</td>
+          <td style="padding: 5px 10px; font-family: monospace; color: #34d399;">${reg.rawHex} (${reg.value})</td>
+          <td style="padding: 5px 10px; color: var(--text-muted);">${reg.scale}</td>
+          <td style="padding: 5px 10px; color: var(--text-secondary);">${reg.unit}</td>
+          <td style="padding: 5px 10px; color: var(--text-muted);">${reg.desc}</td>
+        </tr>
+      `;
+    }).join("");
 
     if (DOM.scadaModbusHexDump) {
       const hexList = registers.slice(0, 16).map(r => r.rawHex.replace("0x", "")).join(" ");

@@ -548,15 +548,19 @@ body {
   justify-content: space-between;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .panel-heading {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 800;
   color: #fff;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .panel-actions {
@@ -1431,12 +1435,16 @@ input:checked + .switch-slider:before {
   display: flex;
   align-items: center;
   gap: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tele-name {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
   color: #ffffff;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tele-unit {
@@ -2115,3 +2123,95 @@ input:checked + .switch-slider:before {
   }
 }
 
+/* ==========================================================================
+   7. B2B Transparent Data Source Badges (REAL vs SIM vs CALC)
+   ========================================================================== */
+.data-badge-real {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  background: rgba(16, 185, 129, 0.16);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  vertical-align: middle;
+  line-height: 1.1;
+}
+
+.data-badge-sim {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  background: rgba(168, 85, 247, 0.16);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  vertical-align: middle;
+  line-height: 1.1;
+}
+
+.data-badge-calc {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  background: rgba(56, 189, 248, 0.16);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  vertical-align: middle;
+  line-height: 1.1;
+}
+
+.data-badge-set {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  background: rgba(251, 191, 36, 0.16);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  vertical-align: middle;
+  line-height: 1.1;
+}
+
+.data-badge-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  background: rgba(244, 63, 94, 0.16);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.4);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  vertical-align: middle;
+  line-height: 1.1;
+}
