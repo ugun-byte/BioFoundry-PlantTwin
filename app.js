@@ -3238,25 +3238,6 @@ function selectP2hMolecule(cropId) {
 }
 window.selectP2hMolecule = selectP2hMolecule;
 
-function updatePlant2HumanJsonScreens() {
-  const crop = profileManager.getActiveProfile();
-  const envTele = envEngine.getLiveSensorTelemetry();
-  const instantPhoto = bioEngine.calculateInstantaneousPhotosynthesis(envTele.sensors, crop);
-  const hplc = bioEngine.calculateHplcChromatogram(envTele.sensors, crop, plantState);
-  const res = aiOptimizer.searchOptimalEnvironment(crop, currentOptimizationObjective);
-
-  const incomingPayload = {
-    source: "Plant2Human_AI_OS",
-    endpoint: "http://localhost:3006/api/discovery/pipeline",
-    targetMolecule: crop.targetMolecule,
-    chemicalFormula: crop.chemicalFormula,
-    pubchemCid: crop.pubchemCid,
-    molecularWeight: crop.molecularWeight,
-    targetOrgan: "Human Cellular Receptors",
-    therapeuticIndication: crop.name.includes("메리골드") ? "황반변성(AMD) 억제 & 블루라이트 흡수" : (crop.name.includes("포도") ? "SIRT1 장수 유전자 활성화" : "Nrf2 항산화 경로 촉진"),
-    purityStandardRequired: "≥ 90.0% (Pharma Grade)"
-  };
-
 function getP2hEndpoint() {
   let saved = localStorage.getItem("plant2human_endpoint_url");
   if (!saved) {
