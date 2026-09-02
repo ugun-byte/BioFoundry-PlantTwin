@@ -3257,6 +3257,9 @@ function selectP2hMolecule(cropId) {
     const isEn = i18n.getLanguage() === "en";
     const targetName = isEn && crop.targetMoleculeEn ? crop.targetMoleculeEn : crop.targetMolecule;
     DOM.metaTargetMolecule.textContent = `${targetName} (${crop.chemicalFormula})`;
+    if (telemetryCharts) {
+      telemetryCharts.setTargetMolecule(crop.targetMolecule, crop.targetMoleculeEn);
+    }
     if (plantChamber3d) plantChamber3d.setCropSpecies(crop);
     buildParamEditor();
     resetPlantState();
@@ -5297,7 +5300,12 @@ function submitNewCropForm() {
   }
 
   DOM.newCropModal.classList.remove("active");
-  alert(`✨ [${registered.name}] 신규 작물이 바이오파운드리에 등록되었습니다!`);
+  triggerSirenAlarm(
+    "신규 작물 바이오파운드리 등록 완료",
+    `[${registered.name}] (타깃: ${registered.targetMolecule}) 디지털 트윈 생물리 모델이 로드되었습니다.`,
+    "New Plant Species Registered",
+    `[${registered.name}] (Target: ${registered.targetMolecule}) digital twin model loaded.`
+  );
 }
 
 function fillPresetForm(key) {
