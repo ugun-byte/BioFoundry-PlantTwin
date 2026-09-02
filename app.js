@@ -1795,14 +1795,9 @@ function bindEventListeners() {
   bindTwoWayControl(DOM.sliderEc, DOM.inputEc, (val) => envEngine.updateSetpoints({ ecTarget: val }));
   bindTwoWayControl(DOM.sliderPh, DOM.inputPh, (val) => envEngine.updateSetpoints({ phTarget: val }));
 
-  // Helper UI updater functions for toggles
+  // Helper UI updater functions for toggles (active/disabled state for input fields)
   function updateUvbSwitchUI(checked) {
-    const badge = document.getElementById("lblUvbStatus");
     const input = document.getElementById("inputUvb");
-    if (badge) {
-      badge.textContent = checked ? "ON" : "OFF";
-      badge.className = checked ? "switch-status-badge on purple" : "switch-status-badge off";
-    }
     if (input) {
       input.className = checked ? "slider-num-input is-active" : "slider-num-input is-disabled";
     }
@@ -1810,25 +1805,14 @@ function bindEventListeners() {
   window.updateUvbSwitchUI = updateUvbSwitchUI;
 
   function updateColdShiftSwitchUI(checked) {
-    const badge = document.getElementById("lblColdShiftStatus");
     const input = document.getElementById("inputColdShift");
-    if (badge) {
-      badge.textContent = checked ? "ON" : "OFF";
-      badge.className = checked ? "switch-status-badge on" : "switch-status-badge off";
-    }
     if (input) {
       input.className = checked ? "slider-num-input is-active" : "slider-num-input is-disabled";
     }
   }
   window.updateColdShiftSwitchUI = updateColdShiftSwitchUI;
 
-  function updateVppSwitchUI(checked) {
-    const badge = document.getElementById("lblVppToggleStatus");
-    if (badge) {
-      badge.textContent = checked ? "ON" : "OFF";
-      badge.className = checked ? "switch-status-badge on" : "switch-status-badge off";
-    }
-  }
+  function updateVppSwitchUI() {}
   window.updateVppSwitchUI = updateVppSwitchUI;
 
   // Initialize switch visual states
