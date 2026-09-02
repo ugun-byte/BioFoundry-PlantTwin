@@ -392,6 +392,12 @@ const DOM = {
   p2hOutgoingJson: document.getElementById("p2hOutgoingJson"),
   btnP2hFetch: document.getElementById("btnP2hFetch"),
   btnP2hPush: document.getElementById("btnP2hPush"),
+  p2hEndpointInput: document.getElementById("p2hEndpointInput"),
+  btnP2hPing: document.getElementById("btnP2hPing"),
+  btnP2hAutoDetect: document.getElementById("btnP2hAutoDetect"),
+  p2hStatusDot: document.getElementById("p2hStatusDot"),
+  p2hStatusBadge: document.getElementById("p2hStatusBadge"),
+  p2hPingLatency: document.getElementById("p2hPingLatency"),
   p2hCardLutein: document.getElementById("p2hCardLutein"),
   p2hCardResveratrol: document.getElementById("p2hCardResveratrol"),
   p2hCardSulforaphane: document.getElementById("p2hCardSulforaphane"),
@@ -1968,6 +1974,26 @@ function bindEventListeners() {
   if (DOM.btnP2hPush) {
     DOM.btnP2hPush.addEventListener("click", pushPlant2HumanRecipe);
   }
+  if (DOM.btnP2hPing) {
+    DOM.btnP2hPing.addEventListener("click", () => {
+      audio.playClick();
+      const url = DOM.p2hEndpointInput ? DOM.p2hEndpointInput.value.trim() : "";
+      pingPlant2Human(url);
+    });
+  }
+  if (DOM.btnP2hAutoDetect) {
+    DOM.btnP2hAutoDetect.addEventListener("click", () => {
+      audio.playClick();
+      autoDetectPlant2HumanEndpoint();
+    });
+  }
+  if (DOM.p2hEndpointInput) {
+    DOM.p2hEndpointInput.addEventListener("change", (e) => {
+      const url = e.target.value.trim();
+      localStorage.setItem("plant2human_endpoint_url", url);
+      pingPlant2Human(url);
+    });
+  }
   if (DOM.p2hCardLutein) DOM.p2hCardLutein.addEventListener("click", () => selectP2hMolecule("marigold_lutein"));
   if (DOM.p2hCardResveratrol) DOM.p2hCardResveratrol.addEventListener("click", () => selectP2hMolecule("grape_resveratrol"));
   if (DOM.p2hCardSulforaphane) DOM.p2hCardSulforaphane.addEventListener("click", () => selectP2hMolecule("kale_antioxidant"));
@@ -3174,7 +3200,11 @@ function exportIseDataCSV() {
 // ------------------------------------------------------------------------
 function openPlant2HumanModal() {
   audio.playCloudSyncSound();
+  if (DOM.p2hEndpointInput) {
+    DOM.p2hEndpointInput.value = getP2hEndpoint();
+  }
   updatePlant2HumanJsonScreens();
+  pingPlant2Human();
   if (DOM.plant2HumanModal) {
     DOM.plant2HumanModal.classList.add("active");
   }
@@ -3227,11 +3257,133 @@ function updatePlant2HumanJsonScreens() {
     purityStandardRequired: "≥ 90.0% (Pharma Grade)"
   };
 
+function getP2hEndpoint() {
+  let saved = localStorage.getItem("plant2human_endpoint_url");
+  if (!saved) {
+    const host = window.location.hostname || "localhost";
+    saved = (host === "localhost" || host === "127.0.0.1")
+      ? "http://localhost:3006"
+      : `http://${host}:3006`;
+  }
+  return saved.replace(/\/+$/, "");
+}
+
+function autoDetectPlant2HumanEndpoint() {
+  const host = window.location.hostname || "localhost";
+  const autoUrl = (host === "localhost" || host === "127.0.0.1")
+    ? "http://localhost:3006"
+    : `http://${host}:3006`;
+  
+  if (DOM.p2hEndpointInput) {
+    DOM.p2hEndpointInput.value = autoUrl;
+  }
+  localStorage.setItem("plant2human_endpoint_url", autoUrl);
+  pingPlant2Human(autoUrl);
+}
+
+async function pingPlant2Human(endpointUrl = null) {
+  const url = (endpointUrl || getP2hEndpoint()).replace(/\/+$/, "");
+  if (DOM.p2hStatusBadge) {
+    DOM.p2hStatusBadge.textContent = "🔄 PING (연결 확인 중...)";
+    DOM.p2hStatusBadge.style.background = "rgba(56,189,248,0.2)";
+    DOM.p2hStatusBadge.style.color = "#38bdf8";
+  }
+
+  const t0 = performance.now();
+  let isOnline = false;
+
+  try {
+    // 1. Try Direct Fetch first with short timeout
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2000);
+    const resp = await fetch(`${url}/api/discovery/pipeline`, {
+      method: "GET",
+      signal: controller.signal,
+      headers: { "Accept": "application/json" }
+    }).catch(() => null);
+    clearTimeout(timer);
+
+    if (resp && resp.ok) {
+      isOnline = true;
+    } else {
+      // 2. Try Backend Proxy in run.js (bypasses browser CORS across different PCs)
+      const proxyResp = await fetch(`/api/p2h-proxy?url=${encodeURIComponent(`${url}/api/discovery/pipeline`)}`).catch(() => null);
+      if (proxyResp && proxyResp.ok) {
+        const pData = await proxyResp.json().catch(() => null);
+        if (pData && !pData.isOffline) {
+          isOnline = true;
+        }
+      }
+    }
+  } catch (e) {
+    isOnline = false;
+  }
+
+  const elapsed = Math.round(performance.now() - t0);
+
+  if (DOM.p2hStatusDot && DOM.p2hStatusBadge && DOM.p2hPingLatency) {
+    if (isOnline) {
+      DOM.p2hStatusDot.style.background = "#34d399";
+      DOM.p2hStatusDot.style.boxShadow = "0 0 10px #34d399";
+      DOM.p2hStatusBadge.textContent = "🟢 ONLINE REST (실시간 연동)";
+      DOM.p2hStatusBadge.style.background = "rgba(16,185,129,0.2)";
+      DOM.p2hStatusBadge.style.color = "#34d399";
+      DOM.p2hStatusBadge.style.borderColor = "rgba(16,185,129,0.4)";
+      DOM.p2hPingLatency.textContent = `Ping: ${elapsed}ms`;
+      DOM.p2hPingLatency.style.color = "#34d399";
+    } else {
+      DOM.p2hStatusDot.style.background = "#fbbf24";
+      DOM.p2hStatusDot.style.boxShadow = "0 0 10px #fbbf24";
+      DOM.p2hStatusBadge.textContent = "🟡 OFFLINE (로컬 캐시 폴백)";
+      DOM.p2hStatusBadge.style.background = "rgba(251,191,36,0.15)";
+      DOM.p2hStatusBadge.style.color = "#fbbf24";
+      DOM.p2hStatusBadge.style.borderColor = "rgba(251,191,36,0.4)";
+      DOM.p2hPingLatency.textContent = `오프라인 (캐시 동작)`;
+      DOM.p2hPingLatency.style.color = "#fbbf24";
+    }
+  }
+
+  return isOnline;
+}
+
+function updatePlant2HumanJsonScreens(overrideIncoming = null) {
+  const crop = profileManager.getActiveProfile();
+  const envTele = envEngine.getLiveSensorTelemetry();
+  const instantPhoto = bioEngine.calculateInstantaneousPhotosynthesis(envTele.sensors, crop);
+  const hplc = bioEngine.calculateHplcChromatogram(envTele.sensors, crop, plantState);
+  const res = aiOptimizer.searchOptimalEnvironment(crop, currentOptimizationObjective);
+  const endpoint = getP2hEndpoint();
+
+  let incomingPayload = overrideIncoming;
+  if (!incomingPayload) {
+    const cached = localStorage.getItem("p2h_last_synced_incoming");
+    if (cached) {
+      try { incomingPayload = JSON.parse(cached); } catch (e) {}
+    }
+  }
+
+  if (!incomingPayload) {
+    incomingPayload = {
+      source: "Plant2Human_AI_OS",
+      endpoint: `${endpoint}/api/discovery/pipeline`,
+      targetMolecule: crop.targetMolecule,
+      chemicalFormula: crop.chemicalFormula,
+      pubchemCid: crop.pubchemCid,
+      molecularWeight: crop.molecularWeight,
+      targetOrgan: "Human Cellular Receptors",
+      therapeuticIndication: crop.name.includes("메리골드") ? "황반변성(AMD) 억제 & 블루라이트 흡수" : (crop.name.includes("포도") ? "SIRT1 장수 유전자 활성화" : "Nrf2 항산화 경로 촉진"),
+      purityStandardRequired: "≥ 90.0% (Pharma Grade)",
+      mode: "OFFLINE_VERIFIED_FALLBACK"
+    };
+  }
+
   const outgoingPayload = {
     source: "BioFoundry_PlantTwin",
-    endpoint: "http://localhost:3007/api/recipes/optimized",
+    endpoint: `http://${window.location.host}/api/recipes/optimized`,
     cropSpecies: crop.scientificName,
-    predictedLuteinYield: `${plantState.luteinConcentration.toFixed(1)} mg/g DW`,
+    cropName: crop.name,
+    targetMolecule: crop.targetMolecule,
+    predictedYield: `${plantState.luteinConcentration.toFixed(1)} mg/g DW`,
     hplcChromatogramPurity: `${hplc.targetPurityPercent} %`,
     harvestDurationDays: crop.harvestDays,
     optimalRecipe: res.optimalRecipe,
@@ -3243,35 +3395,145 @@ function updatePlant2HumanJsonScreens() {
   if (DOM.p2hOutgoingJson) DOM.p2hOutgoingJson.textContent = JSON.stringify(outgoingPayload, null, 2);
 }
 
-function fetchPlant2HumanData() {
+async function fetchPlant2HumanData() {
   audio.playCloudSyncSound();
+  const endpoint = getP2hEndpoint();
+
   if (DOM.btnP2hFetch) {
-    DOM.btnP2hFetch.textContent = "🔄 Plant2Human 데이터 실시간 수신 완료!";
-    DOM.btnP2hFetch.style.color = "#34d399";
-    setTimeout(() => {
-      DOM.btnP2hFetch.textContent = "⚡ Plant2Human 원료 데이터 수신 (Fetch)";
-      DOM.btnP2hFetch.style.color = "#38bdf8";
-    }, 2500);
+    DOM.btnP2hFetch.textContent = "🔄 실시간 수신 요청 중...";
+    DOM.btnP2hFetch.style.color = "#fbbf24";
   }
-  updatePlant2HumanJsonScreens();
+
+  let receivedData = null;
+  let isDirectSuccess = false;
+
+  try {
+    // 1. Try Direct REST Fetch
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2500);
+    const resp = await fetch(`${endpoint}/api/discovery/pipeline`, {
+      method: "GET",
+      signal: controller.signal,
+      headers: { "Accept": "application/json" }
+    }).catch(() => null);
+    clearTimeout(timer);
+
+    if (resp && resp.ok) {
+      receivedData = await resp.json();
+      isDirectSuccess = true;
+    } else {
+      // 2. Try Backend Proxy Fallback (Cross-PC & Local Network)
+      const proxyResp = await fetch(`/api/p2h-proxy?url=${encodeURIComponent(`${endpoint}/api/discovery/pipeline`)}`).catch(() => null);
+      if (proxyResp && proxyResp.ok) {
+        const pData = await proxyResp.json().catch(() => null);
+        if (pData && !pData.isOffline) {
+          receivedData = pData;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Plant2Human direct fetch error, falling back to local cache:", e);
+  }
+
+  if (receivedData) {
+    localStorage.setItem("p2h_last_synced_incoming", JSON.stringify(receivedData));
+    updatePlant2HumanJsonScreens(receivedData);
+    pingPlant2Human(endpoint);
+
+    if (DOM.btnP2hFetch) {
+      DOM.btnP2hFetch.textContent = "✅ Plant2Human 실시간 수신 완료 (200 OK)!";
+      DOM.btnP2hFetch.style.color = "#34d399";
+      setTimeout(() => {
+        DOM.btnP2hFetch.textContent = "⚡ Plant2Human 원료 데이터 수신 (Fetch)";
+        DOM.btnP2hFetch.style.color = "#38bdf8";
+      }, 2800);
+    }
+  } else {
+    // Graceful Offline Fallback
+    updatePlant2HumanJsonScreens();
+    pingPlant2Human(endpoint);
+
+    if (DOM.btnP2hFetch) {
+      DOM.btnP2hFetch.textContent = "🟡 오프라인 캐시 데이터 복원 완료 (Fallback)";
+      DOM.btnP2hFetch.style.color = "#fbbf24";
+      setTimeout(() => {
+        DOM.btnP2hFetch.textContent = "⚡ Plant2Human 원료 데이터 수신 (Fetch)";
+        DOM.btnP2hFetch.style.color = "#38bdf8";
+      }, 2800);
+    }
+  }
 }
 
-function pushPlant2HumanRecipe() {
+async function pushPlant2HumanRecipe() {
   audio.playCloudSyncSound();
+  const endpoint = getP2hEndpoint();
+
   if (DOM.btnP2hPush) {
-    DOM.btnP2hPush.textContent = "✅ 레시피 Plant2Human으로 피드백 전송 완료!";
-    DOM.btnP2hPush.style.background = "#059669";
-    setTimeout(() => {
-      DOM.btnP2hPush.textContent = "🚀 최적 레시피 Plant2Human으로 피드백 전송 (Push)";
-      DOM.btnP2hPush.style.background = "#10b981";
-    }, 2500);
+    DOM.btnP2hPush.textContent = "🚀 최적 레시피 전송 중...";
+    DOM.btnP2hPush.style.background = "#0284c7";
   }
-  // Try sending postMessage to opener/parent window if embedded
+
+  const payload = DOM.p2hOutgoingJson ? DOM.p2hOutgoingJson.textContent : "{}";
+  let isSuccess = false;
+
+  try {
+    // 1. Direct REST POST
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2500);
+    const resp = await fetch(`${endpoint}/api/recipes/optimized`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      signal: controller.signal
+    }).catch(() => null);
+    clearTimeout(timer);
+
+    if (resp && resp.ok) {
+      isSuccess = true;
+    } else {
+      // 2. Proxy Fallback
+      const proxyResp = await fetch(`/api/p2h-proxy?url=${encodeURIComponent(`${endpoint}/api/recipes/optimized`)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload
+      }).catch(() => null);
+      if (proxyResp && proxyResp.ok) {
+        const pData = await proxyResp.json().catch(() => null);
+        if (pData && !pData.isOffline) isSuccess = true;
+      }
+    }
+  } catch (e) {
+    isSuccess = false;
+  }
+
+  // Cross-Window PostMessage Broadcast
   try {
     if (window.opener) {
-      window.opener.postMessage({ source: "BioFoundry_PlantTwin", type: "RECIPE_FEEDBACK", data: DOM.p2hOutgoingJson.textContent }, "*");
+      window.opener.postMessage({ source: "BioFoundry_PlantTwin", type: "RECIPE_FEEDBACK", data: payload }, "*");
     }
   } catch (e) {}
+
+  if (isSuccess) {
+    if (DOM.btnP2hPush) {
+      DOM.btnP2hPush.textContent = "✅ 레시피 REST API 피드백 전송 완료 (200 OK)!";
+      DOM.btnP2hPush.style.background = "#059669";
+      setTimeout(() => {
+        DOM.btnP2hPush.textContent = "🚀 최적 레시피 Plant2Human으로 피드백 전송 (Push)";
+        DOM.btnP2hPush.style.background = "#10b981";
+      }, 2800);
+    }
+  } else {
+    // Queue for offline sync
+    localStorage.setItem("p2h_pending_outbox", payload);
+    if (DOM.btnP2hPush) {
+      DOM.btnP2hPush.textContent = "📦 오프라인 대기열 저장 완료 (재연결 시 자동 전송)";
+      DOM.btnP2hPush.style.background = "#d97706";
+      setTimeout(() => {
+        DOM.btnP2hPush.textContent = "🚀 최적 레시피 Plant2Human으로 피드백 전송 (Push)";
+        DOM.btnP2hPush.style.background = "#10b981";
+      }, 2800);
+    }
+  }
 }
 
 // ------------------------------------------------------------------------

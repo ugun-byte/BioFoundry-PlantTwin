@@ -8,7 +8,8 @@
     "start": "node run.js",
     "dev": "node run.js",
     "daemon": "node industrial-iot-gateway-daemon.js",
-    "test": "node scratch/test_all_features.js",
+    "test": "node scratch/test_all_features.js && node scratch/test_plc_websocket_handshake.js && node scratch/test_plant2human_rest_bridge.js",
+    "test:network": "node scratch/test_plc_websocket_handshake.js && node scratch/test_plant2human_rest_bridge.js",
     "validate": "node scratch/scientific_benchmark_validation.js"
   },
   "keywords": [

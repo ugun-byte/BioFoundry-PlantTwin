@@ -7,6 +7,7 @@
  */
 
 import http from 'http';
+import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -34,7 +35,131 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
-  let reqPath = decodeURI(req.url.split('?')[0]);
+  // Global CORS Headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
+  const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  const pathname = decodeURI(parsedUrl.pathname);
+
+  // 1. Plant2Human REST Proxy API (Cross-PC & CORS Bypass)
+  if (pathname === '/api/p2h-proxy') {
+    const targetUrl = parsedUrl.searchParams.get('url');
+    if (!targetUrl) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: "Missing 'url' query parameter" }));
+      return;
+    }
+
+    try {
+      const destUrl = new URL(targetUrl);
+      const isHttps = destUrl.protocol === 'https:';
+      const clientLib = isHttps ? https : http;
+
+      if (req.method === 'GET') {
+        const proxyReq = clientLib.get(destUrl, { timeout: 3500 }, (destRes) => {
+          let data = '';
+          destRes.on('data', chunk => data += chunk);
+          destRes.on('end', () => {
+            res.writeHead(destRes.statusCode, { 'Content-Type': 'application/json' });
+            res.end(data);
+          });
+        });
+
+        proxyReq.on('timeout', () => {
+          proxyReq.destroy();
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, isOffline: true, error: "Connection Timeout (3.5s)" }));
+        });
+
+        proxyReq.on('error', (err) => {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, isOffline: true, error: err.message }));
+        });
+        return;
+      } else if (req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+          const proxyReq = clientLib.request(destUrl, {
+            method: 'POST',
+            timeout: 3500,
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(body)
+            }
+          }, (destRes) => {
+            let data = '';
+            destRes.on('data', chunk => data += chunk);
+            destRes.on('end', () => {
+              res.writeHead(destRes.statusCode, { 'Content-Type': 'application/json' });
+              res.end(data);
+            });
+          });
+
+          proxyReq.on('timeout', () => {
+            proxyReq.destroy();
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, isOffline: true, error: "Connection Timeout (3.5s)" }));
+          });
+
+          proxyReq.on('error', (err) => {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, isOffline: true, error: err.message }));
+          });
+
+          proxyReq.write(body);
+          proxyReq.end();
+        });
+        return;
+      }
+    } catch (e) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, isOffline: true, error: e.message }));
+      return;
+    }
+  }
+
+  // 2. Built-in Plant2Human Standalone Mock REST Endpoints (for standalone operation)
+  if (pathname === '/api/discovery/pipeline') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      source: "Plant2Human_AI_OS",
+      status: "ONLINE",
+      timestamp: new Date().toISOString(),
+      pipelines: [
+        { id: "marigold_lutein", name: "메리골드", targetMolecule: "루테인", chemicalFormula: "C40H56O2", pubchemCid: 5281243, indication: "황반변성 억제 & 블루라이트 흡수" },
+        { id: "spinach_carotenoid", name: "유기농 시금치", targetMolecule: "복합 카로티노이드", chemicalFormula: "C40H56", pubchemCid: 5280489, indication: "황산화 및 세포 보호" },
+        { id: "grape_resveratrol", name: "호장근 / 포도", targetMolecule: "트랜스-레스베라트롤", chemicalFormula: "C14H12O3", pubchemCid: 445154, indication: "SIRT1 장수 유전자 활성화" },
+        { id: "kale_antioxidant", name: "슈퍼푸드 케일", targetMolecule: "설포라판 & 퀘르세틴", chemicalFormula: "C6H11NOS2", pubchemCid: 5350, indication: "Nrf2 해독 대사 촉진" }
+      ]
+    }));
+    return;
+  }
+
+  if (pathname === '/api/recipes/optimized' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        status: "ACKNOWLEDGED",
+        message: "Optimal recipe feedback received successfully by Plant2Human OS",
+        receivedAt: new Date().toISOString()
+      }));
+    });
+    return;
+  }
+
+  // 3. Static File Serving
+  let reqPath = pathname;
   if (reqPath === '/' || reqPath === '') {
     reqPath = '/index.html';
   }
