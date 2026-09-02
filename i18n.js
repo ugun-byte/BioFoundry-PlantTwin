@@ -139,7 +139,30 @@ export const I18N_DICTIONARY = {
     btnApplyRecipe: "최적 환경 적용 & AI 자율 운전 가동",
     newCropTitle: "신규 작물 & 약리 분자 등록",
     schedulerTitle: "24시간 스마트팜 환경 자동 제어 타임테이블",
-    btnApplySchedule: "스마트팜 24H 자동 운전 적용"
+    btnApplySchedule: "스마트팜 24H 자동 운전 적용",
+
+    // Diurnal & Alarms
+    diurnalSunrise: "🌅 일출 램프업",
+    diurnalDayPeak: "☀️ 주간 피크 광합성",
+    diurnalSunset: "🌆 일몰 & Far-Red",
+    diurnalNightDif: "🌙 야간 변온 DIF",
+    alarmDefaultTitle: "[위험] 기류/광합성 변화율 급변 감지!",
+    alarmAnTitle: "광합성 탄소동화율(An) 급변 감지",
+    alarmPpfdTitle: "조명 PPFD 조도 급변 감지",
+    alarmCo2Title: "이산화탄소(CO₂) 농도 급변 감지",
+    alarmSurge: "급상승",
+    alarmDrop: "급감",
+    alarmRateLabel: "변화율:",
+    alarmVppTitle: "VPP 전력 피크 감축 기동",
+    alarmVppDesc: "전력 도매 단가(SMP > 200원) 급등으로 피크 감축 운전 자동 진입 (조명/환기 0.64kW 감축)",
+    alarmPlcConnectSuccessTitle: "실제 하드웨어 PLC 연동 성공",
+    alarmPlcConnectSuccessDesc: "Node.js IoT Gateway 데몬(Modbus-TCP 5020 / WS 8092)에 실시간 연결되었습니다.",
+    alarmPlcDisconnectTitle: "PLC 데몬 미연결",
+    alarmPlcDisconnectDesc: "먼저 'PLC 하드웨어 데몬 연결' 버튼을 눌러 게이트웨이에 접속하세요.",
+    alarmPlcWriteTitle: "FC06 제어값 전송",
+    alarmPlcWriteDesc: "Modbus 레지스터 40001 (SETPOINT_PPFD) 쓰기 패킷 전송 완료",
+    optimalStatus: "양호",
+    cautionStatus: "주의"
   },
 
   en: {
@@ -278,7 +301,30 @@ export const I18N_DICTIONARY = {
     btnApplyRecipe: "Apply Optimal Recipe & Start AI Auto-Pilot",
     newCropTitle: "Register New Crop & Pharmaceutical Molecule",
     schedulerTitle: "24-Hour Smart Farm Autonomous Timetable",
-    btnApplySchedule: "Deploy 24H Autonomous Schedule"
+    btnApplySchedule: "Deploy 24H Autonomous Schedule",
+
+    // Diurnal & Alarms
+    diurnalSunrise: "🌅 Sunrise Ramp-Up",
+    diurnalDayPeak: "☀️ Daytime Peak Photosynthesis",
+    diurnalSunset: "🌆 Sunset & Far-Red",
+    diurnalNightDif: "🌙 Night DIF Dormancy",
+    alarmDefaultTitle: "[WARNING] Rapid Rate of Change Detected!",
+    alarmAnTitle: "Rapid Photosynthesis (An) Flux Shift",
+    alarmPpfdTitle: "Rapid PPFD Irradiance Shift",
+    alarmCo2Title: "Rapid CO₂ Concentration Shift",
+    alarmSurge: "Rapid Surge",
+    alarmDrop: "Rapid Drop",
+    alarmRateLabel: "Rate:",
+    alarmVppTitle: "VPP Peak Demand Curtailment Active",
+    alarmVppDesc: "Auto-curtailment triggered by peak wholesale power tariff (SMP > 200 KRW/kWh).",
+    alarmPlcConnectSuccessTitle: "Live Hardware PLC Link Established",
+    alarmPlcConnectSuccessDesc: "Real-time connected to IoT Gateway (Modbus-TCP 5020 / WS 8092).",
+    alarmPlcDisconnectTitle: "PLC Daemon Not Connected",
+    alarmPlcDisconnectDesc: "Please click 'Connect PLC Hardware Daemon' button first.",
+    alarmPlcWriteTitle: "FC06 Control Write Transmitted",
+    alarmPlcWriteDesc: "Modbus register 40001 (SETPOINT_PPFD) write frame transmitted.",
+    optimalStatus: "Optimal",
+    cautionStatus: "Caution"
   }
 };
 

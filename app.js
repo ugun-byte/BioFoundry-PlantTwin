@@ -1066,16 +1066,22 @@ let lastAlarmTime = 0;
 /**
  * Trigger Flashing SCADA Red Siren Toast Alarm & Warning Log console
  */
-function triggerSirenAlarm(title, desc) {
+function triggerSirenAlarm(title, desc, enTitle, enDesc) {
   const now = Date.now();
   if (now - lastAlarmTime < 3500) return; // throttle alerts
   lastAlarmTime = now;
 
+  const isEn = typeof i18n === "object" && typeof i18n.getLanguage === "function" && i18n.getLanguage() === "en";
+  const finalTitle = isEn && enTitle ? enTitle : title;
+  const finalDesc = isEn && enDesc ? enDesc : desc;
+
   const popup = document.getElementById("sirenAlarmPopup");
+  const titleEl = document.getElementById("sirenAlarmTitle");
   const descEl = document.getElementById("sirenAlarmDesc");
   if (!popup || !descEl) return;
 
-  descEl.textContent = desc;
+  if (titleEl) titleEl.textContent = finalTitle;
+  descEl.textContent = finalDesc;
   popup.style.display = "block";
 
   if (typeof audio === "object" && typeof audio.playPulse === "function") {
@@ -1085,13 +1091,13 @@ function triggerSirenAlarm(title, desc) {
   // Write to SCADA system warning logs
   const logConsole = document.getElementById("scadaAlarmLogs");
   if (logConsole) {
-    if (logConsole.innerHTML.includes("이상 미분 수치 발생 시")) {
+    if (logConsole.innerHTML.includes("이상 미분 수치 발생 시") || logConsole.innerHTML.includes("Standing by for derivative")) {
       logConsole.innerHTML = "";
     }
     const timestamp = new Date().toISOString().split("T")[1].substring(0, 8);
     const logLine = `<div style="margin-bottom:6px; border-bottom: 1px solid rgba(244,63,94,0.12); padding-bottom:4px;">
       <span style="color:#f43f5e; font-weight:700;">[🚨 ${timestamp} ALERT]</span>
-      <span style="color:#fff; font-weight:600;">${title}</span> - ${desc}
+      <span style="color:#fff; font-weight:600;">${finalTitle}</span> - ${finalDesc}
     </div>`;
     logConsole.innerHTML = logLine + logConsole.innerHTML;
     logConsole.scrollTop = 0;
@@ -1489,6 +1495,20 @@ function bindEventListeners() {
       const nextLang = current === "ko" ? "en" : "ko";
       i18n.setLanguage(nextLang);
       populateCropDropdown(profileManager.getActiveProfile().id);
+
+      const crop = profileManager.getActiveProfile();
+      const isEn = nextLang === "en";
+      const targetName = isEn && crop.targetMoleculeEn ? crop.targetMoleculeEn : crop.targetMolecule;
+      if (DOM.metaTargetMolecule) {
+        DOM.metaTargetMolecule.textContent = `${targetName} (${crop.chemicalFormula})`;
+      }
+
+      const sirenTitle = document.getElementById("sirenAlarmTitle");
+      if (sirenTitle) {
+        sirenTitle.textContent = isEn ? "[WARNING] Rapid Rate of Change Detected!" : "[위험] 기류/광합성 변화율 급변 감지!";
+      }
+
+      updatePlcConnectionUI(plcIsConnected);
 
       // Re-render active view if on subviews
       const activeTab = document.querySelector(".nav-tab-btn.active");
@@ -3972,7 +3992,12 @@ function togglePlcHardwareDaemon() {
     plcSocket.onopen = () => {
       plcIsConnected = true;
       updatePlcConnectionUI(true);
-      triggerSirenAlarm("실제 하드웨어 PLC 연동 성공", "Node.js IoT Gateway 데몬(Modbus-TCP 5020 / WS 8092)에 실시간 연결되었습니다.");
+      triggerSirenAlarm(
+        "실제 하드웨어 PLC 연동 성공",
+        "Node.js IoT Gateway 데몬(Modbus-TCP 5020 / WS 8092)에 실시간 연결되었습니다.",
+        "Live Hardware PLC Link Established",
+        "Real-time connected to IoT Gateway (Modbus-TCP 5020 / WS 8092)."
+      );
       audio.playPulse();
     };
 
@@ -3990,11 +4015,21 @@ function togglePlcHardwareDaemon() {
           if (msg.register === 40001) {
             // Setpoint PPFD
             envEngine.updateSetpoints({ ppfdTarget: msg.value });
-            triggerSirenAlarm("PLC 제어 명령 수신", `외부 PLC에서 광량 설정 레지스터(40001)를 ${msg.value} μmol로 변경했습니다.`);
+            triggerSirenAlarm(
+              "PLC 제어 명령 수신",
+              `외부 PLC에서 광량 설정 레지스터(40001)를 ${msg.value} μmol로 변경했습니다.`,
+              "PLC Control Command Received",
+              `External PLC updated PPFD setpoint register (40001) to ${msg.value} μmol.`
+            );
           } else if (msg.register === 40003) {
             // Setpoint Temp
             envEngine.updateSetpoints({ dayTempTarget: msg.value / 10.0 });
-            triggerSirenAlarm("PLC 제어 명령 수신", `외부 PLC에서 주간 온도 레지스터(40003)를 ${(msg.value / 10).toFixed(1)} °C로 변경했습니다.`);
+            triggerSirenAlarm(
+              "PLC 제어 명령 수신",
+              `외부 PLC에서 주간 온도 레지스터(40003)를 ${(msg.value / 10).toFixed(1)} °C로 변경했습니다.`,
+              "PLC Control Command Received",
+              `External PLC updated Day Temp register (40003) to ${(msg.value / 10).toFixed(1)} °C.`
+            );
           }
           audio.playPulse();
         }
@@ -4011,7 +4046,12 @@ function togglePlcHardwareDaemon() {
     plcSocket.onerror = () => {
       plcIsConnected = false;
       updatePlcConnectionUI(false);
-      triggerSirenAlarm("PLC 데몬 연결 대기", "IoT 게이트웨이 데몬이 오프라인 상태입니다. 터미널에서 `node industrial-iot-gateway-daemon.js`를 실행하세요.");
+      triggerSirenAlarm(
+        "PLC 데몬 연결 대기",
+        "IoT 게이트웨이 데몬이 오프라인 상태입니다. 터미널에서 `node industrial-iot-gateway-daemon.js`를 실행하세요.",
+        "PLC Daemon Waiting for Connection",
+        "IoT Gateway daemon is offline. Run `node industrial-iot-gateway-daemon.js` in terminal."
+      );
     };
   } catch (err) {
     updatePlcConnectionUI(false);
@@ -4069,7 +4109,12 @@ function updatePlcConnectionUI(connected) {
 
 function sendPlcTestWrite() {
   if (!plcIsConnected || !plcSocket) {
-    triggerSirenAlarm("PLC 데몬 미연결", "먼저 'PLC 하드웨어 데몬 연결' 버튼을 눌러 게이트웨이에 접속하세요.");
+    triggerSirenAlarm(
+      "PLC 데몬 미연결",
+      "먼저 'PLC 하드웨어 데몬 연결' 버튼을 눌러 게이트웨이에 접속하세요.",
+      "PLC Daemon Not Connected",
+      "Please click 'Connect PLC Hardware Daemon' button first."
+    );
     return;
   }
   const testVal = Math.floor(Math.random() * 300 + 450);
@@ -4078,7 +4123,12 @@ function sendPlcTestWrite() {
     addr: 40001,
     value: testVal
   }));
-  triggerSirenAlarm("FC06 제어값 전송", `Modbus 레지스터 40001 (SETPOINT_PPFD) = ${testVal} μmol 쓰기 패킷 전송 완료`);
+  triggerSirenAlarm(
+    "FC06 제어값 전송",
+    `Modbus 레지스터 40001 (SETPOINT_PPFD) = ${testVal} μmol 쓰기 패킷 전송 완료`,
+    "FC06 Control Write Transmitted",
+    `Modbus register 40001 (SETPOINT_PPFD) = ${testVal} μmol write frame transmitted.`
+  );
   audio.playPulse();
 }
 
@@ -4482,7 +4532,9 @@ function simulationLoop(now) {
           window.vppLastCurtailmentState = true;
           triggerSirenAlarm(
             "VPP 전력 피크 감축 기동", 
-            `실시간 SMP 단가 ${currentSmp.toFixed(1)}원 돌파! 전력 제어 강제 자동 감축(PPFD 180, Fan 350RPM) 돌입.`
+            `실시간 SMP 단가 ${currentSmp.toFixed(1)}원 돌파! 전력 제어 강제 자동 감축(PPFD 180, Fan 350RPM) 돌입.`,
+            "VPP Peak Demand Curtailment Active",
+            `Wholesale SMP ${currentSmp.toFixed(1)} KRW/kWh! Auto power curtailment engaged (PPFD 180, Fan 350RPM).`
           );
         }
       } else {
@@ -4599,16 +4651,17 @@ function simulationLoop(now) {
 
     // 6. Update Top Diurnal Status Label with Time of Day Phase
     const hour = envTele.simulatedHour;
-    let diurnalPhaseText = "☀️ 주간 피크 광합성";
+    let phaseKey = "diurnalDayPeak";
     if (hour >= 5.0 && hour < 8.5) {
-      diurnalPhaseText = "🌅 일출 램프업";
+      phaseKey = "diurnalSunrise";
     } else if (hour >= 8.5 && hour < 17.0) {
-      diurnalPhaseText = "☀️ 주간 피크 광합성";
+      phaseKey = "diurnalDayPeak";
     } else if (hour >= 17.0 && hour < 21.0) {
-      diurnalPhaseText = "🌆 일몰 & Far-Red";
+      phaseKey = "diurnalSunset";
     } else {
-      diurnalPhaseText = "🌙 야간 변온 DIF";
+      phaseKey = "diurnalNightDif";
     }
+    const diurnalPhaseText = typeof i18n === "object" ? i18n.t(phaseKey) : "☀️ 주간 피크 광합성";
     DOM.diurnalStatusLabel.textContent = `${diurnalPhaseText} ${envTele.timeFormatted}`;
 
     // 7. Update 8 Telemetry Tiles
@@ -4712,13 +4765,31 @@ function simulationLoop(now) {
       // Thresholds: An derivative absolute > 8.0, PPFD absolute > 350.0, CO2 absolute > 150.0
       if (Math.abs(diffAn) > 8.0) {
         const dir = diffAn > 0 ? "급상승" : "급감";
-        triggerSirenAlarm("광합성 탄소동화율(An) 급변 감지", `광합성 속도(An) ${dir}! (변화율: ${diffAn.toFixed(2)} μmol/m²/s²)`);
+        const dirEn = diffAn > 0 ? "Rapid Surge" : "Rapid Drop";
+        triggerSirenAlarm(
+          "광합성 탄소동화율(An) 급변 감지",
+          `광합성 속도(An) ${dir}! (변화율: ${diffAn.toFixed(2)} μmol/m²/s²)`,
+          "Rapid Photosynthesis (An) Shift",
+          `Photosynthesis rate (An) ${dirEn}! (Rate: ${diffAn.toFixed(2)} μmol/m²/s²)`
+        );
       } else if (Math.abs(diffPpfd) > 350.0) {
         const dir = diffPpfd > 0 ? "급상승" : "급감";
-        triggerSirenAlarm("조명 PPFD 조도 급변 감지", `조도(PPFD) ${dir}! (변화율: ${diffPpfd.toFixed(1)} μmol/m²/s²)`);
+        const dirEn = diffPpfd > 0 ? "Rapid Surge" : "Rapid Drop";
+        triggerSirenAlarm(
+          "조명 PPFD 조도 급변 감지",
+          `조도(PPFD) ${dir}! (변화율: ${diffPpfd.toFixed(1)} μmol/m²/s²)`,
+          "Rapid Light PPFD Shift",
+          `Irradiance (PPFD) ${dirEn}! (Rate: ${diffPpfd.toFixed(1)} μmol/m²/s²)`
+        );
       } else if (Math.abs(diffCo2) > 150.0) {
         const dir = diffCo2 > 0 ? "급상승" : "급감";
-        triggerSirenAlarm("이산화탄소(CO₂) 농도 급변 감지", `농도(CO₂) ${dir}! (변화율: ${diffCo2.toFixed(1)} ppm/s)`);
+        const dirEn = diffCo2 > 0 ? "Rapid Surge" : "Rapid Drop";
+        triggerSirenAlarm(
+          "이산화탄소(CO₂) 농도 급변 감지",
+          `농도(CO₂) ${dir}! (변화율: ${diffCo2.toFixed(1)} ppm/s)`,
+          "Rapid CO₂ Concentration Shift",
+          `CO₂ concentration ${dirEn}! (Rate: ${diffCo2.toFixed(1)} ppm/s)`
+        );
       }
     }
     lastAnValue = instantPhoto.netAn;

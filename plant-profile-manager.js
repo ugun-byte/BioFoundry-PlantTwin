@@ -12,7 +12,7 @@ export class PlantProfileManager {
         nameEn: "Marigold",
         scientificName: "Tagetes erecta L.",
         targetMolecule: "루테인",
-        targetMoleculeEn: "Lutein (C40H56O2)",
+        targetMoleculeEn: "Lutein",
         chemicalFormula: "C₄₀H₅₆O₂",
         pubchemCid: 5281243,
         molecularWeight: 568.87,

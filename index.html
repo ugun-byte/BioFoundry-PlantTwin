@@ -511,7 +511,7 @@
             <div class="siren-alarm-content">
               <span class="siren-alarm-icon">🚨</span>
               <div class="siren-alarm-text">
-                <strong style="display:block; font-size:12px; color:#fff;">[위험] 기류/광합성 변화율 급변 감지!</strong>
+                <strong id="sirenAlarmTitle" style="display:block; font-size:12px; color:#fff;" data-i18n="alarmDefaultTitle">[위험] 기류/광합성 변화율 급변 감지!</strong>
                 <span id="sirenAlarmDesc" style="font-size:10.5px; color:rgba(255,255,255,0.85); font-family: monospace;">-</span>
               </div>
               <button onclick="document.getElementById('sirenAlarmPopup').style.display='none'" style="background:transparent; border:none; color:#fda4af; cursor:pointer; font-weight:bold; font-size:13px; padding-left:10px;">✕</button>
@@ -3168,6 +3168,6 @@
   <!-- Scripts -->
   <script src="three.min.js"></script>
   <script src="OrbitControls.js"></script>
-  <script type="module" src="app.js?v=5.1"></script>
+  <script type="module" src="app.js?v=5.2"></script>
 </body>
 </html>
