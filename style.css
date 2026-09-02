@@ -764,45 +764,144 @@ body {
 
 .switch-pill {
   position: relative;
-  display: inline-block;
-  width: 32px;
-  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  width: 46px;
+  height: 24px;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
 }
 
 .switch-pill input {
   opacity: 0;
   width: 0;
   height: 0;
+  position: absolute;
 }
 
 .switch-slider {
   position: absolute;
   cursor: pointer;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #1e293b;
-  transition: 0.2s;
-  border-radius: 16px;
+  background-color: #090e17;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 24px;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+}
+
+/* Track internal state hint text */
+.switch-slider:after {
+  position: absolute;
+  right: 6px;
+  content: "OFF";
+  font-size: 8px;
+  font-weight: 900;
+  font-family: monospace;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  line-height: 1;
 }
 
 .switch-slider:before {
   position: absolute;
   content: "";
-  height: 12px;
-  width: 12px;
+  height: 16px;
+  width: 16px;
   left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: 0.2s;
+  bottom: 2.5px;
+  background-color: #cbd5e1;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+  z-index: 2;
 }
 
+/* Checked state (ON) - Vibrant Green */
 input:checked + .switch-slider {
-  background-color: var(--emerald-primary);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-color: #34d399;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+/* Checked state for UV-B - Neon Purple */
+.switch-pill-uvb input:checked + .switch-slider {
+  background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+  border-color: #c084fc;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.65), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+input:checked + .switch-slider:after {
+  content: "ON";
+  left: 6px;
+  right: auto;
+  color: #ffffff;
+  font-size: 8.5px;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 input:checked + .switch-slider:before {
-  transform: translateX(16px);
+  transform: translateX(22px);
+  background-color: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Explicit Status Badge next to switch */
+.switch-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 900;
+  font-family: monospace;
+  letter-spacing: 0.5px;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.switch-status-badge.off {
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.switch-status-badge.on {
+  background: rgba(16, 185, 129, 0.25);
+  color: #6ee7b7;
+  border: 1px solid rgba(52, 211, 153, 0.8);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.switch-status-badge.on.purple {
+  background: rgba(168, 85, 247, 0.25);
+  color: #f3e8ff;
+  border: 1px solid rgba(192, 132, 252, 0.8);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+}
+
+/* Number input visual states based on toggle */
+.slider-num-input.is-disabled {
+  opacity: 0.35;
+  filter: grayscale(0.9);
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.slider-num-input.is-active {
+  opacity: 1;
+  filter: none;
+  cursor: auto;
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
 }
 
 /* ==========================================================================

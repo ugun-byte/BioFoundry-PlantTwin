@@ -1604,6 +1604,9 @@ function bindEventListeners() {
       if (typeof audio === "object" && typeof audio.playClick === "function") {
         audio.playClick();
       }
+      if (typeof updateVppSwitchUI === "function") {
+        updateVppSwitchUI(e.target.checked);
+      }
       const statusBadge = document.getElementById("vppBadgeStatus");
       if (statusBadge) {
         if (window.vppModeActive) {
@@ -1792,10 +1795,52 @@ function bindEventListeners() {
   bindTwoWayControl(DOM.sliderEc, DOM.inputEc, (val) => envEngine.updateSetpoints({ ecTarget: val }));
   bindTwoWayControl(DOM.sliderPh, DOM.inputPh, (val) => envEngine.updateSetpoints({ phTarget: val }));
 
+  // Helper UI updater functions for toggles
+  function updateUvbSwitchUI(checked) {
+    const badge = document.getElementById("lblUvbStatus");
+    const input = document.getElementById("inputUvb");
+    if (badge) {
+      badge.textContent = checked ? "ON" : "OFF";
+      badge.className = checked ? "switch-status-badge on purple" : "switch-status-badge off";
+    }
+    if (input) {
+      input.className = checked ? "slider-num-input is-active" : "slider-num-input is-disabled";
+    }
+  }
+  window.updateUvbSwitchUI = updateUvbSwitchUI;
+
+  function updateColdShiftSwitchUI(checked) {
+    const badge = document.getElementById("lblColdShiftStatus");
+    const input = document.getElementById("inputColdShift");
+    if (badge) {
+      badge.textContent = checked ? "ON" : "OFF";
+      badge.className = checked ? "switch-status-badge on" : "switch-status-badge off";
+    }
+    if (input) {
+      input.className = checked ? "slider-num-input is-active" : "slider-num-input is-disabled";
+    }
+  }
+  window.updateColdShiftSwitchUI = updateColdShiftSwitchUI;
+
+  function updateVppSwitchUI(checked) {
+    const badge = document.getElementById("lblVppToggleStatus");
+    if (badge) {
+      badge.textContent = checked ? "ON" : "OFF";
+      badge.className = checked ? "switch-status-badge on" : "switch-status-badge off";
+    }
+  }
+  window.updateVppSwitchUI = updateVppSwitchUI;
+
+  // Initialize switch visual states
+  updateUvbSwitchUI(DOM.checkUvb ? DOM.checkUvb.checked : false);
+  updateColdShiftSwitchUI(DOM.checkColdShift ? DOM.checkColdShift.checked : false);
+  updateVppSwitchUI(document.getElementById("chkEnableVpp")?.checked || false);
+
   // Switches
   DOM.checkUvb.addEventListener("change", (e) => {
     if (e.target.checked) audio.playUvElicitationTone();
     else audio.playClick();
+    updateUvbSwitchUI(e.target.checked);
     envEngine.updateSetpoints({ uvbActive: e.target.checked });
   });
   if (DOM.inputUvb) {
@@ -1803,11 +1848,13 @@ function bindEventListeners() {
       const val = parseFloat(e.target.value) || 1.2;
       envEngine.updateSetpoints({ uvbActive: true, uvbIntensity: val });
       DOM.checkUvb.checked = true;
+      updateUvbSwitchUI(true);
     });
   }
 
   DOM.checkColdShift.addEventListener("change", (e) => {
     audio.playClick();
+    updateColdShiftSwitchUI(e.target.checked);
     envEngine.updateSetpoints({ coldShiftActive: e.target.checked });
   });
   if (DOM.inputColdShift) {
@@ -1815,6 +1862,7 @@ function bindEventListeners() {
       const val = parseFloat(e.target.value) || 2.0;
       envEngine.updateSetpoints({ coldShiftActive: true, coldShiftDelta: val });
       DOM.checkColdShift.checked = true;
+      updateColdShiftSwitchUI(true);
     });
   }
 
@@ -5169,6 +5217,8 @@ function toggleAiAutoPilot() {
     DOM.sliderFarRed.value = rec.spectrum.farRed; if (DOM.inputFarRed) DOM.inputFarRed.value = rec.spectrum.farRed;
     DOM.checkUvb.checked = rec.uvbActive;
     DOM.checkColdShift.checked = rec.coldShiftActive;
+    if (typeof updateUvbSwitchUI === "function") updateUvbSwitchUI(rec.uvbActive);
+    if (typeof updateColdShiftSwitchUI === "function") updateColdShiftSwitchUI(rec.coldShiftActive);
   } else {
     DOM.btnAiAutoPilot.classList.remove("active");
     switchBadge.textContent = "OFF";
