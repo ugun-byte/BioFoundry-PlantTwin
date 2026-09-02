@@ -1970,20 +1970,24 @@ input:checked + .switch-slider:before {
    ========================================================================== */
 .siren-alarm-toast {
   position: absolute;
-  top: 76px;
-  right: 14px;
-  width: 320px;
-  background: rgba(127, 29, 29, 0.90);
+  bottom: 22px;
+  left: 16px;
+  right: auto;
+  top: auto;
+  width: 340px;
+  max-width: calc(100% - 32px);
+  background: rgba(127, 29, 29, 0.92);
   border: 1.5px solid #f43f5e;
   border-radius: var(--radius-md);
-  box-shadow: 0 0 25px rgba(244, 63, 94, 0.45);
+  box-shadow: 0 0 25px rgba(244, 63, 94, 0.45), 0 8px 24px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
   z-index: 99;
   overflow: hidden;
-  animation: alarmSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: alarmSlideInLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes alarmSlideIn {
-  from { transform: translateX(120%); opacity: 0; }
+@keyframes alarmSlideInLeft {
+  from { transform: translateX(-120%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
 
