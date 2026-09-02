@@ -769,6 +769,10 @@ function initResizablePanels() {
   let rightW = savedRightW ? parseFloat(savedRightW) : 340;
   let bottomH = savedBottomH ? parseFloat(savedBottomH) : 165;
 
+  if (isNaN(leftW) || leftW < 180 || leftW > 600) leftW = 265;
+  if (isNaN(rightW) || rightW < 220 || rightW > 600) rightW = 340;
+  if (isNaN(bottomH) || bottomH < 100 || bottomH > 400) bottomH = 165;
+
   const applyLayout = () => {
     gridEl.style.setProperty("--col-left-w", `${leftW}px`);
     gridEl.style.setProperty("--col-right-w", `${rightW}px`);
