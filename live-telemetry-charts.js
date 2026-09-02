@@ -42,12 +42,31 @@ export class LiveTelemetryCharts {
       fvfm: []
     };
 
+    this.targetMoleculeName = "루테인";
+    this.targetMoleculeNameEn = "Lutein";
+
     this.dragInfo = { active: false, startX: 0, currentX: 0, canvasKey: null };
     this.setupDragZoom();
 
     window.addEventListener("resize", () => {
       this.resizeAll();
     });
+  }
+
+  setTargetMolecule(name, nameEn) {
+    this.targetMoleculeName = name || "루테인";
+    this.targetMoleculeNameEn = nameEn || name || "Lutein";
+    this.updateMoleculeLabels();
+  }
+
+  updateMoleculeLabels() {
+    const isEn = typeof window !== "undefined" && window.i18n && typeof window.i18n.getLanguage === "function" && window.i18n.getLanguage() === "en";
+    const molDisplayName = isEn ? (this.targetMoleculeNameEn || "Lutein") : (this.targetMoleculeName || "루테인");
+
+    const fluxEl = document.getElementById("lblScope2FluxName");
+    const concEl = document.getElementById("lblScope2ConcName");
+    if (fluxEl) fluxEl.textContent = `${molDisplayName} Flux`;
+    if (concEl) concEl.textContent = `${molDisplayName} Conc.`;
   }
 
   resizeAll() {
@@ -2902,13 +2921,18 @@ export class LiveTelemetryCharts {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const padL = 36;
-    const plotW = rect.width - 80;
-
-    let x1 = Math.min(startX, endX);
-    let x2 = Math.max(startX, endX);
-
-    const r1 = Math.max(0, Math.min(1, (x1 - padL) / plotW));
-    const r2 = Math.max(0, Math.min(1, (x2 - padL) / plotW));
+    let r1 = 0;
+    let r2 = 1;
+    if (startX >= 0 && startX <= 1 && endX >= 0 && endX <= 1) {
+      r1 = Math.min(startX, endX);
+      r2 = Math.max(startX, endX);
+    } else {
+      const plotW = Math.max(100, (rect && rect.width ? rect.width : (canvas.width || 400)) - 80);
+      let x1 = Math.min(startX, endX);
+      let x2 = Math.max(startX, endX);
+      r1 = Math.max(0, Math.min(1, (x1 - padL) / plotW));
+      r2 = Math.max(0, Math.min(1, (x2 - padL) / plotW));
+    }
 
     let rawSeries = [];
     let titleStr = "";
@@ -2926,7 +2950,9 @@ export class LiveTelemetryCharts {
       maxVal = 40.0;
     } else {
       rawSeries = this.getScaledSeries(this.history.luteinFlux, 14.5, 25.0);
-      titleStr = "📊 Lutein 대사 합성 속도(Flux) 세그먼트 현황";
+      const isEn = typeof window !== "undefined" && window.i18n && typeof window.i18n.getLanguage === "function" && window.i18n.getLanguage() === "en";
+      const molDisplayName = isEn ? (this.targetMoleculeNameEn || "Lutein") : (this.targetMoleculeName || "루테인");
+      titleStr = isEn ? `📊 ${molDisplayName} Metabolic Flux Segment Analysis` : `📊 ${molDisplayName} 대사 합성 속도(Flux) 세그먼트 현황`;
       units = " mg/m²/h";
       colorTheme = "#c084fc";
       fillTheme = "rgba(192, 132, 252, 0.12)";
@@ -2934,11 +2960,17 @@ export class LiveTelemetryCharts {
     }
 
     const len = rawSeries.length;
-    const idx1 = Math.floor(r1 * (len - 1));
-    const idx2 = Math.ceil(r2 * (len - 1));
-    const slicedData = rawSeries.slice(idx1, idx2 + 1);
+    const idx1 = Math.floor(r1 * Math.max(0, len - 1));
+    const idx2 = Math.ceil(r2 * Math.max(0, len - 1));
+    let slicedData = rawSeries.slice(idx1, idx2 + 1);
 
-    if (slicedData.length < 2) return;
+    if (slicedData.length < 2) {
+      if (rawSeries.length >= 2) {
+        slicedData = rawSeries.slice(0, 2);
+      } else {
+        slicedData = [15.0, 15.2];
+      }
+    }
 
     const valStart = slicedData[0];
     const valEnd = slicedData[slicedData.length - 1];

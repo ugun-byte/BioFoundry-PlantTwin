@@ -651,6 +651,11 @@ function initApp() {
       photoScope: DOM.photoScopeChart,
       luteinScope: DOM.luteinScopeChart
     });
+    const activeCrop = profileManager.getActiveProfile();
+    if (activeCrop && telemetryCharts) {
+      telemetryCharts.setTargetMolecule(activeCrop.targetMolecule, activeCrop.targetMoleculeEn);
+    }
+    window.telemetryCharts = telemetryCharts;
   } catch (e) {
     console.error("LiveTelemetryCharts init error:", e);
   }
@@ -1510,6 +1515,10 @@ function bindEventListeners() {
 
       updatePlcConnectionUI(plcIsConnected);
 
+      if (telemetryCharts) {
+        telemetryCharts.setTargetMolecule(crop.targetMolecule, crop.targetMoleculeEn);
+      }
+
       // Re-render active view if on subviews
       const activeTab = document.querySelector(".nav-tab-btn.active");
       if (activeTab) {
@@ -1670,6 +1679,10 @@ function bindEventListeners() {
     
     if (DOM.metaTargetMolecule) {
       DOM.metaTargetMolecule.textContent = `${targetName} (${crop.chemicalFormula})`;
+    }
+
+    if (telemetryCharts) {
+      telemetryCharts.setTargetMolecule(crop.targetMolecule, crop.targetMoleculeEn);
     }
     
     if (plantChamber3d) plantChamber3d.setCropSpecies(crop);
@@ -5265,6 +5278,9 @@ function submitNewCropForm() {
   const isEn = i18n.getLanguage() === "en";
   const targetName = isEn && registered.targetMoleculeEn ? registered.targetMoleculeEn : registered.targetMolecule;
   DOM.metaTargetMolecule.textContent = `${targetName} (${registered.chemicalFormula})`;
+  if (telemetryCharts) {
+    telemetryCharts.setTargetMolecule(registered.targetMolecule, registered.targetMoleculeEn);
+  }
   if (plantChamber3d) plantChamber3d.setCropSpecies(registered);
   resetPlantState();
   buildParamEditor();
